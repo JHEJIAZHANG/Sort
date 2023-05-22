@@ -1,2 +1,2 @@
 # Sort
-step by step
+Learn step by step
