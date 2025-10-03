@@ -78,7 +78,7 @@ export function AssignmentDetail({
     try {
       await executeWithFeedback(
         assignment.id,
-        () => onStatusChange(newStatus),
+        async () => onStatusChange(newStatus),
         {
           successMessage: statusMessages[newStatus],
           errorMessage: "狀態更新失敗，請稍後再試"

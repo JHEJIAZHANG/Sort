@@ -126,7 +126,7 @@ export function useGoogleAuth() {
         const userEmail = callbackData.email || undefined
         setAuthorized(true, userEmail)
         setLoading(false)
-        return userEmail
+        return userEmail ?? null
       }
 
       // 使用適合的方式開啟授權連結（LIFF 外部或新分頁）

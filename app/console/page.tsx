@@ -80,7 +80,7 @@ export default function ConsolePage() {
               <ul className="text-sm space-y-1">
                 {courses.map((course, index) => (
                   <li key={course.id} className="text-gray-600">
-                    {index + 1}. {course.title}
+                    {index + 1}. {course.name}
                   </li>
                 ))}
               </ul>

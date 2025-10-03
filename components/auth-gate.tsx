@@ -4,6 +4,7 @@ import { useEffect } from 'react'
 import { usePathname, useRouter } from 'next/navigation'
 import { useUserAuth } from '@/hooks/use-user-auth'
 import { useLineAuth } from '@/hooks/use-line-auth'
+import { UserService } from '@/services/userService'
 import { Loader2 } from 'lucide-react'
 
 interface AuthGateProps {
@@ -18,6 +19,26 @@ export function AuthGate({ children }: AuthGateProps) {
     skipAutoCheck: isRegistrationPage
   })
   const { isLoading: lineLoading, isLoggedIn } = useLineAuth()
+
+  // 註冊頁的快速守衛：若已註冊則直接導回首頁
+  useEffect(() => {
+    if (!isRegistrationPage) return
+    if (lineLoading) return
+    if (!isLoggedIn) return
+    const uid = lineProfile?.userId
+    if (!uid) return
+
+    ;(async () => {
+      try {
+        const registered = await UserService.getOnboardStatus(uid)
+        if (registered) {
+          router.replace('/')
+        }
+      } catch {
+        // 忽略錯誤，交由註冊頁自身邏輯處理
+      }
+    })()
+  }, [isRegistrationPage, lineLoading, isLoggedIn, lineProfile?.userId, router])
 
   useEffect(() => {
     if (isRegistrationPage) return

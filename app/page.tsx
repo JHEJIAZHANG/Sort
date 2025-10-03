@@ -702,9 +702,9 @@ export default function HomePage() {
                 onViewAllTodos={() => {
                   handleTabChange("tasks")
                 }}
-                onAssignmentStatusChange={updateAssignment}
-                onExamStatusChange={updateExam}
-                onCustomTodoStatusChange={updateCustomCategoryItem}
+                onAssignmentStatusChange={(id, status) => { void updateAssignment(id, { status }) }}
+                onExamStatusChange={(id, status) => { void updateExam(id, { status }) }}
+                onCustomTodoStatusChange={(id, status) => { updateCustomCategoryItem(id, { status }) }}
               />
             </div>
           </div>

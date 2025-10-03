@@ -127,13 +127,12 @@ export function ExamCard({ exam, course, onStatusChange, onEdit, onDelete, onVie
     
     const statusMessages = {
       completed: "考試已標記為結束",
-      pending: "考試已標記為未完成"
+      pending: "考試已標記為未完成",
+      overdue: "考試狀態已更新"
     }
     
     try {
-      await executeWithFeedback(
-        exam.id,
-        () => onStatusChange(exam.id, newStatus),
+      await executeWithFeedback( exam.id, async () => onStatusChange(exam.id, newStatus),
         {
           successMessage: statusMessages[newStatus],
           errorMessage: "狀態更新失敗，請稍後再試"

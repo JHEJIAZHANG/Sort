@@ -9,6 +9,7 @@ export interface Course {
     dayOfWeek: number // 0-6 (Monday-Sunday)
     startTime: string // HH:MM format
     endTime: string // HH:MM format
+    location?: string
   }[]
   color: string
   createdAt: Date

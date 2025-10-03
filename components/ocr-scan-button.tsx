@@ -10,6 +10,7 @@ interface OCRScanButtonProps {
   variant?: "default" | "outline" | "ghost"
   size?: "sm" | "default" | "lg"
   className?: string
+  style?: React.CSSProperties
   children?: React.ReactNode
   showIcon?: boolean
 }
@@ -18,6 +19,7 @@ export function OCRScanButton({
   variant = "default", 
   size = "default", 
   className = "",
+  style,
   children,
   showIcon = true
 }: OCRScanButtonProps) {
@@ -52,6 +54,7 @@ export function OCRScanButton({
       variant={variant}
       size={size}
       className={className}
+      style={style}
       onClick={handleScanClick}
       disabled={isLoading}
     >

@@ -101,12 +101,8 @@ export function GoogleCalendarSync({ onSync }: GoogleCalendarSyncProps) {
         } else if (response.data && Array.isArray(response.data)) {
           setCalendarEvents(response.data as CalendarEvent[])
           setErrorMessage(null)
-        } else if (response.success === false && (response as any).code === 'NOT_AUTHORIZED') {
-          // 另一種處理 NOT_AUTHORIZED 的方式
-          setErrorMessage('Google Calendar 尚未授權，請先進行授權')
-          setIsConnected(false)
-          setCalendarEvents([])
-        }
+                }
+
       } catch (error) {
         console.error('載入日曆事件失敗:', error)
         setErrorMessage('載入日曆事件時發生錯誤')
@@ -125,13 +121,16 @@ export function GoogleCalendarSync({ onSync }: GoogleCalendarSyncProps) {
     setErrorMessage(null)
 
     try {
-      const response = await ApiService.testGoogleConnection()
+      const response = await ApiService.getGoogleApiStatus()
       if (response.error) {
         setErrorMessage(response.error)
         setIsConnected(false)
-      } else {
-        setIsConnected(true)
+      } else if (response.data) {
+        setIsConnected((response.data as any).is_connected || false)
         setErrorMessage(null)
+      } else {
+        setIsConnected(false)
+        setErrorMessage('無法取得連接狀態')
       }
     } catch (error) {
       console.error('測試連接失敗:', error)

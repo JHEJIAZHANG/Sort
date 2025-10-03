@@ -139,7 +139,7 @@ export function AssignmentCard({
     try {
       await executeWithFeedback(
         assignment.id,
-        () => onStatusChange(assignment.id, newStatus),
+        async () => onStatusChange(assignment.id, newStatus),
         {
           successMessage: statusMessages[newStatus],
           errorMessage: "狀態更新失敗，請稍後再試"
