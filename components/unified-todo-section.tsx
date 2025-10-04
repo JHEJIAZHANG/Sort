@@ -425,11 +425,11 @@ export function UnifiedTodoSection({
         />
       )}
 
-      {reminderDays > 0 && (
-        <div className="mt-3 pt-3 border-t border-border">
-          <p className="text-xs text-muted-foreground text-center">顯示 {reminderDays} 天內的待辦事項</p>
-        </div>
-      )}
+      <div className="mt-3 pt-3 border-t border-border">
+        <p className="text-xs text-muted-foreground text-center">
+          {reminderDays === 0 ? '顯示今天的待辦事項' : `顯示 ${reminderDays} 天內的待辦事項`}
+        </p>
+      </div>
     </Card>
   )
 }
