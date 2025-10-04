@@ -510,13 +510,6 @@ export function ProfileContent({ user: propUser, onUserChange }: ProfileContentP
               </div>
             )}
           </div>
-
-          {user.isLoggedIn ? (
-            <Button variant="outline" size="sm" onClick={handleLogout} className="shrink-0 bg-transparent">
-              <LogOutIcon className="w-4 h-4 mr-1" />
-              登出
-            </Button>
-          ) : null}
         </div>
       </Card>
 
@@ -526,7 +519,7 @@ export function ProfileContent({ user: propUser, onUserChange }: ProfileContentP
           <GoogleIcon className="w-5 h-5" />
           Google 同步
         </h3>
-        
+
         <div className="space-y-4">
           <p className="text-sm text-muted-foreground">
             一鍵同步 Google Classroom 課程、作業和 Google Calendar 事件
