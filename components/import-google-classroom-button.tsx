@@ -41,6 +41,7 @@ export function ImportGoogleClassroomButton({ onImportComplete }: ImportGoogleCl
 
   const handleOnboardingComplete = () => {
     setShowOnboarding(false)
+    // 匯入完成後刷新課程列表
     if (onImportComplete) {
       onImportComplete()
     }
@@ -48,9 +49,8 @@ export function ImportGoogleClassroomButton({ onImportComplete }: ImportGoogleCl
 
   const handleOnboardingSkip = () => {
     setShowOnboarding(false)
-    if (onImportComplete) {
-      onImportComplete()
-    }
+    // 用戶選擇稍後再說，不刷新課程列表
+    // 這樣未設定時間表的課程不會顯示在列表中
   }
 
   return (

@@ -251,7 +251,7 @@ export function GoogleClassroomOnboarding({ isOpen, onComplete, onSkip }: Google
             <DialogFooter className="pt-6 border-t">
               <div className="flex gap-3 w-full sm:w-auto">
                 <Button variant="outline" onClick={onSkip} className="flex-1 sm:flex-none">
-                  稍後再說
+                  取消
                 </Button>
                 <Button onClick={loadGoogleClassroomCourses} className="flex-1 sm:flex-none">
                   開始匯入
@@ -539,7 +539,7 @@ export function GoogleClassroomOnboarding({ isOpen, onComplete, onSkip }: Google
                 <div className="flex gap-3">
                   <Button variant="outline" onClick={onSkip} disabled={importing}>
                     <X className="h-4 w-4 mr-2" />
-                    跳過
+                    取消
                   </Button>
                   <Button 
                     onClick={handleConfirm}
