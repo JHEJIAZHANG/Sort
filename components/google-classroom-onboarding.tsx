@@ -87,8 +87,12 @@ export function GoogleClassroomOnboarding({ isOpen, onComplete, onSkip }: Google
         throw new Error(coursesResponse.error)
       }
 
+      // 只顯示沒有設定時間表的課程（未匯入的課程）
       const googleCourses = (coursesResponse.data || [])
-        .filter((course: any) => course.source === 'google_classroom')
+        .filter((course: any) => 
+          course.source === 'google_classroom' && 
+          (!course.schedule || course.schedule.length === 0)
+        )
         .map((course: any) => ({
           id: course.id,
           name: course.name,
@@ -96,17 +100,20 @@ export function GoogleClassroomOnboarding({ isOpen, onComplete, onSkip }: Google
           room: course.classroom,
           instructor: course.instructor,
           selected: true, // 預設全選
-          schedules: course.schedule?.length > 0 ? course.schedule.map((s: any) => ({
-            day_of_week: s.dayOfWeek,
-            start_time: s.startTime,
-            end_time: s.endTime
-          })) : [{
+          schedules: [{
             day_of_week: 0,
             start_time: '09:00',
             end_time: '10:30'
           }],
           classroom: course.classroom || ''
         }))
+
+      // 如果沒有未匯入的課程，顯示提示
+      if (googleCourses.length === 0) {
+        setError('沒有找到未匯入的課程。所有 Google Classroom 課程都已設定時間表。')
+        setStep('welcome')
+        return
+      }
 
       setCourses(googleCourses)
       setStep('select')
@@ -236,10 +243,9 @@ export function GoogleClassroomOnboarding({ isOpen, onComplete, onSkip }: Google
                 <div className="mx-auto w-20 h-20 bg-primary/10 rounded-full flex items-center justify-center">
                   <BookOpen className="h-10 w-10 text-primary" />
                 </div>
-                <h3 className="text-lg font-semibold">要匯入 Google Classroom 的課程嗎？</h3>
+                <h3 className="text-lg font-semibold">匯入 Google Classroom 課程</h3>
                 <p className="text-muted-foreground max-w-md mx-auto">
-                  我們可以幫您從 Google Classroom 匯入課程，並設定上課時間。
-                  您也可以稍後在設定中進行匯入。
+                  系統將載入您的 Google Classroom 課程，您可以選擇要匯入的課程並設定上課時間。
                 </p>
                 {error && (
                   <div className="bg-destructive/10 border border-destructive/20 rounded-lg p-4 text-sm text-destructive">
