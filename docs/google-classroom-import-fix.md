@@ -1,6 +1,20 @@
 # Google Classroom 課程匯入修正
 
-## 最新更新（第二版）
+## 最新更新（第三版 - 修正同步 API）
+
+### 問題修正
+
+**問題**：「匯入 Google Classroom 課程」按鈕無法顯示未匯入的課程，但「立即同步所有 Google 服務」可以。
+
+**原因**：兩個按鈕使用了不同的 API 端點：
+- 「匯入 Google Classroom 課程」使用 `syncGoogleClassroom()` → `/sync/classroom-to-v2/`
+- 「立即同步所有 Google 服務」使用 `manualSyncAll()` → `/sync/manual-sync-all/`
+
+**解決方案**：統一使用 `manualSyncAll()` API，確保兩個功能的行為一致。
+
+---
+
+## 更新（第二版）
 
 ### 新的使用流程
 

@@ -18,8 +18,9 @@ export function ImportGoogleClassroomButton({ onImportComplete }: ImportGoogleCl
     setIsLoading(true)
     
     try {
-      // 先同步 Google Classroom 課程
-      const response = await ApiService.syncGoogleClassroom()
+      // 使用 manualSyncAll 來同步所有 Google 服務（包括 Classroom）
+      // 這與「立即同步所有 Google 服務」使用相同的 API
+      const response = await ApiService.manualSyncAll()
       
       if (response.error) {
         alert(`同步失敗：${response.error}`)
@@ -27,7 +28,7 @@ export function ImportGoogleClassroomButton({ onImportComplete }: ImportGoogleCl
       }
       
       // 等待資料寫入資料庫
-      await new Promise(resolve => setTimeout(resolve, 1000))
+      await new Promise(resolve => setTimeout(resolve, 1500))
       
       // 顯示課程選擇界面
       setShowOnboarding(true)
