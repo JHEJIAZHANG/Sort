@@ -233,13 +233,6 @@ export function CourseDetail({ courseId, lineUserId, showBackButton = true, onOp
 
           <div className="space-y-4">
             <div className="space-y-1">
-              <span className="text-sm font-medium">學生人數</span>
-              <p className={`text-sm ${course.studentCount ? 'text-muted-foreground' : 'text-gray-400 italic'}`}>
-                {course.studentCount ? `${course.studentCount} 人` : "未設定"}
-              </p>
-            </div>
-
-            <div className="space-y-1">
               <span className="text-sm font-medium">上課時間</span>
               <p className={`text-sm ${course.schedule && course.schedule.length > 0 ? 'text-muted-foreground' : 'text-gray-400 italic'}`}>
                 {formatSchedule()}

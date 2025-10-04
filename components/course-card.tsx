@@ -68,12 +68,6 @@ export function CourseCard({ course, onClick }: CourseCardProps) {
                 <span className="font-medium break-words">{formatSchedule()}</span>
               </div>
             )}
-            {course.studentCount && course.source === "google_classroom" && (
-              <div className="flex items-center gap-1.5">
-                <Users className="w-3.5 h-3.5 flex-shrink-0" />
-                <span className="font-medium">{course.studentCount} 位學生</span>
-              </div>
-            )}
           </div>
 
           {course.classroom && (
