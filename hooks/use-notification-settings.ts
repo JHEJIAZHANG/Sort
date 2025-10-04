@@ -15,9 +15,9 @@ export interface NotificationSettings {
 }
 
 const defaultSettings: NotificationSettings = {
-  assignmentReminderTiming: "1day",
+  assignmentReminderTiming: "1week",
   examReminderTiming: "1week",
-  customCategoryReminderTiming: "1day",
+  customCategoryReminderTiming: "1week",
   enablePushNotifications: true,
   enableEmailNotifications: false,
   enableSoundNotifications: true,

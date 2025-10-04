@@ -80,7 +80,7 @@ export function ProfileContent({ user: propUser, onUserChange }: ProfileContentP
   const [notificationSettings, setNotificationSettings] = useState<NotificationSettings>({
     assignmentReminders: true,
     examReminders: true,
-    assignmentReminderTiming: "1day",
+    assignmentReminderTiming: "1week",
     lineNotifications: true,
     browserNotifications: true,
     doNotDisturbEnabled: false,
@@ -666,7 +666,7 @@ export function getNotificationSettings(): NotificationSettings {
   return {
     assignmentReminders: true,
     examReminders: true,
-    assignmentReminderTiming: "1day",
+    assignmentReminderTiming: "1week",
     lineNotifications: true,
     browserNotifications: true,
     doNotDisturbEnabled: false,
