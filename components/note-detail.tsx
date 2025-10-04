@@ -160,19 +160,27 @@ export function NoteDetail({ note, course, onBack, onEdit, onDelete, onUpdate }:
       )
     }
 
-    // PDF
+    // PDF - 使用 object 標籤並提供下載連結作為後備
     if (previewFile.type === "application/pdf" || extension === "pdf") {
       return (
-        <iframe
-          src={previewFile.url}
-          type="application/pdf"
-          className="w-full h-[60vh] rounded-lg border"
-          title={previewFile.name}
-        />
+        <div className="w-full space-y-3">
+          <object
+            data={previewFile.url}
+            type="application/pdf"
+            className="w-full h-[60vh] rounded-lg border"
+          >
+            <div className="flex flex-col items-center justify-center h-[60vh] space-y-4">
+              <p className="text-muted-foreground">無法在瀏覽器中預覽 PDF</p>
+              <Button onClick={() => window.open(previewFile.url, '_blank')}>
+                在新分頁中開啟
+              </Button>
+            </div>
+          </object>
+        </div>
       )
     }
 
-    // Microsoft Office files (Word/Excel/PPT)
+    // Microsoft Office files (Word/Excel/PPT) - 使用 Google Docs Viewer 作為替代方案
     if (
       previewFile.type === "application/msword" ||
       previewFile.type === "application/vnd.openxmlformats-officedocument.wordprocessingml.document" ||
@@ -183,11 +191,19 @@ export function NoteDetail({ note, course, onBack, onEdit, onDelete, onUpdate }:
       ["doc", "docx", "xls", "xlsx", "ppt", "pptx"].includes(extension)
     ) {
       return (
-        <iframe
-          src={`https://view.officeapps.live.com/op/embed.aspx?src=${encodeURIComponent(previewFile.url)}`}
-          className="w-full h-[60vh] rounded-lg border"
-          title={previewFile.name}
-        />
+        <div className="w-full space-y-3">
+          <iframe
+            src={`https://docs.google.com/gview?url=${encodeURIComponent(previewFile.url)}&embedded=true`}
+            className="w-full h-[60vh] rounded-lg border"
+            title={previewFile.name}
+          />
+          <div className="text-center">
+            <p className="text-sm text-muted-foreground mb-2">預覽可能需要一些時間載入</p>
+            <Button size="sm" variant="outline" onClick={() => window.open(previewFile.url, '_blank')}>
+              在新分頁中開啟
+            </Button>
+          </div>
+        </div>
       )
     }
 
