@@ -323,10 +323,36 @@ export default function HomePage() {
     if (!categoryName) return
     const cat = customCategoriesApi.find((c) => c.name === categoryName)
     if (!cat) return
-    if (!confirm(`確定要刪除「${categoryName}」分類嗎？這將會刪除該分類下的所有待辦事項。`)) return
-    await deleteCategory(cat.id)
-    setCustomCategoryItems((prev) => prev.filter((item) => item.category !== categoryName))
-    if (taskType === categoryName) setTaskType("assignment")
+    
+    // 找出該分類下的所有待辦事項
+    const itemsToDelete = customCategoryItems.filter((item) => item.category === categoryName)
+    
+    // 確認刪除
+    const confirmMessage = itemsToDelete.length > 0
+      ? `確定要刪除「${categoryName}」分類嗎？這將會刪除該分類下的 ${itemsToDelete.length} 個待辦事項。`
+      : `確定要刪除「${categoryName}」分類嗎？`
+    
+    if (!confirm(confirmMessage)) return
+    
+    try {
+      // 先刪除該分類下的所有待辦事項
+      for (const item of itemsToDelete) {
+        await deleteCustomTodoApi(item.id)
+      }
+      
+      // 再刪除分類
+      await deleteCategory(cat.id)
+      
+      // 重新載入資料
+      await refetchCustomTodos()
+      await refetchCategories()
+      
+      // 如果當前選中的是被刪除的分類，切換到作業頁面
+      if (taskType === categoryName) setTaskType("assignment")
+    } catch (error) {
+      console.error('刪除分類失敗:', error)
+      alert('刪除分類失敗，請稍後再試')
+    }
   }
 
 
