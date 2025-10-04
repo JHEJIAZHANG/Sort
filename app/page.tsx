@@ -241,45 +241,43 @@ export default function HomePage() {
     }
   }, [refetch])
 
-  const addCustomCategoryItem = (itemData: Omit<CustomCategoryItem, "id" | "createdAt" | "updatedAt">) => {
-    ;(async () => {
-      try {
-        // 將分類名稱轉為後端所需的分類 UUID
-        const cat = customCategoriesApi.find((c) => c.name === itemData.category)
-        await addCustomTodoApi({
-          category: cat ? cat.id : null,
-          course: itemData.courseId || null,
-          title: itemData.title,
-          description: itemData.description || "",
-          dueDate: itemData.dueDate,
-          status: itemData.status,
-        })
-        await refetchCustomTodos()
-      } catch (e) {
-        console.error('自訂待辦建立失敗', e)
-      }
-    })()
+  const addCustomCategoryItem = async (itemData: Omit<CustomCategoryItem, "id" | "createdAt" | "updatedAt">) => {
+    try {
+      // 將分類名稱轉為後端所需的分類 UUID
+      const cat = customCategoriesApi.find((c) => c.name === itemData.category)
+      await addCustomTodoApi({
+        category: cat ? cat.id : null,
+        course: itemData.courseId || null,
+        title: itemData.title,
+        description: itemData.description || "",
+        dueDate: itemData.dueDate,
+        status: itemData.status,
+      })
+      await refetchCustomTodos()
+    } catch (e) {
+      console.error('自訂待辦建立失敗', e)
+      throw e
+    }
   }
 
-  const updateCustomCategoryItem = (id: string, updates: Partial<CustomCategoryItem>) => {
-    ;(async () => {
-      try {
-        const payload: any = {}
-        if (updates.title !== undefined) payload.title = updates.title
-        if (updates.description !== undefined) payload.description = updates.description
-        if (updates.dueDate !== undefined) payload.due_date = (updates.dueDate as Date).toISOString()
-        if (updates.status !== undefined) payload.status = updates.status
-        if (updates.category !== undefined) {
-          const cat = customCategoriesApi.find((c) => c.name === updates.category)
-          payload.category = cat ? cat.id : null
-        }
-        if ((updates as any).courseId !== undefined) payload.course = (updates as any).courseId
-        await updateCustomTodoApi(id, payload)
-        await refetchCustomTodos()
-      } catch (e) {
-        console.error('自訂待辦更新失敗', e)
+  const updateCustomCategoryItem = async (id: string, updates: Partial<CustomCategoryItem>) => {
+    try {
+      const payload: any = {}
+      if (updates.title !== undefined) payload.title = updates.title
+      if (updates.description !== undefined) payload.description = updates.description
+      if (updates.dueDate !== undefined) payload.due_date = (updates.dueDate as Date).toISOString()
+      if (updates.status !== undefined) payload.status = updates.status
+      if (updates.category !== undefined) {
+        const cat = customCategoriesApi.find((c) => c.name === updates.category)
+        payload.category = cat ? cat.id : null
       }
-    })()
+      if ((updates as any).courseId !== undefined) payload.course = (updates as any).courseId
+      await updateCustomTodoApi(id, payload)
+      await refetchCustomTodos()
+    } catch (e) {
+      console.error('自訂待辦更新失敗', e)
+      throw e
+    }
   }
 
   const deleteCustomCategoryItem = (id: string) => {
@@ -550,14 +548,19 @@ export default function HomePage() {
               courses={courses}
               category={taskType}
               initialData={editingCustomCategory ? getCustomCategoryItemById(editingCustomCategory) : undefined}
-              onSubmit={(itemData) => {
-                if (editingCustomCategory) {
-                  updateCustomCategoryItem(editingCustomCategory, itemData)
-                } else {
-                  addCustomCategoryItem(itemData)
+              onSubmit={async (itemData) => {
+                try {
+                  if (editingCustomCategory) {
+                    await updateCustomCategoryItem(editingCustomCategory, itemData)
+                  } else {
+                    await addCustomCategoryItem(itemData)
+                  }
+                  setShowCustomCategoryForm(false)
+                  setEditingCustomCategory(null)
+                } catch (error) {
+                  console.error('提交失敗:', error)
+                  // 可以在這裡顯示錯誤訊息給用戶
                 }
-                setShowCustomCategoryForm(false)
-                setEditingCustomCategory(null)
               }}
               onCancel={() => {
                 setShowCustomCategoryForm(false)
