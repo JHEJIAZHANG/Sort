@@ -22,6 +22,7 @@ export function NoteDetail({ note, course, onBack, onEdit, onDelete, onUpdate }:
   const [aiSummary, setAiSummary] = useState<{ summary: string; keywords: string[] } | null>(null)
   const [isAiLoading, setIsAiLoading] = useState(false)
   const [isAddingToNote, setIsAddingToNote] = useState(false)
+  const [isConvertingToPdf, setIsConvertingToPdf] = useState(false)
 
   const formatFileSize = (bytes: number) => {
     if (bytes === 0) return "0 Bytes"
@@ -43,11 +44,51 @@ export function NoteDetail({ note, course, onBack, onEdit, onDelete, onUpdate }:
     document.body.removeChild(link)
   }
 
-  const handlePreview = (attachment: { name: string; url: string; type: string }) => {
+  const handlePreview = async (attachment: { name: string; url: string; type: string }) => {
     const absoluteUrl = attachment.url?.startsWith("http")
       ? attachment.url
       : `${ApiService.backendOrigin}${attachment.url}`
-    setPreviewFile({ ...attachment, url: absoluteUrl })
+    
+    const extension = attachment.name.toLowerCase().split(".").pop() || ""
+    
+    // 檢查是否為 Office 檔案
+    const isOfficeFile = 
+      attachment.type === "application/msword" ||
+      attachment.type === "application/vnd.openxmlformats-officedocument.wordprocessingml.document" ||
+      attachment.type === "application/vnd.ms-excel" ||
+      attachment.type === "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" ||
+      attachment.type === "application/vnd.ms-powerpoint" ||
+      attachment.type === "application/vnd.openxmlformats-officedocument.presentationml.presentation" ||
+      ["doc", "docx", "xls", "xlsx", "ppt", "pptx"].includes(extension)
+    
+    if (isOfficeFile) {
+      // Office 檔案需要轉換為 PDF
+      setIsConvertingToPdf(true)
+      try {
+        const response = await ApiService.convertOfficeToPdf(absoluteUrl)
+        if (response.error) {
+          throw new Error(response.error)
+        }
+        if (response.data?.pdf_url) {
+          // 使用轉換後的 PDF URL
+          setPreviewFile({ 
+            name: attachment.name.replace(/\.(docx?|xlsx?|pptx?)$/i, '.pdf'), 
+            url: response.data.pdf_url, 
+            type: 'application/pdf' 
+          })
+        } else {
+          throw new Error('轉換失敗：未收到 PDF URL')
+        }
+      } catch (error) {
+        console.error('轉換 Office 檔案失敗:', error)
+        alert(`無法預覽此檔案：${error instanceof Error ? error.message : '轉換失敗'}`)
+      } finally {
+        setIsConvertingToPdf(false)
+      }
+    } else {
+      // 其他檔案直接預覽
+      setPreviewFile({ ...attachment, url: absoluteUrl })
+    }
   }
 
   const handleAiSummary = async () => {
@@ -180,46 +221,7 @@ export function NoteDetail({ note, course, onBack, onEdit, onDelete, onUpdate }:
       )
     }
 
-    // Microsoft Office files (Word/Excel/PPT) - 直接下載或在新分頁開啟
-    if (
-      previewFile.type === "application/msword" ||
-      previewFile.type === "application/vnd.openxmlformats-officedocument.wordprocessingml.document" ||
-      previewFile.type === "application/vnd.ms-excel" ||
-      previewFile.type === "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" ||
-      previewFile.type === "application/vnd.ms-powerpoint" ||
-      previewFile.type === "application/vnd.openxmlformats-officedocument.presentationml.presentation" ||
-      ["doc", "docx", "xls", "xlsx", "ppt", "pptx"].includes(extension)
-    ) {
-      return (
-        <div className="flex flex-col items-center justify-center h-[60vh] space-y-4 p-8">
-          <div className="text-center space-y-2">
-            <svg className="w-16 h-16 mx-auto text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={1.5}
-                d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
-              />
-            </svg>
-            <h3 className="text-lg font-semibold">Office 文件</h3>
-            <p className="text-sm text-muted-foreground max-w-md">
-              Word、Excel 和 PowerPoint 檔案無法直接在瀏覽器中預覽。
-              <br />
-              請下載檔案後使用相應的應用程式開啟。
-            </p>
-          </div>
-          <div className="flex gap-3">
-            <Button onClick={() => handleDownload(previewFile)}>
-              <DownloadIcon className="h-4 w-4 mr-2" />
-              下載檔案
-            </Button>
-            <Button variant="outline" onClick={() => window.open(previewFile.url, '_blank')}>
-              在新分頁中開啟
-            </Button>
-          </div>
-        </div>
-      )
-    }
+
 
     // Text files
     if (previewFile.type.startsWith("text/")) {
@@ -406,7 +408,23 @@ export function NoteDetail({ note, course, onBack, onEdit, onDelete, onUpdate }:
         </Card>
       )}
 
-      {previewFile && (
+      {isConvertingToPdf && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-background rounded-lg p-8 max-w-md">
+            <div className="flex flex-col items-center space-y-4">
+              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
+              <div className="text-center">
+                <h3 className="text-lg font-semibold mb-2">正在轉換檔案</h3>
+                <p className="text-sm text-muted-foreground">
+                  正在將 Office 檔案轉換為 PDF 格式，請稍候...
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {previewFile && !isConvertingToPdf && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
           <div className="bg-background rounded-lg max-w-4xl w-full max-h-[90vh] overflow-hidden">
             <div className="flex items-center justify-between p-4 border-b">

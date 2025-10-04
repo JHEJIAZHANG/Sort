@@ -6,7 +6,7 @@ function getApiBaseUrl(): string {
   if (typeof window !== 'undefined') {
     return '/api/v2'
   }
-  
+
   // 在伺服器環境中，使用環境變數
   return process.env.BACKEND_API_URL ? `${process.env.BACKEND_API_URL}/api/v2` : '/api/v2'
 }
@@ -18,7 +18,7 @@ function getBackendBaseUrl(): string {
   if (typeof window !== 'undefined') {
     return ''
   }
-  
+
   return process.env.BACKEND_API_URL || ''
 }
 
@@ -27,7 +27,7 @@ function getCsrfToken(): string | null {
   if (typeof window === 'undefined') {
     return null
   }
-  
+
   const cookies = document.cookie.split(';')
   for (let i = 0; i < cookies.length; i++) {
     const cookie = cookies[i].trim()
@@ -75,14 +75,14 @@ export class ApiService {
   }
 
   private static async request<T = any>(
-    endpoint: string, 
+    endpoint: string,
     options: RequestInit = {},
     // 新增：API 路徑前綴，預設為 /api/v2
     apiPrefix: 'v2' | 'oauth' | 'onboard' | 'other' = 'v2'
   ): Promise<ApiResponse<T>> {
     try {
       const isFormData = typeof FormData !== 'undefined' && options.body instanceof FormData
-      
+
       // 根據前綴決定基礎 URL
       let baseUrl: string
       if (typeof window !== 'undefined') {
@@ -111,7 +111,7 @@ export class ApiService {
 
       const fullUrl = `${baseUrl}${endpoint}`
       console.log(`[API] Making request to: ${fullUrl}`)
-      
+
       const response = await fetch(fullUrl, {
         ...options,
         headers: {
@@ -141,7 +141,7 @@ export class ApiService {
             bodyPreview: errText ? errText.slice(0, 500) : '',
             json: errJson,
           })
-        } catch {}
+        } catch { }
         return {
           error: errJson.message || `HTTP ${response.status}`,
           details: errJson || errText
@@ -286,19 +286,19 @@ export class ApiService {
     if (!this.lineUserId) {
       this.bootstrapLineUserId()
     }
-    
+
     console.log('API: 更新作業狀態', { assignmentId, status, lineUserId: this.lineUserId, retryCount })
-    
+
     const payload = { status, line_user_id: this.lineUserId }
-    
+
     try {
       const response = await this.request(`/assignments/${assignmentId}/status/`, {
         method: 'POST',
         body: JSON.stringify(payload)
       })
-      
+
       console.log('API: 更新作業狀態響應', response)
-      
+
       // 如果API調用成功但沒有返回完整資料，記錄警告
       if (!response.error && response.data) {
         const data = response.data as any
@@ -307,9 +307,9 @@ export class ApiService {
           console.warn('API返回的作業資料不完整:', response.data)
         }
       }
-      
+
       return response
-      
+
     } catch (error) {
       // 網路錯誤時重試
       if (retryCount < 2 && (error instanceof Error && error.message.includes('網路錯誤'))) {
@@ -317,7 +317,7 @@ export class ApiService {
         await new Promise(resolve => setTimeout(resolve, 1000 * (retryCount + 1))) // 遞增延遲
         return this.updateAssignmentStatus(assignmentId, status, retryCount + 1)
       }
-      
+
       throw error
     }
   }
@@ -520,9 +520,9 @@ export class ApiService {
     if (!this.lineUserId) {
       this.bootstrapLineUserId()
     }
-    
+
     console.log('API: 更新待辦事項', { id, data, lineUserId: this.lineUserId, retryCount })
-    
+
     try {
       const response = await this.request(`/custom-todos/${id}/`, {
         method: 'PATCH',
@@ -532,10 +532,10 @@ export class ApiService {
           'Content-Type': 'application/json'
         }
       })
-      
+
       console.log('API: 更新待辦事項響應', response)
       return response
-      
+
     } catch (error) {
       // 網路錯誤時重試
       if (retryCount < 2 && (error instanceof Error && error.message.includes('網路錯誤'))) {
@@ -543,7 +543,7 @@ export class ApiService {
         await new Promise(resolve => setTimeout(resolve, 1000 * (retryCount + 1))) // 遞增延遲
         return this.updateCustomTodo(id, data, retryCount + 1)
       }
-      
+
       throw error
     }
   }
@@ -553,9 +553,9 @@ export class ApiService {
     if (!this.lineUserId) {
       this.bootstrapLineUserId()
     }
-    
+
     console.log('API: 刪除待辦事項', { id, lineUserId: this.lineUserId })
-    
+
     const response = await this.request(`/custom-todos/${id}/`, {
       method: 'DELETE',
       headers: {
@@ -563,7 +563,7 @@ export class ApiService {
         'Content-Type': 'application/json'
       }
     })
-    
+
     console.log('API: 刪除待辦事項響應', response)
     return response
   }
@@ -572,7 +572,7 @@ export class ApiService {
   static async importCourses(file: File) {
     const formData = new FormData()
     formData.append('file', file)
-    
+
     return this.request('/files/import_courses/', {
       method: 'POST',
       body: formData,
@@ -592,7 +592,7 @@ export class ApiService {
     // 嘗試兩個欄位名以相容後端實作
     formData.append('file', image)
     formData.append('image', image)
-    
+
     // 添加選項參數
     if (options?.preview) {
       formData.append('preview', 'true')
@@ -600,7 +600,7 @@ export class ApiService {
     if (options?.dryRun) {
       formData.append('dryRun', 'true')
     }
-    
+
     return this.request('/files/import-timetable-image/', {
       method: 'POST',
       body: formData,
@@ -620,7 +620,7 @@ export class ApiService {
     if (!this.lineUserId) {
       this.bootstrapLineUserId()
     }
-    
+
     return this.request('/files/confirm-timetable-import/', {
       method: 'POST',
       headers: {
@@ -666,6 +666,20 @@ export class ApiService {
     })
   }
 
+  // 將 Office 檔案轉換為 PDF
+  static async convertOfficeToPdf(fileUrl: string) {
+    if (!this.lineUserId) {
+      this.bootstrapLineUserId()
+    }
+    return this.request<{ pdf_url: string }>('/files/convert-to-pdf/', {
+      method: 'POST',
+      body: JSON.stringify({
+        file_url: fileUrl,
+        line_user_id: this.lineUserId
+      })
+    })
+  }
+
   // Google Classroom 同步相關 API
   static async syncGoogleClassroom() {
     if (!this.lineUserId) {
@@ -683,9 +697,9 @@ export class ApiService {
     }
     return this.request('/sync/classroom-course/', {
       method: 'POST',
-      body: JSON.stringify({ 
+      body: JSON.stringify({
         line_user_id: this.lineUserId,
-        google_course_id: courseId 
+        google_course_id: courseId
       })
     })
   }
@@ -737,9 +751,9 @@ export class ApiService {
     }
     // 在瀏覽器端，先嘗試取得 CSRF token（避免 403）
     if (typeof window !== 'undefined') {
-      try { await fetchCsrfToken('') } catch {}
+      try { await fetchCsrfToken('') } catch { }
     }
-    
+
     // 構建請求體，包含用戶數據（如果提供的話）
     const requestBody: any = { line_user_id: this.lineUserId }
     if (userData?.role) {
@@ -748,7 +762,7 @@ export class ApiService {
     if (userData?.name) {
       requestBody.name = userData.name
     }
-    
+
     return this.request<{ auth_url: string }>('/google/url/', {
       method: 'POST',
       body: JSON.stringify(requestBody),
@@ -764,7 +778,7 @@ export class ApiService {
 
     // 需要在瀏覽器端先取得 CSRF cookie
     if (typeof window !== 'undefined') {
-      try { await fetchCsrfToken('') } catch {}
+      try { await fetchCsrfToken('') } catch { }
     }
 
     return this.request<{ redirectUrl: string }>(
@@ -792,7 +806,7 @@ export class ApiService {
     if (!this.lineUserId) {
       this.bootstrapLineUserId()
     }
-    
+
     const queryParams = new URLSearchParams({
       line_user_id: this.lineUserId,
       calendar_id: params?.calendar_id || 'primary',
@@ -800,7 +814,7 @@ export class ApiService {
       ...(params?.time_max && { time_max: params.time_max }),
       ...(params?.max_results && { max_results: params.max_results.toString() })
     })
-    
+
     return this.request(`/calendar/get_calendar_events/?${queryParams}`, {
       method: 'GET'
     })
@@ -818,7 +832,7 @@ export class ApiService {
     if (!this.lineUserId) {
       this.bootstrapLineUserId()
     }
-    
+
     return this.request('/calendar/create_calendar_event/', {
       method: 'POST',
       body: JSON.stringify({
@@ -842,7 +856,7 @@ export class ApiService {
     if (!this.lineUserId) {
       this.bootstrapLineUserId()
     }
-    
+
     return this.request('/calendar/update_calendar_event/', {
       method: 'PATCH',
       body: JSON.stringify({
@@ -860,7 +874,7 @@ export class ApiService {
     if (!this.lineUserId) {
       this.bootstrapLineUserId()
     }
-    
+
     return this.request('/calendar/delete_calendar_event/', {
       method: 'DELETE',
       body: JSON.stringify({
@@ -880,7 +894,7 @@ export class ApiService {
     if (!this.lineUserId) {
       this.bootstrapLineUserId()
     }
-    
+
     return this.request('/calendar/events/attendees/', {
       method: 'POST',
       body: JSON.stringify({
