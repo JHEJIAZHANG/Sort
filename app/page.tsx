@@ -86,6 +86,14 @@ export default function HomePage() {
     }
   }, [authLoading, needsRegistration, isAuthenticated, router])
 
+  // 同步 URL 參數到 activeTab 狀態
+  useEffect(() => {
+    const tabFromUrl = searchParams.get('tab') || "home"
+    if (tabFromUrl !== activeTab) {
+      setActiveTab(tabFromUrl)
+    }
+  }, [searchParams])
+
   // 使用 LINE 認證獲取真實的 user ID
   const { user: lineUser, isLoggedIn: isLineLoggedIn, isLoading: lineLoading } = useLineAuth()
   const [lineUserId, setLineUserId] = useState<string>("")
