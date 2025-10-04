@@ -32,11 +32,12 @@ interface CourseDetailProps {
   onOpenNote?: (id: string) => void
   onDeleted?: () => void
   onOpenCustomTodo?: (id: string) => void
+  onUpdated?: () => void
 }
 
 const DAYS = ["週一", "週二", "週三", "週四", "週五", "週六", "週日"]
 
-export function CourseDetail({ courseId, lineUserId, showBackButton = true, onOpenAssignment, onOpenExam, onOpenNote, onDeleted, onOpenCustomTodo }: CourseDetailProps) {
+export function CourseDetail({ courseId, lineUserId, showBackButton = true, onOpenAssignment, onOpenExam, onOpenNote, onDeleted, onOpenCustomTodo, onUpdated }: CourseDetailProps) {
   const [showDeleteDialog, setShowDeleteDialog] = useState(false)
   const [deleting, setDeleting] = useState(false)
   const [isEditing, setIsEditing] = useState(false)
@@ -169,6 +170,10 @@ export function CourseDetail({ courseId, lineUserId, showBackButton = true, onOp
     try {
       await updateCourse(courseId, updatedCourse)
       setIsEditing(false)
+      // 通知父組件刷新數據
+      if (onUpdated) {
+        onUpdated()
+      }
     } catch (error) {
       console.error('更新課程失敗:', error)
       // 可以在這裡顯示錯誤訊息給用戶

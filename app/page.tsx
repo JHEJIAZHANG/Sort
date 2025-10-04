@@ -822,6 +822,10 @@ export default function HomePage() {
                   // 刪除後同步父層資料，避免需要手動刷新
                   refetch()
                 }}
+                onUpdated={() => {
+                  // 更新後刷新課程列表
+                  refetch()
+                }}
               />
             )}
           </DialogContent>
