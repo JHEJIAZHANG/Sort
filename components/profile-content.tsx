@@ -520,17 +520,6 @@ export function ProfileContent({ user: propUser, onUserChange }: ProfileContentP
         </div>
       </Card>
 
-      {/* Google Classroom 授權 */}
-      <GoogleAuth 
-        onAuthSuccess={() => {
-          setIsGoogleClassroomConnected(true)
-        }}
-        onAuthError={(error) => {
-          console.error('Google 授權失敗:', error)
-          setIsGoogleClassroomConnected(false)
-        }}
-      />
-
       {/* Google 同步功能 */}
       <Card className="p-6">
         <h3 className="font-semibold mb-4 flex items-center gap-2">
