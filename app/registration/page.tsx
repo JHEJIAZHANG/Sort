@@ -10,6 +10,7 @@ import { useGoogleAuth } from '@/hooks/use-google-auth'
 import { RegistrationRoleSelection } from '@/components/registration-role-selection'
 import { RegistrationNameInput } from '@/components/registration-name-input'
 import { RegistrationGoogleAuth } from '@/components/registration-google-auth'
+import { GoogleClassroomOnboarding } from '@/components/google-classroom-onboarding'
 import { Card, CardContent } from '@/components/ui/card'
 import { CheckCircle, Loader2 } from 'lucide-react'
 import { closeLiffWindow, getIdToken } from '@/lib/line-liff'
@@ -153,21 +154,33 @@ export default function RegistrationPage() {
     }
   }
 
+  const [showOnboarding, setShowOnboarding] = useState(false)
+
   const handleComplete = async () => {
     const success = await completeRegistration()
     if (success) {
-      // 註冊成功後：立即跳轉，不保留於註冊頁面
-      try {
-        if (isLiffEnvironment()) {
-          closeLiffWindow()
-        } else {
-          router.replace('/')
-        }
-      } catch (e) {
-        console.error('註冊完成跳轉失敗，使用備援至首頁:', e)
+      // 註冊成功後：顯示 Google Classroom 匯入引導
+      setShowOnboarding(true)
+    }
+  }
+
+  const handleOnboardingComplete = () => {
+    // 匯入完成後跳轉
+    try {
+      if (isLiffEnvironment()) {
+        closeLiffWindow()
+      } else {
         router.replace('/')
       }
+    } catch (e) {
+      console.error('跳轉失敗，使用備援至首頁:', e)
+      router.replace('/')
     }
+  }
+
+  const handleOnboardingSkip = () => {
+    // 跳過匯入，直接跳轉
+    handleOnboardingComplete()
   }
 
   // 載入中狀態
@@ -368,5 +381,14 @@ export default function RegistrationPage() {
   }
 
   // 預設返回 null（不應該到達這裡）
-  return null
+  return (
+    <>
+      <GoogleClassroomOnboarding
+        isOpen={showOnboarding}
+        onComplete={handleOnboardingComplete}
+        onSkip={handleOnboardingSkip}
+      />
+      {null}
+    </>
+  )
 }
