@@ -147,8 +147,10 @@ export function NoteDetail({ note, course, onBack, onEdit, onDelete, onUpdate }:
   const renderPreviewContent = () => {
     if (!previewFile) return null
 
+    const extension = previewFile.name.toLowerCase().split(".").pop() || ""
+
     // Images
-    if (previewFile.type.startsWith("image/")) {
+    if (previewFile.type.startsWith("image/") || ["jpg", "jpeg", "png", "gif", "webp", "bmp", "svg"].includes(extension)) {
       return (
         <img
           src={previewFile.url || "/placeholder.svg"}
@@ -159,18 +161,33 @@ export function NoteDetail({ note, course, onBack, onEdit, onDelete, onUpdate }:
     }
 
     // PDF
-    if (previewFile.type === "application/pdf") {
-      return <embed src={previewFile.url} type="application/pdf" className="w-full h-[60vh] rounded-lg border" />
+    if (previewFile.type === "application/pdf" || extension === "pdf") {
+      return (
+        <iframe
+          src={previewFile.url}
+          type="application/pdf"
+          className="w-full h-[60vh] rounded-lg border"
+          title={previewFile.name}
+        />
+      )
     }
 
     // Microsoft Office files (Word/Excel/PPT)
-    if (previewFile.type.startsWith("application/vnd.")) {
+    if (
+      previewFile.type === "application/msword" ||
+      previewFile.type === "application/vnd.openxmlformats-officedocument.wordprocessingml.document" ||
+      previewFile.type === "application/vnd.ms-excel" ||
+      previewFile.type === "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" ||
+      previewFile.type === "application/vnd.ms-powerpoint" ||
+      previewFile.type === "application/vnd.openxmlformats-officedocument.presentationml.presentation" ||
+      ["doc", "docx", "xls", "xlsx", "ppt", "pptx"].includes(extension)
+    ) {
       return (
         <iframe
           src={`https://view.officeapps.live.com/op/embed.aspx?src=${encodeURIComponent(previewFile.url)}`}
           className="w-full h-[60vh] rounded-lg border"
           title={previewFile.name}
-        ></iframe>
+        />
       )
     }
 
@@ -178,25 +195,25 @@ export function NoteDetail({ note, course, onBack, onEdit, onDelete, onUpdate }:
     if (previewFile.type.startsWith("text/")) {
       return (
         <div className="w-full h-[60vh] overflow-auto bg-gray-50 rounded-lg">
-          <iframe src={previewFile.url} className="w-full h-full border-0" title={previewFile.name}></iframe>
+          <iframe src={previewFile.url} className="w-full h-full border-0" title={previewFile.name} />
         </div>
       )
     }
 
     // Video files
-    if (previewFile.type.startsWith("video/")) {
+    if (previewFile.type.startsWith("video/") || ["mp4", "webm", "ogg", "avi", "mov", "wmv", "flv"].includes(extension)) {
       return (
-        <video controls className="max-w-full max-h-[60vh] rounded-lg">
+        <video controls className="max-w-full max-h-[60vh] rounded-lg" src={previewFile.url}>
           您的瀏覽器不支援影片播放
         </video>
       )
     }
 
     // Audio files
-    if (previewFile.type.startsWith("audio/")) {
+    if (previewFile.type.startsWith("audio/") || ["mp3", "wav", "ogg", "aac", "m4a", "flac"].includes(extension)) {
       return (
         <div className="w-full max-w-md">
-          <audio controls className="w-full">
+          <audio controls className="w-full" src={previewFile.url}>
             您的瀏覽器不支援音訊播放
           </audio>
         </div>
