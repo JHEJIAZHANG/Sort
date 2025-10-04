@@ -27,7 +27,7 @@ export function transformBackendCourse(backendCourse: any): Course {
   const id = rawId != null ? String(rawId) : fallbackId
 
   const created = backendCourse?.created_at ? new Date(backendCourse.created_at) : new Date()
-  
+
   return {
     id,
     name: backendCourse.title || backendCourse.name || '',
@@ -67,6 +67,20 @@ export function transformFrontendCourse(frontendCourse: Course, lineUserId: stri
 // 後端 Homework 轉換為前端 Assignment
 export function transformBackendAssignment(backendAssignment: any): Assignment {
   const course = extractCourseIdAndName(backendAssignment.course)
+
+  // 確保 status 永遠有有效值，處理所有可能的無效情況
+  let status: "pending" | "completed" | "overdue" = "pending"
+  const backendStatus = backendAssignment.status
+
+  if (backendStatus === "completed") {
+    status = "completed"
+  } else if (backendStatus === "overdue") {
+    status = "overdue"
+  } else if (backendStatus === "pending") {
+    status = "pending"
+  }
+  // 其他所有情況（null, undefined, "", 其他字符串）都使用默認值 "pending"
+
   return {
     id: String(backendAssignment.id),
     title: backendAssignment.title || backendAssignment.name || '',
@@ -74,7 +88,7 @@ export function transformBackendAssignment(backendAssignment: any): Assignment {
     dueDate: backendAssignment.due_date ? new Date(backendAssignment.due_date) : new Date(),
     courseId: course.id,
     courseName: backendAssignment.course_name || course.name || '',
-    status: backendAssignment.status || 'pending',
+    status: status,
     priority: 'medium',
     createdAt: new Date(backendAssignment.created_at),
     updatedAt: new Date(backendAssignment.updated_at),

@@ -255,6 +255,10 @@ export class ApiService {
       payload.course_id = payload.course
       delete payload.course
     }
+    // 確保 status 有默認值
+    if (!payload.status) {
+      payload.status = 'pending'
+    }
     const resp = await this.request<any>('/web/assignments/create/', {
       method: 'POST',
       body: JSON.stringify(payload)
