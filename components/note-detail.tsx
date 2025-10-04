@@ -22,7 +22,6 @@ export function NoteDetail({ note, course, onBack, onEdit, onDelete, onUpdate }:
   const [aiSummary, setAiSummary] = useState<{ summary: string; keywords: string[] } | null>(null)
   const [isAiLoading, setIsAiLoading] = useState(false)
   const [isAddingToNote, setIsAddingToNote] = useState(false)
-  const [isConvertingToPdf, setIsConvertingToPdf] = useState(false)
 
   const formatFileSize = (bytes: number) => {
     if (bytes === 0) return "0 Bytes"
@@ -44,51 +43,11 @@ export function NoteDetail({ note, course, onBack, onEdit, onDelete, onUpdate }:
     document.body.removeChild(link)
   }
 
-  const handlePreview = async (attachment: { name: string; url: string; type: string }) => {
+  const handlePreview = (attachment: { name: string; url: string; type: string }) => {
     const absoluteUrl = attachment.url?.startsWith("http")
       ? attachment.url
       : `${ApiService.backendOrigin}${attachment.url}`
-    
-    const extension = attachment.name.toLowerCase().split(".").pop() || ""
-    
-    // 檢查是否為 Office 檔案
-    const isOfficeFile = 
-      attachment.type === "application/msword" ||
-      attachment.type === "application/vnd.openxmlformats-officedocument.wordprocessingml.document" ||
-      attachment.type === "application/vnd.ms-excel" ||
-      attachment.type === "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" ||
-      attachment.type === "application/vnd.ms-powerpoint" ||
-      attachment.type === "application/vnd.openxmlformats-officedocument.presentationml.presentation" ||
-      ["doc", "docx", "xls", "xlsx", "ppt", "pptx"].includes(extension)
-    
-    if (isOfficeFile) {
-      // Office 檔案需要轉換為 PDF
-      setIsConvertingToPdf(true)
-      try {
-        const response = await ApiService.convertOfficeToPdf(absoluteUrl)
-        if (response.error) {
-          throw new Error(response.error)
-        }
-        if (response.data?.pdf_url) {
-          // 使用轉換後的 PDF URL
-          setPreviewFile({ 
-            name: attachment.name.replace(/\.(docx?|xlsx?|pptx?)$/i, '.pdf'), 
-            url: response.data.pdf_url, 
-            type: 'application/pdf' 
-          })
-        } else {
-          throw new Error('轉換失敗：未收到 PDF URL')
-        }
-      } catch (error) {
-        console.error('轉換 Office 檔案失敗:', error)
-        alert(`無法預覽此檔案：${error instanceof Error ? error.message : '轉換失敗'}`)
-      } finally {
-        setIsConvertingToPdf(false)
-      }
-    } else {
-      // 其他檔案直接預覽
-      setPreviewFile({ ...attachment, url: absoluteUrl })
-    }
+    setPreviewFile({ ...attachment, url: absoluteUrl })
   }
 
   const handleAiSummary = async () => {
@@ -217,6 +176,39 @@ export function NoteDetail({ note, course, onBack, onEdit, onDelete, onUpdate }:
               </Button>
             </div>
           </object>
+        </div>
+      )
+    }
+
+    // Microsoft Office files (Word/Excel/PPT)
+    if (
+      previewFile.type === "application/msword" ||
+      previewFile.type === "application/vnd.openxmlformats-officedocument.wordprocessingml.document" ||
+      previewFile.type === "application/vnd.ms-excel" ||
+      previewFile.type === "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" ||
+      previewFile.type === "application/vnd.ms-powerpoint" ||
+      previewFile.type === "application/vnd.openxmlformats-officedocument.presentationml.presentation" ||
+      ["doc", "docx", "xls", "xlsx", "ppt", "pptx"].includes(extension)
+    ) {
+      return (
+        <div className="w-full space-y-3">
+          <iframe
+            src={`https://view.officeapps.live.com/op/embed.aspx?src=${encodeURIComponent(previewFile.url)}`}
+            className="w-full h-[60vh] rounded-lg border"
+            title={previewFile.name}
+          />
+          <div className="text-center space-y-2">
+            <p className="text-sm text-muted-foreground">如果預覽無法載入，請嘗試下載檔案</p>
+            <div className="flex gap-2 justify-center">
+              <Button size="sm" variant="outline" onClick={() => handleDownload(previewFile)}>
+                <DownloadIcon className="h-4 w-4 mr-2" />
+                下載檔案
+              </Button>
+              <Button size="sm" variant="outline" onClick={() => window.open(previewFile.url, '_blank')}>
+                在新分頁中開啟
+              </Button>
+            </div>
+          </div>
         </div>
       )
     }
@@ -408,23 +400,7 @@ export function NoteDetail({ note, course, onBack, onEdit, onDelete, onUpdate }:
         </Card>
       )}
 
-      {isConvertingToPdf && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className="bg-background rounded-lg p-8 max-w-md">
-            <div className="flex flex-col items-center space-y-4">
-              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
-              <div className="text-center">
-                <h3 className="text-lg font-semibold mb-2">正在轉換檔案</h3>
-                <p className="text-sm text-muted-foreground">
-                  正在將 Office 檔案轉換為 PDF 格式，請稍候...
-                </p>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {previewFile && !isConvertingToPdf && (
+      {previewFile && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
           <div className="bg-background rounded-lg max-w-4xl w-full max-h-[90vh] overflow-hidden">
             <div className="flex items-center justify-between p-4 border-b">
