@@ -262,16 +262,21 @@ export default function HomePage() {
 
   const updateCustomCategoryItem = async (id: string, updates: Partial<CustomCategoryItem>) => {
     try {
+      console.log('更新待辦事項:', { id, updates })
       const payload: any = {}
       if (updates.title !== undefined) payload.title = updates.title
       if (updates.description !== undefined) payload.description = updates.description
-      if (updates.dueDate !== undefined) payload.due_date = (updates.dueDate as Date).toISOString()
+      if (updates.dueDate !== undefined) {
+        payload.due_date = (updates.dueDate as Date).toISOString()
+        console.log('設定 due_date:', payload.due_date)
+      }
       if (updates.status !== undefined) payload.status = updates.status
       if (updates.category !== undefined) {
         const cat = customCategoriesApi.find((c) => c.name === updates.category)
         payload.category = cat ? cat.id : null
       }
       if ((updates as any).courseId !== undefined) payload.course = (updates as any).courseId
+      console.log('最終 payload:', payload)
       await updateCustomTodoApi(id, payload)
       await refetchCustomTodos()
     } catch (e) {
@@ -550,6 +555,7 @@ export default function HomePage() {
               initialData={editingCustomCategory ? getCustomCategoryItemById(editingCustomCategory) : undefined}
               onSubmit={async (itemData) => {
                 try {
+                  console.log('表單提交資料:', itemData)
                   if (editingCustomCategory) {
                     await updateCustomCategoryItem(editingCustomCategory, itemData)
                   } else {
