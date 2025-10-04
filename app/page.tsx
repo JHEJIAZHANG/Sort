@@ -629,6 +629,12 @@ export default function HomePage() {
                   setSelectedNoteId(null)
                 }
               }}
+              onUpdate={async (noteId, updates) => {
+                await updateNote(noteId, updates)
+                // 重新載入筆記以顯示更新後的內容
+                setSelectedNoteId(null)
+                setTimeout(() => setSelectedNoteId(noteId), 100)
+              }}
             />
           )
         }

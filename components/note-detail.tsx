@@ -14,12 +14,14 @@ interface NoteDetailProps {
   onBack: () => void
   onEdit: () => void
   onDelete: () => void
+  onUpdate?: (noteId: string, updates: Partial<Note>) => Promise<void>
 }
 
-export function NoteDetail({ note, course, onBack, onEdit, onDelete }: NoteDetailProps) {
+export function NoteDetail({ note, course, onBack, onEdit, onDelete, onUpdate }: NoteDetailProps) {
   const [previewFile, setPreviewFile] = useState<{ name: string; url: string; type: string } | null>(null)
   const [aiSummary, setAiSummary] = useState<{ summary: string; keywords: string[] } | null>(null)
   const [isAiLoading, setIsAiLoading] = useState(false)
+  const [isAddingToNote, setIsAddingToNote] = useState(false)
 
   const formatFileSize = (bytes: number) => {
     if (bytes === 0) return "0 Bytes"
@@ -69,6 +71,34 @@ export function NoteDetail({ note, course, onBack, onEdit, onDelete }: NoteDetai
       alert(`AI 摘要失敗: ${error instanceof Error ? error.message : '未知錯誤'}`)
     } finally {
       setIsAiLoading(false)
+    }
+  }
+
+  const handleAddSummaryToNote = async () => {
+    if (!aiSummary || !onUpdate) return
+    
+    setIsAddingToNote(true)
+    try {
+      // 構建要添加的內容
+      const summarySection = `\n\n<hr>\n<h3>📝 AI 摘要</h3>\n<p>${aiSummary.summary}</p>\n`
+      const keywordsSection = aiSummary.keywords.length > 0 
+        ? `<p><strong>關鍵詞：</strong>${aiSummary.keywords.join('、')}</p>\n`
+        : ''
+      
+      const newContent = note.content + summarySection + keywordsSection
+      
+      // 調用更新函數
+      await onUpdate(note.id, { content: newContent })
+      
+      alert('AI 摘要已成功添加至筆記！')
+      
+      // 清除 AI 摘要顯示（因為已經添加到筆記中了）
+      setAiSummary(null)
+    } catch (error) {
+      console.error('添加摘要失敗:', error)
+      alert(`添加摘要失敗: ${error instanceof Error ? error.message : '未知錯誤'}`)
+    } finally {
+      setIsAddingToNote(false)
     }
   }
 
@@ -226,9 +256,21 @@ export function NoteDetail({ note, course, onBack, onEdit, onDelete }: NoteDetai
       {aiSummary && (
         <Card className="p-4 mb-4 bg-blue-50 border-blue-200">
           <div className="space-y-3">
-            <div className="flex items-center gap-2">
-              <LightbulbIcon className="w-5 h-5 text-blue-600" />
-              <h3 className="font-semibold text-blue-800">AI 摘要</h3>
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <LightbulbIcon className="w-5 h-5 text-blue-600" />
+                <h3 className="font-semibold text-blue-800">AI 摘要</h3>
+              </div>
+              {onUpdate && (
+                <Button
+                  size="sm"
+                  onClick={handleAddSummaryToNote}
+                  disabled={isAddingToNote}
+                  className="bg-blue-600 hover:bg-blue-700 text-white"
+                >
+                  {isAddingToNote ? '添加中...' : '添加至筆記'}
+                </Button>
+              )}
             </div>
             <div className="space-y-2">
               <div>
