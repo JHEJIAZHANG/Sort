@@ -324,7 +324,7 @@ export function RichTextEditor({ value, onChange, placeholder, className }: Rich
           onFocus={() => setIsEditorFocused(true)}
           onBlur={() => setIsEditorFocused(false)}
           onKeyDown={handleKeyDown}
-          className="min-h-[200px] p-3 outline-none focus:ring-2 focus:ring-blue-500 focus:ring-inset prose prose-sm max-w-none [&>h1]:text-2xl [&>h1]:font-bold [&>h1]:mt-4 [&>h1]:mb-2 [&>h2]:text-xl [&>h2]:font-bold [&>h2]:mt-3 [&>h2]:mb-2 [&>h3]:text-lg [&>h3]:font-bold [&>h3]:mt-2 [&>h3]:mb-1 [&>h4]:text-base [&>h4]:font-bold [&>h5]:text-sm [&>h5]:font-bold [&>h6]:text-xs [&>h6]:font-bold [&>pre]:bg-gray-100 [&>pre]:p-2 [&>pre]:rounded [&>pre]:font-mono [&>pre]:text-sm [&>pre]:overflow-x-auto [&>blockquote]:border-l-4 [&>blockquote]:border-gray-300 [&>blockquote]:pl-4 [&>blockquote]:italic [&>blockquote]:text-gray-600 [&>ul]:list-disc [&>ul]:ml-6 [&>ol]:list-decimal [&>ol]:ml-6"
+          className="min-h-[200px] p-3 outline-none focus:ring-2 focus:ring-blue-500 focus:ring-inset prose prose-sm max-w-none [&>h1]:text-2xl [&>h1]:font-bold [&>h1]:mt-4 [&>h1]:mb-2 [&>h2]:text-xl [&>h2]:font-bold [&>h2]:mt-3 [&>h2]:mb-2 [&>h3]:text-lg [&>h3]:font-bold [&>h3]:mt-2 [&>h3]:mb-1 [&>h4]:text-base [&>h4]:font-bold [&>h5]:text-sm [&>h5]:font-bold [&>h6]:text-xs [&>h6]:font-bold [&>pre]:bg-gray-100 [&>pre]:p-2 [&>pre]:rounded [&>pre]:font-mono [&>pre]:text-sm [&>pre]:overflow-x-auto [&>blockquote]:border-l-4 [&>blockquote]:border-gray-300 [&>blockquote]:pl-4 [&>blockquote]:italic [&>blockquote]:text-gray-600 [&_ul]:list-disc [&_ul]:ml-6 [&_ul]:pl-0 [&_ol]:list-decimal [&_ol]:ml-6 [&_ol]:pl-0 [&_li]:ml-4"
           style={{ whiteSpace: "pre-wrap" }}
           suppressContentEditableWarning={true}
         />
