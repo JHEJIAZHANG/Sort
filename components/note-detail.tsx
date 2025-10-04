@@ -180,7 +180,7 @@ export function NoteDetail({ note, course, onBack, onEdit, onDelete, onUpdate }:
       )
     }
 
-    // Microsoft Office files (Word/Excel/PPT) - 使用 Google Docs Viewer 作為替代方案
+    // Microsoft Office files (Word/Excel/PPT) - 直接下載或在新分頁開啟
     if (
       previewFile.type === "application/msword" ||
       previewFile.type === "application/vnd.openxmlformats-officedocument.wordprocessingml.document" ||
@@ -191,15 +191,29 @@ export function NoteDetail({ note, course, onBack, onEdit, onDelete, onUpdate }:
       ["doc", "docx", "xls", "xlsx", "ppt", "pptx"].includes(extension)
     ) {
       return (
-        <div className="w-full space-y-3">
-          <iframe
-            src={`https://docs.google.com/gview?url=${encodeURIComponent(previewFile.url)}&embedded=true`}
-            className="w-full h-[60vh] rounded-lg border"
-            title={previewFile.name}
-          />
-          <div className="text-center">
-            <p className="text-sm text-muted-foreground mb-2">預覽可能需要一些時間載入</p>
-            <Button size="sm" variant="outline" onClick={() => window.open(previewFile.url, '_blank')}>
+        <div className="flex flex-col items-center justify-center h-[60vh] space-y-4 p-8">
+          <div className="text-center space-y-2">
+            <svg className="w-16 h-16 mx-auto text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={1.5}
+                d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+              />
+            </svg>
+            <h3 className="text-lg font-semibold">Office 文件</h3>
+            <p className="text-sm text-muted-foreground max-w-md">
+              Word、Excel 和 PowerPoint 檔案無法直接在瀏覽器中預覽。
+              <br />
+              請下載檔案後使用相應的應用程式開啟。
+            </p>
+          </div>
+          <div className="flex gap-3">
+            <Button onClick={() => handleDownload(previewFile)}>
+              <DownloadIcon className="h-4 w-4 mr-2" />
+              下載檔案
+            </Button>
+            <Button variant="outline" onClick={() => window.open(previewFile.url, '_blank')}>
               在新分頁中開啟
             </Button>
           </div>
