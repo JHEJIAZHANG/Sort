@@ -180,7 +180,7 @@ export function NoteDetail({ note, course, onBack, onEdit, onDelete, onUpdate }:
       )
     }
 
-    // Microsoft Office files (Word/Excel/PPT)
+    // Microsoft Office files (Word/Excel/PPT) - 使用 Google Docs Viewer
     if (
       previewFile.type === "application/msword" ||
       previewFile.type === "application/vnd.openxmlformats-officedocument.wordprocessingml.document" ||
@@ -193,12 +193,12 @@ export function NoteDetail({ note, course, onBack, onEdit, onDelete, onUpdate }:
       return (
         <div className="w-full space-y-3">
           <iframe
-            src={`https://view.officeapps.live.com/op/embed.aspx?src=${encodeURIComponent(previewFile.url)}`}
+            src={`https://docs.google.com/gview?url=${encodeURIComponent(previewFile.url)}&embedded=true`}
             className="w-full h-[60vh] rounded-lg border"
             title={previewFile.name}
           />
           <div className="text-center space-y-2">
-            <p className="text-sm text-muted-foreground">如果預覽無法載入，請嘗試下載檔案</p>
+            <p className="text-sm text-muted-foreground">預覽載入中，請稍候。如果無法顯示，請下載檔案</p>
             <div className="flex gap-2 justify-center">
               <Button size="sm" variant="outline" onClick={() => handleDownload(previewFile)}>
                 <DownloadIcon className="h-4 w-4 mr-2" />
