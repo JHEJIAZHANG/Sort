@@ -2,11 +2,9 @@
 import { useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
-import { Input } from "@/components/ui/input"
-import { Textarea } from "@/components/ui/textarea"
 import { PageHeader } from "@/components/page-header"
 import { LearningResources } from "@/components/learning-resources"
-import { CheckIcon, ClockIcon, PlusIcon, XIcon, EditIcon } from "@/components/icons"
+import { CheckIcon, ClockIcon } from "@/components/icons"
 import {
   AlertDialog,
   AlertDialogAction,
@@ -27,15 +25,10 @@ interface ExamDetailProps {
   onEdit: () => void
   onDelete: () => void
   onStatusChange: (status: Exam["status"]) => void
-  onUpdateAnnotations?: (annotations: string[], notes?: string) => void
 }
 
-export function ExamDetail({ exam, course, onBack, onEdit, onDelete, onStatusChange, onUpdateAnnotations }: ExamDetailProps) {
+export function ExamDetail({ exam, course, onBack, onEdit, onDelete, onStatusChange }: ExamDetailProps) {
   const [showDeleteDialog, setShowDeleteDialog] = useState(false)
-  const [newAnnotation, setNewAnnotation] = useState("")
-  const [examNotes, setExamNotes] = useState(exam.notes || "")
-  const [isEditingNotes, setIsEditingNotes] = useState(false)
-  const [annotations, setAnnotations] = useState<string[]>(exam.annotations || [])
 
   const getExamStatus = (examDate: Date, duration: number) => {
     const isEnded = isExamEndedTaiwan(examDate, duration)
@@ -66,31 +59,6 @@ export function ExamDetail({ exam, course, onBack, onEdit, onDelete, onStatusCha
   const handleDeleteConfirm = () => {
     onDelete()
     setShowDeleteDialog(false)
-  }
-
-  const handleAddAnnotation = () => {
-    if (newAnnotation.trim()) {
-      const updatedAnnotations = [...annotations, newAnnotation.trim()]
-      setAnnotations(updatedAnnotations)
-      setNewAnnotation("")
-      onUpdateAnnotations?.(updatedAnnotations, examNotes)
-    }
-  }
-
-  const handleRemoveAnnotation = (index: number) => {
-    const updatedAnnotations = annotations.filter((_, i) => i !== index)
-    setAnnotations(updatedAnnotations)
-    onUpdateAnnotations?.(updatedAnnotations, examNotes)
-  }
-
-  const handleSaveNotes = () => {
-    setIsEditingNotes(false)
-    onUpdateAnnotations?.(annotations, examNotes)
-  }
-
-  const handleCancelEditNotes = () => {
-    setExamNotes(exam.notes || "")
-    setIsEditingNotes(false)
   }
 
   return (
@@ -151,97 +119,6 @@ export function ExamDetail({ exam, course, onBack, onEdit, onDelete, onStatusCha
           </div>
         )}
       </div>
-
-      {/* Annotations Section */}
-      <Card className="p-4 mb-4">
-        <div className="space-y-4">
-          <h3 className="text-sm font-medium flex items-center gap-2">
-            📝 考試標註
-          </h3>
-          
-          {/* Add new annotation */}
-          <div className="flex gap-2">
-            <Input
-              placeholder="添加新的標註或重點..."
-              value={newAnnotation}
-              onChange={(e) => setNewAnnotation(e.target.value)}
-              onKeyPress={(e) => e.key === "Enter" && handleAddAnnotation()}
-              className="flex-1"
-            />
-            <Button onClick={handleAddAnnotation} size="sm" disabled={!newAnnotation.trim()}>
-              <PlusIcon className="w-4 h-4" />
-            </Button>
-          </div>
-
-          {/* Display annotations */}
-          {annotations.length > 0 && (
-            <div className="space-y-2">
-              {annotations.map((annotation, index) => (
-                <div key={index} className="flex items-center justify-between p-2 bg-muted rounded-lg">
-                  <span className="text-sm flex-1">{annotation}</span>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => handleRemoveAnnotation(index)}
-                    className="h-6 w-6 p-0 text-muted-foreground hover:text-destructive"
-                  >
-                    <XIcon className="w-3 h-3" />
-                  </Button>
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
-      </Card>
-
-      {/* Notes Section */}
-      <Card className="p-4 mb-4">
-        <div className="space-y-4">
-          <div className="flex items-center justify-between">
-            <h3 className="text-sm font-medium flex items-center gap-2">
-              📄 考試筆記
-            </h3>
-            {!isEditingNotes && (
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => setIsEditingNotes(true)}
-                className="h-6 text-muted-foreground hover:text-foreground"
-              >
-                <EditIcon className="w-3 h-3 mr-1" />
-                編輯
-              </Button>
-            )}
-          </div>
-
-          {isEditingNotes ? (
-            <div className="space-y-2">
-              <Textarea
-                placeholder="添加考試相關筆記..."
-                value={examNotes}
-                onChange={(e) => setExamNotes(e.target.value)}
-                className="min-h-[100px]"
-              />
-              <div className="flex gap-2">
-                <Button onClick={handleSaveNotes} size="sm">
-                  保存
-                </Button>
-                <Button onClick={handleCancelEditNotes} variant="outline" size="sm">
-                  取消
-                </Button>
-              </div>
-            </div>
-          ) : (
-            <div className="min-h-[60px]">
-              {examNotes ? (
-                <p className="text-sm text-muted-foreground leading-relaxed whitespace-pre-wrap">{examNotes}</p>
-              ) : (
-                <p className="text-sm text-muted-foreground italic">點擊編輯按鈕添加考試筆記...</p>
-              )}
-            </div>
-          )}
-        </div>
-      </Card>
 
       <LearningResources
         exam={exam}

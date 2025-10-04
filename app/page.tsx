@@ -462,9 +462,6 @@ export default function HomePage() {
                 }
               }}
               onStatusChange={(status) => updateExam(exam.id, { status })}
-              onUpdateAnnotations={(annotations, notes) => {
-                updateExam(exam.id, { annotations, notes })
-              }}
             />
           )
         }
