@@ -13,6 +13,17 @@ import { UserIcon, SettingsIcon, GoogleIcon, LogOutIcon, ChevronRightIcon, LineI
 import { PageHeader } from "@/components/page-header"
 import { GoogleAuth } from "@/components/google-auth"
 import { GoogleSyncAll } from "@/components/google-sync-all"
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog"
 
 interface User {
   id: string
@@ -57,6 +68,8 @@ export function ProfileContent({ user: propUser, onUserChange }: ProfileContentP
   const [showSemesterSettings, setShowSemesterSettings] = useState(false)
   const [showNotificationSettings, setShowNotificationSettings] = useState(false)
   const [showLoginForm, setShowLoginForm] = useState(false)
+  const [showDeleteAccountDialog, setShowDeleteAccountDialog] = useState(false)
+  const [isDeleting, setIsDeleting] = useState(false)
 
   const [semesterSettings, setSemesterSettings] = useState<SemesterSettings>({
     totalWeeks: 18,
@@ -120,6 +133,37 @@ export function ProfileContent({ user: propUser, onUserChange }: ProfileContentP
     setUser(newUser)
     onUserChange?.(newUser)
     setIsGoogleClassroomConnected(false)
+  }
+
+  const handleDeleteAccount = async () => {
+    setIsDeleting(true)
+    try {
+      // TODO: 調用 API 刪除帳號
+      // await ApiService.deleteAccount(user.id)
+
+      // 模擬刪除過程
+      await new Promise(resolve => setTimeout(resolve, 1000))
+
+      // 刪除成功後清空用戶資料
+      const newUser = {
+        id: "",
+        name: "",
+        email: "",
+        avatar: "",
+        isLoggedIn: false,
+      }
+      setUser(newUser)
+      onUserChange?.(newUser)
+      setIsGoogleClassroomConnected(false)
+
+      alert("帳號已成功刪除")
+      setShowDeleteAccountDialog(false)
+    } catch (error) {
+      console.error("刪除帳號失敗:", error)
+      alert("刪除帳號失敗，請稍後再試")
+    } finally {
+      setIsDeleting(false)
+    }
   }
 
 
@@ -574,6 +618,46 @@ export function ProfileContent({ user: propUser, onUserChange }: ProfileContentP
           <p className="text-xs mt-1">版本 1.0.0</p>
         </div>
       </Card>
+
+      {/* 刪除帳號 */}
+      <AlertDialog open={showDeleteAccountDialog} onOpenChange={setShowDeleteAccountDialog}>
+        <AlertDialogTrigger asChild>
+          <Button
+            variant="outline"
+            className="w-full text-destructive hover:text-destructive hover:bg-destructive/10 bg-transparent"
+          >
+            刪除帳號
+          </Button>
+        </AlertDialogTrigger>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>確認刪除帳號</AlertDialogTitle>
+            <AlertDialogDescription>
+              您確定要刪除帳號嗎？此操作將永久刪除您的所有資料，包括：
+              <ul className="list-disc list-inside mt-2 space-y-1">
+                <li>所有課程資料</li>
+                <li>所有作業和考試記錄</li>
+                <li>所有筆記內容</li>
+                <li>個人設定和偏好</li>
+              </ul>
+              <p className="mt-3 font-semibold text-destructive">此操作無法復原，請謹慎考慮。</p>
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={isDeleting}>取消</AlertDialogCancel>
+            <AlertDialogAction
+              disabled={isDeleting}
+              onClick={(e) => {
+                e.preventDefault()
+                handleDeleteAccount()
+              }}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              {isDeleting ? "刪除中..." : "確認刪除"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   )
 }
