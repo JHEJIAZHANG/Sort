@@ -59,6 +59,9 @@ export function GoogleSyncAll({ onSync }: GoogleSyncAllProps) {
           data: response.data
         })
         
+        // 等待一下讓資料完全寫入資料庫
+        await new Promise(resolve => setTimeout(resolve, 1000))
+        
         // 同步完成後，顯示課程選擇界面
         setShowOnboarding(true)
       }

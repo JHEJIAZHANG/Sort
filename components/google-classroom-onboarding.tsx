@@ -67,20 +67,13 @@ export function GoogleClassroomOnboarding({ isOpen, onComplete, onSkip }: Google
   const [importing, setImporting] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
-  // 載入 Google Classroom 課程
+  // 載入 Google Classroom 課程（不再重複同步）
   const loadGoogleClassroomCourses = async () => {
     setStep('loading')
     setError(null)
     
     try {
-      // 調用同步 API
-      const response = await ApiService.syncGoogleClassroom()
-      
-      if (response.error) {
-        throw new Error(response.error)
-      }
-
-      // 獲取課程列表
+      // 直接獲取課程列表，不再重複同步
       const coursesResponse = await ApiService.getCourses(ApiService.getLineUserId())
       
       if (coursesResponse.error) {
