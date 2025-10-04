@@ -26,6 +26,42 @@ interface CustomCategoryDetailProps {
   onEdit: () => void
   onDelete: () => void
   onStatusChange: (id: string, status: "pending" | "completed" | "overdue") => void
+  notificationSettings?: {
+    assignmentReminderTiming: string
+  }
+}
+
+// 計算提醒時間
+function calculateNotificationTime(dueDate: Date, reminderTiming: string): Date {
+  const notificationTime = new Date(dueDate)
+  
+  switch (reminderTiming) {
+    case "15min":
+      notificationTime.setMinutes(notificationTime.getMinutes() - 15)
+      break
+    case "30min":
+      notificationTime.setMinutes(notificationTime.getMinutes() - 30)
+      break
+    case "1hour":
+      notificationTime.setHours(notificationTime.getHours() - 1)
+      break
+    case "2hours":
+      notificationTime.setHours(notificationTime.getHours() - 2)
+      break
+    case "1day":
+      notificationTime.setDate(notificationTime.getDate() - 1)
+      break
+    case "2days":
+      notificationTime.setDate(notificationTime.getDate() - 2)
+      break
+    case "1week":
+      notificationTime.setDate(notificationTime.getDate() - 7)
+      break
+    default:
+      notificationTime.setDate(notificationTime.getDate() - 1)
+  }
+  
+  return notificationTime
 }
 
 export function CustomCategoryDetail({
@@ -35,6 +71,7 @@ export function CustomCategoryDetail({
   onEdit,
   onDelete,
   onStatusChange,
+  notificationSettings,
 }: CustomCategoryDetailProps) {
   const [showDeleteDialog, setShowDeleteDialog] = useState(false)
 
@@ -43,6 +80,11 @@ export function CustomCategoryDetail({
   const isOverdue = item.status === "overdue" || (item.status === "pending" && daysUntilDue < 0)
   const isDueToday = isSameDayTaiwan(item.dueDate, today)
   const isViewingToday = isTodayTaiwan(today)
+  
+  // 動態計算提醒時間
+  const notificationTime = notificationSettings 
+    ? calculateNotificationTime(item.dueDate, notificationSettings.assignmentReminderTiming)
+    : null
 
   const getStatusColor = (status: CustomCategoryItem["status"]) => {
     switch (status) {
@@ -105,10 +147,10 @@ export function CustomCategoryDetail({
         </div>
 
         {/* Notification Time */}
-        {(item as any).notificationTime && (
+        {notificationTime && (
           <div className="space-y-1">
-            <span className="text-sm font-medium">通知時間</span>
-            <p className="text-sm text-muted-foreground">{(item as any).notificationTime.toLocaleString("zh-TW")}</p>
+            <span className="text-sm font-medium">提醒時間</span>
+            <p className="text-sm text-muted-foreground">{notificationTime.toLocaleString("zh-TW")}</p>
           </div>
         )}
 

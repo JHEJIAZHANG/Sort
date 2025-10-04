@@ -490,6 +490,9 @@ export default function HomePage() {
                 }
               }}
               onStatusChange={(id, status) => updateCustomCategoryItem(id, { status })}
+              notificationSettings={{
+                assignmentReminderTiming: notificationSettings.assignmentReminderTiming,
+              }}
             />
           )
         }
