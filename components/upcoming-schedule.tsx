@@ -141,12 +141,34 @@ export function UpcomingSchedule({ courses, selectedDate }: UpcomingScheduleProp
                   <div className="text-right">
                     <p className="text-xs font-medium text-foreground">{formatTime(item.slot.startTime)}</p>
                     <p className="text-xs text-muted-foreground">
-                      {Math.round(
-                        (new Date(`2000-01-01T${item.slot.endTime}:00`).getTime() -
-                          new Date(`2000-01-01T${item.slot.startTime}:00`).getTime()) /
-                          (1000 * 60 * 60),
-                      )}
-                      h
+                      {(() => {
+                        try {
+                          // 確保時間格式正確（移除可能存在的秒數）
+                          const startTime = item.slot.startTime.substring(0, 5)
+                          const endTime = item.slot.endTime.substring(0, 5)
+                          
+                          const start = new Date(`2000-01-01T${startTime}:00`)
+                          const end = new Date(`2000-01-01T${endTime}:00`)
+                          
+                          const durationMs = end.getTime() - start.getTime()
+                          const durationHours = durationMs / (1000 * 60 * 60)
+                          
+                          // 檢查是否為有效數字
+                          if (isNaN(durationHours) || durationHours < 0) {
+                            return "- h"
+                          }
+                          
+                          // 如果小於1小時，顯示分鐘數
+                          if (durationHours < 1) {
+                            const durationMinutes = Math.round(durationMs / (1000 * 60))
+                            return `${durationMinutes}分`
+                          }
+                          
+                          return `${Math.round(durationHours * 10) / 10}h`
+                        } catch (error) {
+                          return "- h"
+                        }
+                      })()}
                     </p>
                   </div>
                 </div>
