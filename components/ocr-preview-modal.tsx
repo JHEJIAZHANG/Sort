@@ -97,7 +97,71 @@ export function OCRPreviewModal({ isOpen, onClose, data, onConfirm, loading = fa
       updatedSchedule[scheduleIndex] = { ...updatedSchedule[scheduleIndex], [field]: parseInt(value) }
     }
     updated[courseIndex] = { ...updated[courseIndex], schedule: updatedSchedule }
+    
+    // 重新檢查衝突狀態
+    const hasConflicts = checkCourseConflicts(updated[courseIndex], courseIndex, updated)
+    updated[courseIndex] = { 
+      ...updated[courseIndex], 
+      has_conflicts: hasConflicts,
+      conflicts: hasConflicts ? updated[courseIndex].conflicts : []
+    }
+    
     setEditedCourses(updated)
+    
+    // 如果修改後沒有衝突了，自動選中該課程
+    if (!hasConflicts && !selectedCourses.has(courseIndex)) {
+      const newSelected = new Set(selectedCourses)
+      newSelected.add(courseIndex)
+      setSelectedCourses(newSelected)
+    }
+  }
+
+  // 檢查課程是否有衝突
+  const checkCourseConflicts = (course: OCRCourse, courseIndex: number, allCourses: OCRCourse[]): boolean => {
+    // 檢查與其他課程的衝突
+    for (let i = 0; i < allCourses.length; i++) {
+      if (i === courseIndex) continue // 跳過自己
+      
+      const otherCourse = allCourses[i]
+      for (const schedule of course.schedule) {
+        for (const otherSchedule of otherCourse.schedule) {
+          // 檢查是否在同一天
+          if (schedule.day_of_week === otherSchedule.day_of_week) {
+            // 檢查時間是否重疊
+            const start1 = schedule.start
+            const end1 = schedule.end
+            const start2 = otherSchedule.start
+            const end2 = otherSchedule.end
+            
+            // 時間重疊判斷：!(end1 <= start2 || start1 >= end2)
+            if (!(end1 <= start2 || start1 >= end2)) {
+              return true // 有衝突
+            }
+          }
+        }
+      }
+    }
+    
+    // 檢查課程內部時段是否有衝突
+    for (let i = 0; i < course.schedule.length; i++) {
+      for (let j = i + 1; j < course.schedule.length; j++) {
+        const schedule1 = course.schedule[i]
+        const schedule2 = course.schedule[j]
+        
+        if (schedule1.day_of_week === schedule2.day_of_week) {
+          const start1 = schedule1.start
+          const end1 = schedule1.end
+          const start2 = schedule2.start
+          const end2 = schedule2.end
+          
+          if (!(end1 <= start2 || start1 >= end2)) {
+            return true // 內部時段衝突
+          }
+        }
+      }
+    }
+    
+    return false // 沒有衝突
   }
 
   const toggleCourseSelection = (index: number) => {
@@ -150,9 +214,10 @@ export function OCRPreviewModal({ isOpen, onClose, data, onConfirm, loading = fa
     onConfirm(selected)
   }
 
-  const selectedCount = selectedCourses.size
+  // 實時計算衝突數量（基於當前編輯狀態）
   const conflictCount = editedCourses.filter(course => course.has_conflicts).length
   const availableCount = editedCourses.length - conflictCount
+  const selectedCount = selectedCourses.size
   const isAllSelected = selectedCount === availableCount && availableCount > 0
   const isAllExpanded = expandedCourses.size === editedCourses.length
 
