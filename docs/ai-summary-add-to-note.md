@@ -31,8 +31,11 @@ const handleAddSummaryToNote = async () => {
   
   setIsAddingToNote(true)
   try {
+    // 將摘要中的換行符轉換為 <br> 標籤以保留換行格式
+    const formattedSummary = aiSummary.summary.replace(/\n/g, '<br>')
+    
     // 構建要添加的內容
-    const summarySection = `\n\n<hr>\n<h3>📝 AI 摘要</h3>\n<p>${aiSummary.summary}</p>\n`
+    const summarySection = `\n\n<hr>\n<h3>📝 AI 摘要</h3>\n<p style="white-space: pre-line;">${formattedSummary}</p>\n`
     const keywordsSection = aiSummary.keywords.length > 0 
       ? `<p><strong>關鍵詞：</strong>${aiSummary.keywords.join('、')}</p>\n`
       : ''
@@ -136,14 +139,16 @@ AI 摘要會以以下 HTML 格式添加到筆記末尾：
 ```html
 <hr>
 <h3>📝 AI 摘要</h3>
-<p>這是 AI 生成的摘要內容...</p>
+<p style="white-space: pre-line;">這是 AI 生成的摘要內容...<br>支援多行顯示</p>
 <p><strong>關鍵詞：</strong>關鍵詞1、關鍵詞2、關鍵詞3</p>
 ```
 
 ### 格式說明
 - `<hr>` - 分隔線，將摘要與原內容分開
 - `<h3>📝 AI 摘要</h3>` - 標題，使用 emoji 圖標
-- `<p>摘要內容</p>` - 摘要文字
+- `<p style="white-space: pre-line;">摘要內容</p>` - 摘要文字，保留換行格式
+  - 換行符 `\n` 會被轉換為 `<br>` 標籤
+  - 使用 `white-space: pre-line` 樣式確保換行正確顯示
 - `<p><strong>關鍵詞：</strong>...</p>` - 關鍵詞列表（如果有）
 
 ## 使用步驟
@@ -230,6 +235,27 @@ AI 摘要會以以下 HTML 格式添加到筆記末尾：
 - 成功後顯示提示訊息
 - AI 摘要卡片自動消失
 
+## 換行處理
+
+### 問題
+AI 摘要可能包含多行內容，如果直接放在 `<p>` 標籤中，換行符會被忽略。
+
+### 解決方案
+1. **轉換換行符**：將 `\n` 轉換為 `<br>` 標籤
+   ```typescript
+   const formattedSummary = aiSummary.summary.replace(/\n/g, '<br>')
+   ```
+
+2. **添加樣式**：使用 `white-space: pre-line` 確保換行正確顯示
+   ```html
+   <p style="white-space: pre-line;">摘要內容</p>
+   ```
+
+### 效果
+- ✅ 保留 AI 摘要的原始換行格式
+- ✅ 在筆記詳情頁面正確顯示多行內容
+- ✅ 與現有 HTML 格式兼容
+
 ## 注意事項
 
 ### 1. 重複添加
@@ -243,6 +269,7 @@ AI 摘要會以以下 HTML 格式添加到筆記末尾：
 ### 3. 格式兼容性
 - 使用 HTML 格式，確保與現有筆記編輯器兼容
 - 如果筆記使用 Markdown，需要調整格式
+- 換行符轉換為 `<br>` 標籤，確保在 HTML 中正確顯示
 
 ## 未來改進建議
 

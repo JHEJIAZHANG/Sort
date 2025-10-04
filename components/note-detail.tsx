@@ -79,8 +79,11 @@ export function NoteDetail({ note, course, onBack, onEdit, onDelete, onUpdate }:
     
     setIsAddingToNote(true)
     try {
+      // 將摘要中的換行符轉換為 <br> 標籤以保留換行格式
+      const formattedSummary = aiSummary.summary.replace(/\n/g, '<br>')
+      
       // 構建要添加的內容
-      const summarySection = `\n\n<hr>\n<h3>📝 AI 摘要</h3>\n<p>${aiSummary.summary}</p>\n`
+      const summarySection = `\n\n<hr>\n<h3>📝 AI 摘要</h3>\n<p style="white-space: pre-line;">${formattedSummary}</p>\n`
       const keywordsSection = aiSummary.keywords.length > 0 
         ? `<p><strong>關鍵詞：</strong>${aiSummary.keywords.join('、')}</p>\n`
         : ''
