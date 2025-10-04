@@ -7,7 +7,6 @@ import { EmptyStateSimple } from "@/components/empty-state"
 import { CheckIcon, ExclamationIcon, ClockIcon } from "@/components/icons"
 import { useCourses } from "@/hooks/use-courses"
 import { CourseForm } from "@/components/course-form"
-import { CourseScheduleEditor } from "@/components/course-schedule-editor"
 import {
   AlertDialog,
   AlertDialogAction,
@@ -241,16 +240,7 @@ export function CourseDetail({ courseId, lineUserId, showBackButton = true, onOp
             </div>
 
             <div className="space-y-1">
-              <div className="flex items-center justify-between">
-                <span className="text-sm font-medium">上課時間</span>
-                <CourseScheduleEditor 
-                  course={course} 
-                  onScheduleUpdate={(courseId, schedules) => {
-                    // 時間更新後的回調處理
-            
-                  }}
-                />
-              </div>
+              <span className="text-sm font-medium">上課時間</span>
               <p className={`text-sm ${course.schedule && course.schedule.length > 0 ? 'text-muted-foreground' : 'text-gray-400 italic'}`}>
                 {formatSchedule()}
               </p>
