@@ -377,7 +377,7 @@ export function UnifiedTodoSection({
                   <p className={`text-xs font-medium ${getItemTextColor(item)}`}>{formatDueDate(item.dueDate)}</p>
                   <p className="text-xs text-slate-600">{item.dueDate.toLocaleDateString("zh-TW")}</p>
                 </div>
-                {item.status !== "completed" && (
+                {(!item.status || item.status !== "completed") && (
                   <Button
                     size="sm"
                     variant="outline"
