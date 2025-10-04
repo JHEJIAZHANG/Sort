@@ -399,7 +399,8 @@ export default function HomePage() {
                 // OCR 批量導入完成後，關閉表單並刷新課程列表
                 setShowCourseForm(false)
                 setEditingCourse(null)
-                // 課程數據會通過 useCourses hook 自動刷新
+                // 刷新課程數據
+                await refetch()
               }}
               onCancel={() => {
                 setShowCourseForm(false)
