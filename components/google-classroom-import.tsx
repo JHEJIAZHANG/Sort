@@ -292,7 +292,7 @@ export function GoogleClassroomImport({ isOpen, onClose, onImport }: GoogleClass
                       </div>
                       {customSchedule.map((slot, slotIndex) => (
                         <div key={slotIndex} className="text-sm text-muted-foreground ml-5">
-                          {dayNames[slot.dayOfWeek]} {slot.startTime} - {slot.endTime}
+                          {dayNames[slot.dayOfWeek]} {slot.startTime.substring(0, 5)} - {slot.endTime.substring(0, 5)}
                         </div>
                       ))}
                     </div>

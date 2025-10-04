@@ -15,8 +15,13 @@ interface CourseCardProps {
 const DAYS = ["週一", "週二", "週三", "週四", "週五", "週六", "週日"]
 
 export function CourseCard({ course, onClick }: CourseCardProps) {
+  const formatTime = (time: string) => {
+    // 去掉秒數，只保留 HH:MM
+    return time.substring(0, 5)
+  }
+
   const formatSchedule = () => {
-    return course.schedule.map((slot) => `${DAYS[slot.dayOfWeek]} ${slot.startTime}-${slot.endTime}`).join(", ")
+    return course.schedule.map((slot) => `${DAYS[slot.dayOfWeek]} ${formatTime(slot.startTime)}-${formatTime(slot.endTime)}`).join(", ")
   }
 
   return (

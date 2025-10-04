@@ -60,7 +60,10 @@ export function CourseDetail({ courseId, lineUserId, showBackButton = true, onOp
     return temp.textContent || temp.innerText || ""
   }
 
-
+  const formatTime = (time: string) => {
+    // 去掉秒數，只保留 HH:MM
+    return time.substring(0, 5)
+  }
 
   if (!course) {
     // 尚未取得課程資料時顯示載入狀態（避免誤關閉）
@@ -75,7 +78,7 @@ export function CourseDetail({ courseId, lineUserId, showBackButton = true, onOp
     if (!course.schedule || course.schedule.length === 0) {
       return "未設定上課時間"
     }
-    return course.schedule.map((slot) => `${DAYS[slot.dayOfWeek]} ${slot.startTime}-${slot.endTime}`).join(", ")
+    return course.schedule.map((slot) => `${DAYS[slot.dayOfWeek]} ${formatTime(slot.startTime)}-${formatTime(slot.endTime)}`).join(", ")
   }
 
   const getStatusColor = (status: Assignment["status"]) => {

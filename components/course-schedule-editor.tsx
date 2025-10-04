@@ -156,6 +156,11 @@ export function CourseScheduleEditor({ course, onScheduleUpdate, trigger }: Cour
     }
   }
 
+  const formatTime = (time: string) => {
+    // 去掉秒數，只保留 HH:MM
+    return time.substring(0, 5)
+  }
+
   const formatScheduleDisplay = () => {
     if (!course.schedule || course.schedule.length === 0) {
       return "尚未設定上課時間"
@@ -163,7 +168,7 @@ export function CourseScheduleEditor({ course, onScheduleUpdate, trigger }: Cour
     
     return course.schedule.map(slot => {
       const dayLabel = DAYS.find(d => d.value === slot.dayOfWeek)?.label || "未知"
-      return `${dayLabel} ${slot.startTime}-${slot.endTime}`
+      return `${dayLabel} ${formatTime(slot.startTime)}-${formatTime(slot.endTime)}`
     }).join(", ")
   }
 

@@ -19,6 +19,11 @@ const convertJsDayToBackend = (jsDay: number): number => {
   return jsDay === 0 ? 6 : jsDay - 1
 }
 
+const formatTime = (time: string) => {
+  // 去掉秒數，只保留 HH:MM
+  return time.substring(0, 5)
+}
+
 export function UpcomingSchedule({ courses, selectedDate }: UpcomingScheduleProps) {
   const today = getTaiwanTime()
   const viewingDate = selectedDate || today
@@ -134,7 +139,7 @@ export function UpcomingSchedule({ courses, selectedDate }: UpcomingScheduleProp
                     </div>
                   </div>
                   <div className="text-right">
-                    <p className="text-xs font-medium text-foreground">{item.slot.startTime}</p>
+                    <p className="text-xs font-medium text-foreground">{formatTime(item.slot.startTime)}</p>
                     <p className="text-xs text-muted-foreground">
                       {Math.round(
                         (new Date(`2000-01-01T${item.slot.endTime}:00`).getTime() -
