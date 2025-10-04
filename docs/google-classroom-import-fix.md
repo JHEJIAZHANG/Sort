@@ -1,6 +1,37 @@
 # Google Classroom 課程匯入修正
 
-## 問題描述
+## 最新更新（第二版）
+
+### 新的使用流程
+
+1. **「我的」頁面**：點擊「立即同步所有 Google 服務」只進行同步，不再彈出課程選擇界面
+2. **「課程」頁面**：新增「匯入 Google Classroom 課程」按鈕（位於頁面底部）
+3. 點擊「匯入 Google Classroom 課程」按鈕後：
+   - 系統同步 Google Classroom 課程
+   - 自動彈出課程選擇界面
+   - 顯示未設定時間表的課程
+   - 用戶選擇課程並設定上課時間
+   - 完成匯入
+
+### 修改內容
+
+1. **移除 `google-sync-all.tsx` 中的課程選擇界面**
+   - 移除 `GoogleClassroomOnboarding` 組件的引用
+   - 移除 `showOnboarding` 狀態
+   - 移除自動彈出邏輯
+
+2. **創建新組件 `import-google-classroom-button.tsx`**
+   - 獨立的匯入按鈕組件
+   - 包含同步和課程選擇的完整流程
+   - 可在課程頁面使用
+
+3. **修改 `app/page.tsx` 課程頁面**
+   - 在課程列表底部添加匯入按鈕
+   - 匯入完成後自動刷新課程列表
+
+---
+
+## 原始問題描述（第一版）
 
 用戶在「我的」頁面點擊「立即同步所有 Google 服務」按鈕後：
 1. 系統同步 Google Classroom 課程
@@ -85,17 +116,30 @@ const loadGoogleClassroomCourses = async () => {
 
 ## 測試步驟
 
+### 測試「我的」頁面同步功能
 1. 確保已連接 Google Classroom
 2. 在「我的」頁面點擊「立即同步所有 Google 服務」
 3. 等待同步完成
-4. 驗證課程選擇界面是否正確顯示未匯入的課程
-5. 選擇課程並設定時間表
-6. 確認課程已正確匯入並顯示在課程列表中
+4. 驗證同步狀態顯示正確
+5. **不應該**彈出課程選擇界面
+
+### 測試課程匯入功能
+1. 切換到「課程」頁面
+2. 滾動到頁面底部
+3. 點擊「匯入 Google Classroom 課程」按鈕
+4. 等待同步完成（約 1 秒）
+5. 驗證課程選擇界面是否正確顯示未匯入的課程
+6. 選擇要匯入的課程
+7. 設定每個課程的上課時間
+8. 點擊「確認匯入」
+9. 確認課程已正確匯入並顯示在課程列表中
 
 ## 相關文件
 
-- `components/google-sync-all.tsx` - 統一同步組件
+- `components/google-sync-all.tsx` - 統一同步組件（已修改，移除課程選擇界面）
+- `components/import-google-classroom-button.tsx` - 新增：匯入 Google Classroom 課程按鈕組件
 - `components/google-classroom-onboarding.tsx` - 課程選擇和時間表設定組件
+- `app/page.tsx` - 主頁面（已修改，在課程頁面添加匯入按鈕）
 - `services/apiService.ts` - API 服務層
 
 ## 注意事項

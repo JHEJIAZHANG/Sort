@@ -36,6 +36,7 @@ import { ProfileContent } from "@/components/profile-content"
 import { CompactMonthlyCalendar } from "@/components/compact-monthly-calendar"
 import { AddCourseDropdown } from "@/components/add-course-dropdown"
 import { GoogleClassroomImport } from "@/components/google-classroom-import"
+import { ImportGoogleClassroomButton } from "@/components/import-google-classroom-button"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog"
 import { getTaiwanTime, isTodayTaiwan, isExamEndedTaiwan, getDaysDifferenceTaiwan } from "@/lib/taiwan-time"
 import type { Course } from "@/types/course"
@@ -805,32 +806,39 @@ export default function HomePage() {
           }
         />
 
-        {courses.length > 0 ? (
-          courseView === "list" ? (
-            <div className="space-y-2 sm:space-y-3">
-              {courses.map((course) => (
-                <CourseCard key={course.id} course={course} onClick={() => setSelectedCourseId(course.id)} />
-              ))}
-            </div>
+        <div className="space-y-4">
+          {courses.length > 0 ? (
+            courseView === "list" ? (
+              <div className="space-y-2 sm:space-y-3">
+                {courses.map((course) => (
+                  <CourseCard key={course.id} course={course} onClick={() => setSelectedCourseId(course.id)} />
+                ))}
+              </div>
+            ) : (
+              <UnifiedCalendar 
+                courses={courses} 
+                onCourseClick={(courseId) => setSelectedCourseId(courseId)}
+                onEventClick={(event) => {
+                  console.log('Calendar event clicked:', event)
+                  // 可以在這裡添加事件詳情顯示邏輯
+                }}
+              />
+            )
           ) : (
-            <UnifiedCalendar 
-              courses={courses} 
-              onCourseClick={(courseId) => setSelectedCourseId(courseId)}
-              onEventClick={(event) => {
-                console.log('Calendar event clicked:', event)
-                // 可以在這裡添加事件詳情顯示邏輯
-              }}
-            />
-          )
-        ) : (
-          <Card className="p-4 sm:p-8 text-center">
-            <p className="text-muted-foreground mb-4 text-sm sm:text-base">還沒有任何課程</p>
-            <AddCourseDropdown
-              onManualAdd={() => setShowCourseForm(true)}
-              onGoogleClassroomImport={() => setShowGoogleClassroomImport(true)}
-            />
-          </Card>
-        )}
+            <Card className="p-4 sm:p-8 text-center">
+              <p className="text-muted-foreground mb-4 text-sm sm:text-base">還沒有任何課程</p>
+              <AddCourseDropdown
+                onManualAdd={() => setShowCourseForm(true)}
+                onGoogleClassroomImport={() => setShowGoogleClassroomImport(true)}
+              />
+            </Card>
+          )}
+
+          {/* Google Classroom 匯入按鈕 */}
+          <div className="flex justify-center pt-4 border-t">
+            <ImportGoogleClassroomButton onImportComplete={() => refetch()} />
+          </div>
+        </div>
 
         <GoogleClassroomImport
           isOpen={showGoogleClassroomImport}

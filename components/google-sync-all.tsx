@@ -5,7 +5,6 @@ import { Button } from "@/components/ui/button"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { RefreshIcon, CheckIcon, AlertTriangleIcon } from "@/components/icons"
 import { ApiService } from "@/services/apiService"
-import { GoogleClassroomOnboarding } from "@/components/google-classroom-onboarding"
 
 interface GoogleSyncAllProps {
   onSync?: () => void
@@ -38,7 +37,6 @@ interface SyncResult {
 export function GoogleSyncAll({ onSync }: GoogleSyncAllProps) {
   const [isLoading, setIsLoading] = useState(false)
   const [lastSyncResult, setLastSyncResult] = useState<SyncResult | null>(null)
-  const [showOnboarding, setShowOnboarding] = useState(false)
 
   const handleSync = async () => {
     setIsLoading(true)
@@ -59,11 +57,10 @@ export function GoogleSyncAll({ onSync }: GoogleSyncAllProps) {
           data: response.data
         })
         
-        // 等待一下讓資料完全寫入資料庫
-        await new Promise(resolve => setTimeout(resolve, 1000))
-        
-        // 同步完成後，顯示課程選擇界面
-        setShowOnboarding(true)
+        // 呼叫回調函數以重新載入資料
+        if (onSync) {
+          onSync()
+        }
       }
     } catch (error) {
       setLastSyncResult({
@@ -72,22 +69,6 @@ export function GoogleSyncAll({ onSync }: GoogleSyncAllProps) {
       })
     } finally {
       setIsLoading(false)
-    }
-  }
-
-  const handleOnboardingComplete = () => {
-    setShowOnboarding(false)
-    // 呼叫回調函數以重新載入資料
-    if (onSync) {
-      onSync()
-    }
-  }
-
-  const handleOnboardingSkip = () => {
-    setShowOnboarding(false)
-    // 呼叫回調函數以重新載入資料
-    if (onSync) {
-      onSync()
     }
   }
 
@@ -161,26 +142,18 @@ export function GoogleSyncAll({ onSync }: GoogleSyncAllProps) {
   }
 
   return (
-    <>
-      <div className="space-y-4">
-        <Button 
-          onClick={handleSync} 
-          disabled={isLoading}
-          className="w-full"
-          variant="outline"
-        >
-          <RefreshIcon className={`w-4 h-4 mr-2 ${isLoading ? 'animate-spin' : ''}`} />
-          {isLoading ? '同步中...' : '立即同步所有 Google 服務'}
-        </Button>
+    <div className="space-y-4">
+      <Button 
+        onClick={handleSync} 
+        disabled={isLoading}
+        className="w-full"
+        variant="outline"
+      >
+        <RefreshIcon className={`w-4 h-4 mr-2 ${isLoading ? 'animate-spin' : ''}`} />
+        {isLoading ? '同步中...' : '立即同步所有 Google 服務'}
+      </Button>
 
-        {renderSyncStatus()}
-      </div>
-
-      <GoogleClassroomOnboarding
-        isOpen={showOnboarding}
-        onComplete={handleOnboardingComplete}
-        onSkip={handleOnboardingSkip}
-      />
-    </>
+      {renderSyncStatus()}
+    </div>
   )
 }
