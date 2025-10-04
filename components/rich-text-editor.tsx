@@ -42,6 +42,89 @@ export function RichTextEditor({ value, onChange, placeholder, className }: Rich
     handleInput()
   }
 
+  const insertElement = (tagName: string) => {
+    if (!editorRef.current) return
+    
+    editorRef.current.focus()
+    const selection = window.getSelection()
+    if (!selection || selection.rangeCount === 0) return
+    
+    const range = selection.getRangeAt(0)
+    const element = document.createElement(tagName)
+    
+    // 如果有選中的內容，將其放入新元素中
+    if (!range.collapsed) {
+      const contents = range.extractContents()
+      element.appendChild(contents)
+    } else {
+      // 如果沒有選中內容，添加一個空格或換行
+      element.innerHTML = tagName === 'pre' ? '\n' : '&nbsp;'
+    }
+    
+    range.insertNode(element)
+    
+    // 將游標移到元素內部
+    range.selectNodeContents(element)
+    range.collapse(false)
+    selection.removeAllRanges()
+    selection.addRange(range)
+    
+    handleInput()
+  }
+
+  const formatBlock = (tag: string) => {
+    if (!editorRef.current) return
+    
+    editorRef.current.focus()
+    
+    // 嘗試使用 formatBlock 命令
+    try {
+      const success = document.execCommand('formatBlock', false, `<${tag}>`)
+      if (success) {
+        handleInput()
+        return
+      }
+    } catch (e) {
+      console.warn('formatBlock failed, using fallback method')
+    }
+    
+    // 如果 formatBlock 失敗，使用備用方法
+    const selection = window.getSelection()
+    if (!selection || selection.rangeCount === 0) return
+    
+    const range = selection.getRangeAt(0)
+    const element = document.createElement(tag)
+    
+    // 獲取選中的內容或當前行
+    if (!range.collapsed) {
+      const contents = range.extractContents()
+      element.appendChild(contents)
+    } else {
+      // 獲取當前段落
+      let node = range.startContainer
+      if (node.nodeType === Node.TEXT_NODE) {
+        node = node.parentNode as Node
+      }
+      
+      if (node && node.nodeName !== 'DIV') {
+        const text = node.textContent || ''
+        element.textContent = text || '\u00A0' // 使用不間斷空格
+        node.parentNode?.replaceChild(element, node)
+      } else {
+        element.innerHTML = '\u00A0'
+        range.insertNode(element)
+      }
+    }
+    
+    // 將游標移到元素末尾
+    range.selectNodeContents(element)
+    range.collapse(false)
+    selection.removeAllRanges()
+    selection.addRange(range)
+    
+    handleInput()
+  }
+
   const handleKeyDown = (e: React.KeyboardEvent) => {
     // Handle common shortcuts
     if (e.ctrlKey || e.metaKey) {
@@ -75,31 +158,31 @@ export function RichTextEditor({ value, onChange, placeholder, className }: Rich
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent>
-            <DropdownMenuItem onClick={() => execCommand("formatBlock", "h1")}>
+            <DropdownMenuItem onClick={() => formatBlock("h1")}>
               <Heading1 className="h-4 w-4 mr-2" />
               標題 1
             </DropdownMenuItem>
-            <DropdownMenuItem onClick={() => execCommand("formatBlock", "h2")}>
+            <DropdownMenuItem onClick={() => formatBlock("h2")}>
               <Heading2 className="h-4 w-4 mr-2" />
               標題 2
             </DropdownMenuItem>
-            <DropdownMenuItem onClick={() => execCommand("formatBlock", "h3")}>
+            <DropdownMenuItem onClick={() => formatBlock("h3")}>
               <Heading3 className="h-4 w-4 mr-2" />
               標題 3
             </DropdownMenuItem>
-            <DropdownMenuItem onClick={() => execCommand("formatBlock", "h4")}>
+            <DropdownMenuItem onClick={() => formatBlock("h4")}>
               <span className="text-sm mr-2">H4</span>
               標題 4
             </DropdownMenuItem>
-            <DropdownMenuItem onClick={() => execCommand("formatBlock", "h5")}>
+            <DropdownMenuItem onClick={() => formatBlock("h5")}>
               <span className="text-xs mr-2">H5</span>
               標題 5
             </DropdownMenuItem>
-            <DropdownMenuItem onClick={() => execCommand("formatBlock", "h6")}>
+            <DropdownMenuItem onClick={() => formatBlock("h6")}>
               <span className="text-xs mr-2">H6</span>
               標題 6
             </DropdownMenuItem>
-            <DropdownMenuItem onClick={() => execCommand("formatBlock", "p")}>
+            <DropdownMenuItem onClick={() => formatBlock("p")}>
               <span className="text-sm mr-2">P</span>
               一般文字
             </DropdownMenuItem>
@@ -153,7 +236,7 @@ export function RichTextEditor({ value, onChange, placeholder, className }: Rich
           type="button"
           variant="ghost"
           size="sm"
-          onClick={() => execCommand("formatBlock", "pre")}
+          onClick={() => formatBlock("pre")}
           className="h-8 w-8 p-0"
           title="程式碼區塊"
         >
@@ -163,7 +246,7 @@ export function RichTextEditor({ value, onChange, placeholder, className }: Rich
           type="button"
           variant="ghost"
           size="sm"
-          onClick={() => execCommand("formatBlock", "blockquote")}
+          onClick={() => formatBlock("blockquote")}
           className="h-8 w-8 p-0"
           title="引用"
         >
@@ -207,7 +290,7 @@ export function RichTextEditor({ value, onChange, placeholder, className }: Rich
           onFocus={() => setIsEditorFocused(true)}
           onBlur={() => setIsEditorFocused(false)}
           onKeyDown={handleKeyDown}
-          className="min-h-[200px] p-3 outline-none focus:ring-2 focus:ring-blue-500 focus:ring-inset"
+          className="min-h-[200px] p-3 outline-none focus:ring-2 focus:ring-blue-500 focus:ring-inset prose prose-sm max-w-none [&>h1]:text-2xl [&>h1]:font-bold [&>h1]:mt-4 [&>h1]:mb-2 [&>h2]:text-xl [&>h2]:font-bold [&>h2]:mt-3 [&>h2]:mb-2 [&>h3]:text-lg [&>h3]:font-bold [&>h3]:mt-2 [&>h3]:mb-1 [&>h4]:text-base [&>h4]:font-bold [&>h5]:text-sm [&>h5]:font-bold [&>h6]:text-xs [&>h6]:font-bold [&>pre]:bg-gray-100 [&>pre]:p-2 [&>pre]:rounded [&>pre]:font-mono [&>pre]:text-sm [&>pre]:overflow-x-auto [&>blockquote]:border-l-4 [&>blockquote]:border-gray-300 [&>blockquote]:pl-4 [&>blockquote]:italic [&>blockquote]:text-gray-600 [&>ul]:list-disc [&>ul]:ml-6 [&>ol]:list-decimal [&>ol]:ml-6"
           style={{ whiteSpace: "pre-wrap" }}
           suppressContentEditableWarning={true}
         />
