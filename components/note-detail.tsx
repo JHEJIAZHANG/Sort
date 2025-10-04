@@ -304,7 +304,7 @@ export function NoteDetail({ note, course, onBack, onEdit, onDelete, onUpdate }:
       <Card className="p-4 mb-4">
         <div className="prose prose-sm max-w-none">
           <div
-            className="text-foreground leading-relaxed [&>*]:mb-2 [&>ul]:list-disc [&>ul]:ml-6 [&>ol]:list-decimal [&>ol]:ml-6 [&>a]:text-blue-600 [&>a]:underline [&>strong]:font-bold [&>em]:italic"
+            className="text-foreground leading-relaxed [&>*]:mb-2 [&>h1]:text-2xl [&>h1]:font-bold [&>h1]:mt-4 [&>h1]:mb-2 [&>h2]:text-xl [&>h2]:font-bold [&>h2]:mt-3 [&>h2]:mb-2 [&>h3]:text-lg [&>h3]:font-bold [&>h3]:mt-2 [&>h3]:mb-1 [&>h4]:text-base [&>h4]:font-bold [&>h5]:text-sm [&>h5]:font-bold [&>h6]:text-xs [&>h6]:font-bold [&>pre]:bg-gray-100 [&>pre]:p-2 [&>pre]:rounded [&>pre]:font-mono [&>pre]:text-sm [&>pre]:overflow-x-auto [&>pre]:whitespace-pre-wrap [&>blockquote]:border-l-4 [&>blockquote]:border-gray-300 [&>blockquote]:pl-4 [&>blockquote]:italic [&>blockquote]:text-gray-600 [&>ul]:list-disc [&>ul]:ml-6 [&>ol]:list-decimal [&>ol]:ml-6 [&>a]:text-blue-600 [&>a]:underline [&>strong]:font-bold [&>em]:italic"
             dangerouslySetInnerHTML={{ __html: note.content }}
           />
         </div>

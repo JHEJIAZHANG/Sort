@@ -72,6 +72,40 @@ export function RichTextEditor({ value, onChange, placeholder, className }: Rich
     handleInput()
   }
 
+  const toggleFormatBlock = (tag: string) => {
+    if (!editorRef.current) return
+    
+    editorRef.current.focus()
+    const selection = window.getSelection()
+    if (!selection || selection.rangeCount === 0) return
+    
+    // 檢查當前是否已經在該格式中
+    let node = selection.anchorNode
+    if (node && node.nodeType === Node.TEXT_NODE) {
+      node = node.parentNode as Node
+    }
+    
+    // 如果當前已經是該標籤，則轉換為 <p>
+    if (node && node.nodeName.toLowerCase() === tag.toLowerCase()) {
+      const p = document.createElement('p')
+      p.innerHTML = node.textContent || '\u00A0'
+      node.parentNode?.replaceChild(p, node)
+      
+      // 將游標移到新元素中
+      const range = document.createRange()
+      range.selectNodeContents(p)
+      range.collapse(false)
+      selection.removeAllRanges()
+      selection.addRange(range)
+      
+      handleInput()
+      return
+    }
+    
+    // 否則應用新格式
+    formatBlock(tag)
+  }
+
   const formatBlock = (tag: string) => {
     if (!editorRef.current) return
     
@@ -236,9 +270,9 @@ export function RichTextEditor({ value, onChange, placeholder, className }: Rich
           type="button"
           variant="ghost"
           size="sm"
-          onClick={() => formatBlock("pre")}
+          onClick={() => toggleFormatBlock("pre")}
           className="h-8 w-8 p-0"
-          title="程式碼區塊"
+          title="程式碼區塊（再次點擊取消）"
         >
           <Code className="h-4 w-4" />
         </Button>
@@ -246,9 +280,9 @@ export function RichTextEditor({ value, onChange, placeholder, className }: Rich
           type="button"
           variant="ghost"
           size="sm"
-          onClick={() => formatBlock("blockquote")}
+          onClick={() => toggleFormatBlock("blockquote")}
           className="h-8 w-8 p-0"
-          title="引用"
+          title="引用（再次點擊取消）"
         >
           <Quote className="h-4 w-4" />
         </Button>
