@@ -294,36 +294,18 @@ export function useCourses(lineUserId: string) {
         }
       }
       
-      // 如果是完整更新（包含所有必填欄位），使用 transformFrontendAssignment
-      if (updates.title && updates.dueDate && (updates as any).courseId) {
-        const payload = transformFrontendAssignment(updates as Assignment, lineUserId)
-        console.log('updateAssignment full update payload:', payload)
-        
-        const response = await ApiService.updateAssignment(id, payload)
-        if (response.error) throw new Error(response.error)
-        if (response.data) {
-          const updated = transformBackendAssignment(response.data)
-          setAssignments(prev => prev.map(a => (a.id === id ? updated : a)))
-          await fetchAllData()
-          return updated
-        } else {
-          // 如果沒有返回資料，拋出錯誤
-          throw new Error('API 調用成功但沒有返回作業資料')
-        }
-      }
-
-      // 部分更新：只組裝提供的欄位
+      // 完整更新：組裝所有欄位
       const minimal: any = {}
       if (updates.title !== undefined) minimal.title = updates.title
       if (updates.description !== undefined) minimal.description = updates.description
-      if ((updates as any).courseId !== undefined) minimal.course = (updates as any).courseId
+      if (updates.courseId !== undefined) minimal.course_id = updates.courseId
       if (updates.dueDate !== undefined) minimal.due_date = updates.dueDate ? updates.dueDate.toISOString() : null
       if (updates.status !== undefined) minimal.status = updates.status
       // 添加提醒時間相關欄位
-      if ((updates as any).customReminderTiming !== undefined) minimal.custom_reminder_timing = (updates as any).customReminderTiming
-      if ((updates as any).notificationTime !== undefined) minimal.notification_time = (updates as any).notificationTime ? (updates as any).notificationTime.toISOString() : null
+      if (updates.customReminderTiming !== undefined) minimal.custom_reminder_timing = updates.customReminderTiming
+      if (updates.notificationTime !== undefined) minimal.notification_time = updates.notificationTime ? updates.notificationTime.toISOString() : null
 
-      console.log('updateAssignment partial update minimal:', minimal)
+      console.log('updateAssignment payload:', minimal)
 
       const response = await ApiService.updateAssignment(id, minimal)
       if (response.error) throw new Error(response.error)
@@ -332,6 +314,7 @@ export function useCourses(lineUserId: string) {
         const updatedAssignment = transformBackendAssignment(response.data)
         console.log('updateAssignment response.data:', response.data)
         console.log('updateAssignment updatedAssignment:', updatedAssignment)
+        console.log('updateAssignment updatedAssignment.customReminderTiming:', updatedAssignment.customReminderTiming)
         
         setAssignments(prev => prev.map(assignment => 
           assignment.id === id ? updatedAssignment : assignment

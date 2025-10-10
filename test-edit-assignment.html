@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>測試編輯作業功能</title>
+</head>
+<body>
+    <h1>測試編輯作業功能</h1>
+    <p>請打開瀏覽器開發者工具的控制台，然後：</p>
+    <ol>
+        <li>前往 <a href="http://localhost:3000" target="_blank">http://localhost:3000</a></li>
+        <li>登入系統</li>
+        <li>進入作業管理頁面</li>
+        <li>點擊編輯任何一個作業</li>
+        <li>查看控制台中的調試信息</li>
+        <li>嘗試修改提醒時間設定</li>
+        <li>提交表單並查看控制台輸出</li>
+    </ol>
+    
+    <h2>預期的調試信息：</h2>
+    <ul>
+        <li><code>assignment-management editingAssignment:</code> - 編輯的作業ID</li>
+        <li><code>assignment-management assignmentData:</code> - 從後端獲取的作業資料</li>
+        <li><code>assignment-management assignmentData.customReminderTiming:</code> - 提醒時間設定</li>
+        <li><code>AssignmentForm initialData:</code> - 傳遞給表單的初始資料</li>
+        <li><code>AssignmentForm formData:</code> - 表單的狀態資料</li>
+        <li><code>updateAssignment called with updates:</code> - 更新作業時的資料</li>
+    </ul>
+</body>
+</html>
