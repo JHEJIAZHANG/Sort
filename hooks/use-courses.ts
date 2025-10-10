@@ -244,6 +244,9 @@ export function useCourses(lineUserId: string) {
         course: assignment.courseId || null,
         type: 'assignment',
         status: assignment.status || 'pending',
+        // 添加提醒時間相關欄位
+        custom_reminder_timing: assignment.customReminderTiming || 'default',
+        notification_time: assignment.notificationTime ? assignment.notificationTime.toISOString() : null,
       }
       if (!payload.title || !payload.due_date || !payload.course) {
         throw new Error('請選擇課程並填寫標題與截止時間')
@@ -293,6 +296,9 @@ export function useCourses(lineUserId: string) {
       if ((updates as any).courseId !== undefined) minimal.course = (updates as any).courseId
       if (updates.dueDate !== undefined) minimal.due_date = updates.dueDate ? updates.dueDate.toISOString() : null
       if (updates.status !== undefined) minimal.status = updates.status
+      // 添加提醒時間相關欄位
+      if ((updates as any).customReminderTiming !== undefined) minimal.custom_reminder_timing = (updates as any).customReminderTiming
+      if ((updates as any).notificationTime !== undefined) minimal.notification_time = (updates as any).notificationTime ? (updates as any).notificationTime.toISOString() : null
 
       const response = await ApiService.updateAssignment(id, minimal)
       if (response.error) throw new Error(response.error)

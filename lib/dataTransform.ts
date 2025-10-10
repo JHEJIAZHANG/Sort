@@ -94,7 +94,10 @@ export function transformBackendAssignment(backendAssignment: any): Assignment {
     updatedAt: new Date(backendAssignment.updated_at),
     googleClassroomId: backendAssignment.google_coursework_id || undefined,
     googleClassroomUrl: backendAssignment.google_classroom_url || undefined,
-    source: backendAssignment.google_coursework_id ? 'google_classroom' : 'manual'
+    source: backendAssignment.google_coursework_id ? 'google_classroom' : 'manual',
+    // 添加提醒時間相關欄位
+    customReminderTiming: backendAssignment.custom_reminder_timing || 'default',
+    notificationTime: backendAssignment.notification_time ? new Date(backendAssignment.notification_time) : undefined
   }
 }
 
@@ -112,7 +115,9 @@ export function transformFrontendAssignment(frontendAssignment: Assignment, line
     course: frontendAssignment.courseId || null,
     // 與 AssignmentV2 欄位對齊
     type: 'assignment',
-    status: frontendAssignment.status || 'pending'
+    status: frontendAssignment.status || 'pending',
+    // 添加自定義提醒時間設定
+    custom_reminder_timing: frontendAssignment.customReminderTiming || 'default'
   }
 }
 

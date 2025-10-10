@@ -283,6 +283,15 @@ export class ApiService {
       payload.course_id = payload.course
       delete payload.course
     }
+    // 映射提醒欄位：customReminderTiming -> custom_reminder_timing；notificationTime -> notification_time
+    if (Object.prototype.hasOwnProperty.call(payload, 'customReminderTiming') && payload.customReminderTiming !== undefined) {
+      payload.custom_reminder_timing = payload.customReminderTiming
+      delete payload.customReminderTiming
+    }
+    if (Object.prototype.hasOwnProperty.call(payload, 'notificationTime') && payload.notificationTime !== undefined) {
+      payload.notification_time = payload.notificationTime
+      delete payload.notificationTime
+    }
     // 確保 status 有默認值
     if (!payload.status) {
       payload.status = 'pending'
@@ -304,6 +313,15 @@ export class ApiService {
     if (payload.course) {
       payload.course_id = payload.course
       delete payload.course
+    }
+    // 映射提醒欄位：customReminderTiming -> custom_reminder_timing；notificationTime -> notification_time
+    if (Object.prototype.hasOwnProperty.call(payload, 'customReminderTiming') && payload.customReminderTiming !== undefined) {
+      payload.custom_reminder_timing = payload.customReminderTiming
+      delete payload.customReminderTiming
+    }
+    if (Object.prototype.hasOwnProperty.call(payload, 'notificationTime') && payload.notificationTime !== undefined) {
+      payload.notification_time = payload.notificationTime
+      delete payload.notificationTime
     }
     const resp = await this.request<any>('/web/assignments/update/', {
       method: 'PATCH',
@@ -419,16 +437,34 @@ export class ApiService {
   }
 
   static async createExam(data: any) {
+    const payload: any = { ...data }
+    if (Object.prototype.hasOwnProperty.call(payload, 'customReminderTiming') && payload.customReminderTiming !== undefined) {
+      payload.custom_reminder_timing = payload.customReminderTiming
+      delete payload.customReminderTiming
+    }
+    if (Object.prototype.hasOwnProperty.call(payload, 'notificationTime') && payload.notificationTime !== undefined) {
+      payload.notification_time = payload.notificationTime
+      delete payload.notificationTime
+    }
     return this.request('/exams/', {
       method: 'POST',
-      body: JSON.stringify(data)
+      body: JSON.stringify(payload)
     })
   }
 
   static async updateExam(examId: string, data: any) {
+    const payload: any = { ...data }
+    if (Object.prototype.hasOwnProperty.call(payload, 'customReminderTiming') && payload.customReminderTiming !== undefined) {
+      payload.custom_reminder_timing = payload.customReminderTiming
+      delete payload.customReminderTiming
+    }
+    if (Object.prototype.hasOwnProperty.call(payload, 'notificationTime') && payload.notificationTime !== undefined) {
+      payload.notification_time = payload.notificationTime
+      delete payload.notificationTime
+    }
     return this.request(`/exams/${examId}/`, {
       method: 'PATCH',
-      body: JSON.stringify(data)
+      body: JSON.stringify(payload)
     })
   }
 
@@ -1004,3 +1040,5 @@ export class ApiService {
 
 
 }
+
+// PATCH TEST 1760122225897

@@ -55,8 +55,8 @@ export function AssignmentDetail({
     ? assignment.customReminderTiming 
     : notificationSettings?.assignmentReminderTiming || '1week'
   
-  // 計算提醒時間
-  const notificationTime = calculateNotificationTime(assignment.dueDate, effectiveReminderTiming)
+  // 優先使用資料庫中已儲存的提醒時間，如果沒有則重新計算
+  const notificationTime = assignment.notificationTime || calculateNotificationTime(assignment.dueDate, effectiveReminderTiming)
 
   const getStatusColor = (status: Assignment["status"]) => {
     switch (status) {
