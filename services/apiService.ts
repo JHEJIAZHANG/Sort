@@ -199,11 +199,11 @@ export class ApiService {
 
   // 通知設定相關 API
   static async getNotificationSettings(lineUserId: string) {
-    return this.request(`/notification-settings/${lineUserId}/`)
+    return this.request(`/notification-settings/${lineUserId}`)
   }
 
   static async updateNotificationSettings(lineUserId: string, settings: any) {
-    return this.request(`/notification-settings/${lineUserId}/`, {
+    return this.request(`/notification-settings/${lineUserId}`, {
       method: 'PUT',
       body: JSON.stringify(settings)
     })
