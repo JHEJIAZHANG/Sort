@@ -287,18 +287,6 @@ export class ApiService {
     if (!payload.status) {
       payload.status = 'pending'
     }
-    // 轉換 notificationTime 為 ISO 字串
-    if (payload.notificationTime) {
-      payload.notification_time = payload.notificationTime instanceof Date 
-        ? payload.notificationTime.toISOString() 
-        : payload.notificationTime
-      delete payload.notificationTime
-    }
-    // 轉換 customReminderTiming
-    if (payload.customReminderTiming) {
-      payload.custom_reminder_timing = payload.customReminderTiming
-      delete payload.customReminderTiming
-    }
     const resp = await this.request<any>('/web/assignments/create/', {
       method: 'POST',
       body: JSON.stringify(payload)
@@ -316,18 +304,6 @@ export class ApiService {
     if (payload.course) {
       payload.course_id = payload.course
       delete payload.course
-    }
-    // 轉換 notificationTime 為 ISO 字串
-    if (payload.notificationTime) {
-      payload.notification_time = payload.notificationTime instanceof Date 
-        ? payload.notificationTime.toISOString() 
-        : payload.notificationTime
-      delete payload.notificationTime
-    }
-    // 轉換 customReminderTiming
-    if (payload.customReminderTiming !== undefined) {
-      payload.custom_reminder_timing = payload.customReminderTiming
-      delete payload.customReminderTiming
     }
     const resp = await this.request<any>('/web/assignments/update/', {
       method: 'PATCH',

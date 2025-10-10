@@ -86,8 +86,6 @@ export function transformBackendAssignment(backendAssignment: any): Assignment {
     title: backendAssignment.title || backendAssignment.name || '',
     description: backendAssignment.description || '',
     dueDate: backendAssignment.due_date ? new Date(backendAssignment.due_date) : new Date(),
-    notificationTime: backendAssignment.notification_time ? new Date(backendAssignment.notification_time) : undefined,
-    customReminderTiming: backendAssignment.custom_reminder_timing || 'default',
     courseId: course.id,
     courseName: backendAssignment.course_name || course.name || '',
     status: status,
@@ -110,8 +108,6 @@ export function transformFrontendAssignment(frontendAssignment: Assignment, line
     due_date: frontendAssignment.dueDate ? frontendAssignment.dueDate.toISOString() : null,
     // 傳遞計算好的提醒時間
     notification_time: frontendAssignment.notificationTime ? frontendAssignment.notificationTime.toISOString() : null,
-    // 傳遞自訂提醒時機
-    custom_reminder_timing: frontendAssignment.customReminderTiming || 'default',
     // 後端使用 UUID 字串
     course: frontendAssignment.courseId || null,
     // 與 AssignmentV2 欄位對齊
@@ -163,8 +159,6 @@ export function transformBackendExam(backendExam: any): Exam {
     title: backendExam.title,
     description: backendExam.description || '',
     examDate: backendExam.exam_date ? new Date(backendExam.exam_date) : new Date(),
-    notificationTime: backendExam.notification_time ? new Date(backendExam.notification_time) : undefined,
-    customReminderTiming: backendExam.custom_reminder_timing || 'default',
     courseId: course.id,
     courseName: backendExam.course_name || course.name || '',
     location: backendExam.location || '',
@@ -185,8 +179,6 @@ export function transformFrontendExam(frontendExam: Exam, lineUserId: string) {
     exam_date: frontendExam.examDate?.toISOString() || null,
     // 傳遞計算好的提醒時間
     notification_time: frontendExam.notificationTime ? frontendExam.notificationTime.toISOString() : null,
-    // 傳遞自訂提醒時機
-    custom_reminder_timing: frontendExam.customReminderTiming || 'default',
     // 後端使用 UUID，不能 parseInt，直接傳字串
     course: frontendExam.courseId || null,
     location: frontendExam.location,

@@ -205,27 +205,6 @@ export function ExamForm({ courses, initialData, onSubmit, onCancel }: ExamFormP
           />
         </div>
 
-        <div>
-          <label className="block text-sm font-bold text-foreground mb-2">提醒時間</label>
-          <select
-            value={formData.customReminderTiming}
-            onChange={(e) => setFormData({ ...formData, customReminderTiming: e.target.value as Exam["customReminderTiming"] })}
-            className="w-full px-3 py-2 border border-input rounded-md focus:outline-none focus:ring-2 focus:ring-primary"
-          >
-            <option value="default">使用統一設定</option>
-            <option value="15min">15分鐘前</option>
-            <option value="30min">30分鐘前</option>
-            <option value="1hour">1小時前</option>
-            <option value="2hours">2小時前</option>
-            <option value="1day">1天前</option>
-            <option value="2days">2天前</option>
-            <option value="1week">1週前</option>
-          </select>
-          <p className="text-sm text-muted-foreground mt-1">
-            選擇「使用統一設定」將使用您在個人設定中的預設提醒時間
-          </p>
-        </div>
-
         <div className="flex gap-3 pt-4">
           <Button type="button" variant="outline" onClick={onCancel} className="flex-1 bg-transparent">
             取消
