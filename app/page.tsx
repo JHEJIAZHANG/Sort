@@ -465,6 +465,9 @@ export default function HomePage() {
             <AssignmentDetail
               assignment={assignment}
               course={getCourseById(assignment.courseId)}
+              notificationSettings={{
+                assignmentReminderTiming: notificationSettings.assignmentReminderTiming,
+              }}
               onBack={() => setSelectedAssignmentId(null)}
               onEdit={() => {
                 setEditingAssignment(assignment.id)

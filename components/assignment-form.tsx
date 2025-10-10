@@ -46,6 +46,7 @@ export function AssignmentForm({ courses, onSubmit, onCancel, initialData }: Ass
     status: initialData?.status || ("pending" as Assignment["status"]),
     googleClassroomUrl: initialData?.googleClassroomUrl || "",
     source: initialData?.source || ("manual" as Assignment["source"]),
+    customReminderTiming: (initialData?.customReminderTiming || "default") as Assignment["customReminderTiming"],
   })
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -60,6 +61,7 @@ export function AssignmentForm({ courses, onSubmit, onCancel, initialData }: Ass
       status: formData.status,
       googleClassroomUrl: formData.googleClassroomUrl.trim() || undefined,
       source: formData.source,
+      customReminderTiming: formData.customReminderTiming as Assignment["customReminderTiming"],
     })
   }
 
@@ -140,6 +142,30 @@ export function AssignmentForm({ courses, onSubmit, onCancel, initialData }: Ass
             <option value="completed">已完成</option>
             <option value="overdue">已逾期</option>
           </select>
+        </div>
+
+        <div>
+          <Label htmlFor="customReminderTiming" className="font-bold">
+            提醒時間
+          </Label>
+          <select
+            id="customReminderTiming"
+            value={formData.customReminderTiming}
+            onChange={(e) => setFormData((prev) => ({ ...prev, customReminderTiming: e.target.value as Assignment["customReminderTiming"] }))}
+            className="w-full px-3 py-2 border border-border rounded-md bg-background"
+          >
+            <option value="default">使用統一設定</option>
+            <option value="15min">15分鐘前</option>
+            <option value="30min">30分鐘前</option>
+            <option value="1hour">1小時前</option>
+            <option value="2hours">2小時前</option>
+            <option value="1day">1天前</option>
+            <option value="2days">2天前</option>
+            <option value="1week">1週前</option>
+          </select>
+          <p className="text-sm text-muted-foreground mt-1">
+            選擇「使用統一設定」將使用您在個人設定中的預設提醒時間
+          </p>
         </div>
 
         <div className="border-t pt-4">

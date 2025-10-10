@@ -17,6 +17,7 @@ export interface CustomCategoryItem {
   dueDate: Date
   category: string
   status: "pending" | "completed" | "overdue"
+  customReminderTiming?: "15min" | "30min" | "1hour" | "2hours" | "1day" | "2days" | "1week" | "default"
   createdAt: Date
   updatedAt: Date
 }

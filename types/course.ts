@@ -30,6 +30,7 @@ export interface Assignment {
   googleClassroomId?: string
   googleClassroomUrl?: string
   source?: "manual" | "google_classroom"
+  customReminderTiming?: "15min" | "30min" | "1hour" | "2hours" | "1day" | "2days" | "1week" | "default" // 個別提醒時間設定，default 表示使用統一設定
   createdAt?: Date
   updatedAt?: Date
 }

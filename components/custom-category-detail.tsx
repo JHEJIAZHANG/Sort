@@ -82,9 +82,12 @@ export function CustomCategoryDetail({
   const isViewingToday = isTodayTaiwan(today)
   
   // 動態計算提醒時間
-  const notificationTime = notificationSettings 
-    ? calculateNotificationTime(item.dueDate, notificationSettings.assignmentReminderTiming)
-    : null
+  // 優先使用個別作業的設定，如果是 "default" 或未設定則使用統一設定
+  const effectiveReminderTiming = item.customReminderTiming && item.customReminderTiming !== 'default' 
+    ? item.customReminderTiming 
+    : notificationSettings?.assignmentReminderTiming || '1day'
+  
+  const notificationTime = calculateNotificationTime(item.dueDate, effectiveReminderTiming)
 
   const getStatusColor = (status: CustomCategoryItem["status"]) => {
     switch (status) {
