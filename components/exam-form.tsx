@@ -3,6 +3,7 @@
 import type React from "react"
 
 import { useState } from "react"
+import { calculateNotificationTime } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
 import type { Course, Exam } from "@/types/course"
@@ -50,40 +51,7 @@ export function ExamForm({ courses, initialData, onSubmit, onCancel }: ExamFormP
     customReminderTiming: (initialData?.customReminderTiming || "default") as Exam["customReminderTiming"],
   })
 
-  // 計算提醒時間
-  const calculateNotificationTime = (examDate: Date, reminderTiming: string): Date => {
-    const notificationTime = new Date(examDate)
-    
-    switch (reminderTiming) {
-      case "15min":
-        notificationTime.setMinutes(notificationTime.getMinutes() - 15)
-        break
-      case "30min":
-        notificationTime.setMinutes(notificationTime.getMinutes() - 30)
-        break
-      case "1hour":
-        notificationTime.setHours(notificationTime.getHours() - 1)
-        break
-      case "2hours":
-        notificationTime.setHours(notificationTime.getHours() - 2)
-        break
-      case "1day":
-        notificationTime.setDate(notificationTime.getDate() - 1)
-        break
-      case "2days":
-        notificationTime.setDate(notificationTime.getDate() - 2)
-        break
-      case "1week":
-        notificationTime.setDate(notificationTime.getDate() - 7)
-        break
-      default:
-        // 預設為考試前 1 天
-        notificationTime.setDate(notificationTime.getDate() - 1)
-        break
-    }
-    
-    return notificationTime
-  }
+  // 計算提醒時間改用共用工具
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()

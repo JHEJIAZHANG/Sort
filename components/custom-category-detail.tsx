@@ -18,6 +18,7 @@ import {
 import type { Course } from "@/types/course"
 import type { CustomCategoryItem } from "./custom-category-form"
 import { getDaysDifferenceTaiwan, isTodayTaiwan, isSameDayTaiwan, getTaiwanTime } from "@/lib/taiwan-time"
+import { calculateNotificationTime, getReminderTimingText } from "@/lib/utils"
 
 interface CustomCategoryDetailProps {
   item: CustomCategoryItem
@@ -31,38 +32,7 @@ interface CustomCategoryDetailProps {
   }
 }
 
-// 計算提醒時間
-function calculateNotificationTime(dueDate: Date, reminderTiming: string): Date {
-  const notificationTime = new Date(dueDate)
-  
-  switch (reminderTiming) {
-    case "15min":
-      notificationTime.setMinutes(notificationTime.getMinutes() - 15)
-      break
-    case "30min":
-      notificationTime.setMinutes(notificationTime.getMinutes() - 30)
-      break
-    case "1hour":
-      notificationTime.setHours(notificationTime.getHours() - 1)
-      break
-    case "2hours":
-      notificationTime.setHours(notificationTime.getHours() - 2)
-      break
-    case "1day":
-      notificationTime.setDate(notificationTime.getDate() - 1)
-      break
-    case "2days":
-      notificationTime.setDate(notificationTime.getDate() - 2)
-      break
-    case "1week":
-      notificationTime.setDate(notificationTime.getDate() - 7)
-      break
-    default:
-      notificationTime.setDate(notificationTime.getDate() - 1)
-  }
-  
-  return notificationTime
-}
+// 計算提醒時間改用共用工具
 
 export function CustomCategoryDetail({
   item,
@@ -85,7 +55,7 @@ export function CustomCategoryDetail({
   // 優先使用個別作業的設定，如果是 "default" 或未設定則使用統一設定
   const effectiveReminderTiming = item.customReminderTiming && item.customReminderTiming !== 'default' 
     ? item.customReminderTiming 
-    : notificationSettings?.assignmentReminderTiming || '1day'
+    : notificationSettings?.assignmentReminderTiming || '1week'
   
   const notificationTime = calculateNotificationTime(item.dueDate, effectiveReminderTiming)
 
