@@ -6,6 +6,7 @@ import { useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
 import type { Course, Exam } from "@/types/course"
+import { useNotificationSettings } from "@/hooks/use-notification-settings"
 
 interface ExamFormProps {
   courses: Course[]
@@ -36,6 +37,8 @@ const formatDateTimeLocal = (date: Date | string | undefined): string => {
 }
 
 export function ExamForm({ courses, initialData, onSubmit, onCancel }: ExamFormProps) {
+  const { settings: notificationSettings } = useNotificationSettings()
+  
   const [formData, setFormData] = useState({
     title: initialData?.title || "",
     courseId: initialData?.courseId || "",
@@ -87,7 +90,10 @@ export function ExamForm({ courses, initialData, onSubmit, onCancel }: ExamFormP
     if (!formData.title || !formData.courseId || !formData.examDate) return
 
     const examDate = new Date(formData.examDate)
-    const reminderTiming = formData.customReminderTiming || "default"
+    // 當選擇「使用統一設定」時，使用用戶的 examReminderTiming 設定
+    const reminderTiming = formData.customReminderTiming === "default" 
+      ? notificationSettings.examReminderTiming 
+      : formData.customReminderTiming || "1week"
     const notificationTime = calculateNotificationTime(examDate, reminderTiming)
 
     onSubmit({

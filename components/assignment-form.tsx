@@ -8,6 +8,7 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import type { Assignment, Course } from "@/types/course"
+import { useNotificationSettings } from "@/hooks/use-notification-settings"
 
 interface AssignmentFormProps {
   courses: Course[]
@@ -38,6 +39,8 @@ const formatDateTimeLocal = (date: Date | string | undefined): string => {
 }
 
 export function AssignmentForm({ courses, onSubmit, onCancel, initialData }: AssignmentFormProps) {
+  const { settings: notificationSettings } = useNotificationSettings()
+  
   const [formData, setFormData] = useState({
     courseId: initialData?.courseId || courses[0]?.id || "",
     title: initialData?.title || "",
@@ -89,7 +92,10 @@ export function AssignmentForm({ courses, onSubmit, onCancel, initialData }: Ass
     if (!formData.title.trim() || !formData.dueDate || !formData.courseId) return
 
     const dueDate = new Date(formData.dueDate)
-    const reminderTiming = formData.customReminderTiming || "default"
+    // 當選擇「使用統一設定」時，使用用戶的 assignmentReminderTiming 設定
+    const reminderTiming = formData.customReminderTiming === "default" 
+      ? notificationSettings.assignmentReminderTiming 
+      : formData.customReminderTiming || "1week"
     const notificationTime = calculateNotificationTime(dueDate, reminderTiming)
 
     onSubmit({
