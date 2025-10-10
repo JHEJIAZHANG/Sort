@@ -44,21 +44,63 @@ export function ExamForm({ courses, initialData, onSubmit, onCancel }: ExamFormP
     location: initialData?.location || "",
     description: initialData?.description || "",
     type: initialData?.type || ("midterm" as const),
+    customReminderTiming: (initialData?.customReminderTiming || "default") as Exam["customReminderTiming"],
   })
+
+  // 計算提醒時間
+  const calculateNotificationTime = (examDate: Date, reminderTiming: string): Date => {
+    const notificationTime = new Date(examDate)
+    
+    switch (reminderTiming) {
+      case "15min":
+        notificationTime.setMinutes(notificationTime.getMinutes() - 15)
+        break
+      case "30min":
+        notificationTime.setMinutes(notificationTime.getMinutes() - 30)
+        break
+      case "1hour":
+        notificationTime.setHours(notificationTime.getHours() - 1)
+        break
+      case "2hours":
+        notificationTime.setHours(notificationTime.getHours() - 2)
+        break
+      case "1day":
+        notificationTime.setDate(notificationTime.getDate() - 1)
+        break
+      case "2days":
+        notificationTime.setDate(notificationTime.getDate() - 2)
+        break
+      case "1week":
+        notificationTime.setDate(notificationTime.getDate() - 7)
+        break
+      default:
+        // 預設為考試前 1 天
+        notificationTime.setDate(notificationTime.getDate() - 1)
+        break
+    }
+    
+    return notificationTime
+  }
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
     if (!formData.title || !formData.courseId || !formData.examDate) return
 
+    const examDate = new Date(formData.examDate)
+    const reminderTiming = formData.customReminderTiming || "default"
+    const notificationTime = calculateNotificationTime(examDate, reminderTiming)
+
     onSubmit({
       title: formData.title,
       courseId: formData.courseId,
-      examDate: new Date(formData.examDate),
+      examDate: examDate,
       duration: formData.duration,
       location: formData.location,
       description: formData.description,
       type: formData.type,
       status: "pending" as const,
+      customReminderTiming: formData.customReminderTiming as Exam["customReminderTiming"],
+      notificationTime: notificationTime,
     })
   }
 
@@ -155,6 +197,27 @@ export function ExamForm({ courses, initialData, onSubmit, onCancel }: ExamFormP
             className="w-full px-3 py-2 border border-input rounded-md focus:outline-none focus:ring-2 focus:ring-primary"
             placeholder="輸入考試地點"
           />
+        </div>
+
+        <div>
+          <label className="block text-sm font-bold text-foreground mb-2">提醒時間</label>
+          <select
+            value={formData.customReminderTiming}
+            onChange={(e) => setFormData({ ...formData, customReminderTiming: e.target.value as Exam["customReminderTiming"] })}
+            className="w-full px-3 py-2 border border-input rounded-md focus:outline-none focus:ring-2 focus:ring-primary"
+          >
+            <option value="default">使用統一設定</option>
+            <option value="15min">15分鐘前</option>
+            <option value="30min">30分鐘前</option>
+            <option value="1hour">1小時前</option>
+            <option value="2hours">2小時前</option>
+            <option value="1day">1天前</option>
+            <option value="2days">2天前</option>
+            <option value="1week">1週前</option>
+          </select>
+          <p className="text-sm text-muted-foreground mt-1">
+            選擇「使用統一設定」將使用您在個人設定中的預設提醒時間
+          </p>
         </div>
 
         <div>

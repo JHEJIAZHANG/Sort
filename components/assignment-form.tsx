@@ -49,19 +49,59 @@ export function AssignmentForm({ courses, onSubmit, onCancel, initialData }: Ass
     customReminderTiming: (initialData?.customReminderTiming || "default") as Assignment["customReminderTiming"],
   })
 
+  // 計算提醒時間
+  const calculateNotificationTime = (dueDate: Date, reminderTiming: string): Date => {
+    const notificationTime = new Date(dueDate)
+    
+    switch (reminderTiming) {
+      case "15min":
+        notificationTime.setMinutes(notificationTime.getMinutes() - 15)
+        break
+      case "30min":
+        notificationTime.setMinutes(notificationTime.getMinutes() - 30)
+        break
+      case "1hour":
+        notificationTime.setHours(notificationTime.getHours() - 1)
+        break
+      case "2hours":
+        notificationTime.setHours(notificationTime.getHours() - 2)
+        break
+      case "1day":
+        notificationTime.setDate(notificationTime.getDate() - 1)
+        break
+      case "2days":
+        notificationTime.setDate(notificationTime.getDate() - 2)
+        break
+      case "1week":
+        notificationTime.setDate(notificationTime.getDate() - 7)
+        break
+      default:
+        // 預設為截止日期前 1 天
+        notificationTime.setDate(notificationTime.getDate() - 1)
+        break
+    }
+    
+    return notificationTime
+  }
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
     if (!formData.title.trim() || !formData.dueDate || !formData.courseId) return
+
+    const dueDate = new Date(formData.dueDate)
+    const reminderTiming = formData.customReminderTiming || "default"
+    const notificationTime = calculateNotificationTime(dueDate, reminderTiming)
 
     onSubmit({
       courseId: formData.courseId,
       title: formData.title.trim(),
       description: formData.description.trim() || undefined,
-      dueDate: new Date(formData.dueDate),
+      dueDate: dueDate,
       status: formData.status,
       googleClassroomUrl: formData.googleClassroomUrl.trim() || undefined,
       source: formData.source,
       customReminderTiming: formData.customReminderTiming as Assignment["customReminderTiming"],
+      notificationTime: notificationTime,
     })
   }
 

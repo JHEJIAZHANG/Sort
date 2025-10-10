@@ -495,6 +495,7 @@ export default function HomePage() {
             <ExamDetail
               exam={exam}
               course={getCourseById(exam.courseId)}
+              notificationSettings={notificationSettings}
               onBack={() => setSelectedExamId(null)}
               onEdit={() => {
                 setEditingExam(exam.id)

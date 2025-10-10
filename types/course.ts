@@ -65,6 +65,7 @@ export interface Exam {
   location?: string
   type: "midterm" | "final" | "quiz" | "other"
   status: "pending" | "completed" | "overdue"
+  customReminderTiming?: "15min" | "30min" | "1hour" | "2hours" | "1day" | "2days" | "1week" | "default" // 個別提醒時間設定，default 表示使用統一設定
   annotations?: string[] // 考試標註/重點標記
   notes?: string // 考試筆記
   createdAt: Date

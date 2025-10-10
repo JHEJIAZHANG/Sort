@@ -106,8 +106,8 @@ export function transformFrontendAssignment(frontendAssignment: Assignment, line
     description: frontendAssignment.description || '',
     // 後端 due_date 為 DateTime
     due_date: frontendAssignment.dueDate ? frontendAssignment.dueDate.toISOString() : null,
-    // 通知時間暫不使用
-    notification_time: null,
+    // 傳遞計算好的提醒時間
+    notification_time: frontendAssignment.notificationTime ? frontendAssignment.notificationTime.toISOString() : null,
     // 後端使用 UUID 字串
     course: frontendAssignment.courseId || null,
     // 與 AssignmentV2 欄位對齊
@@ -177,6 +177,8 @@ export function transformFrontendExam(frontendExam: Exam, lineUserId: string) {
     title: frontendExam.title,
     description: frontendExam.description,
     exam_date: frontendExam.examDate?.toISOString() || null,
+    // 傳遞計算好的提醒時間
+    notification_time: frontendExam.notificationTime ? frontendExam.notificationTime.toISOString() : null,
     // 後端使用 UUID，不能 parseInt，直接傳字串
     course: frontendExam.courseId || null,
     location: frontendExam.location,

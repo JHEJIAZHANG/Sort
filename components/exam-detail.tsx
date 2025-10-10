@@ -25,10 +25,69 @@ interface ExamDetailProps {
   onEdit: () => void
   onDelete: () => void
   onStatusChange: (status: Exam["status"]) => void
+  notificationSettings?: {
+    examReminderTiming: string
+  }
 }
 
-export function ExamDetail({ exam, course, onBack, onEdit, onDelete, onStatusChange }: ExamDetailProps) {
+export function ExamDetail({ exam, course, onBack, onEdit, onDelete, onStatusChange, notificationSettings }: ExamDetailProps) {
   const [showDeleteDialog, setShowDeleteDialog] = useState(false)
+
+  // 計算提醒時間
+  const calculateNotificationTime = (examDate: Date, reminderTiming: string): Date => {
+    const notificationTime = new Date(examDate)
+    
+    switch (reminderTiming) {
+      case "15min":
+        notificationTime.setMinutes(notificationTime.getMinutes() - 15)
+        break
+      case "30min":
+        notificationTime.setMinutes(notificationTime.getMinutes() - 30)
+        break
+      case "1hour":
+        notificationTime.setHours(notificationTime.getHours() - 1)
+        break
+      case "2hours":
+        notificationTime.setHours(notificationTime.getHours() - 2)
+        break
+      case "1day":
+        notificationTime.setDate(notificationTime.getDate() - 1)
+        break
+      case "2days":
+        notificationTime.setDate(notificationTime.getDate() - 2)
+        break
+      case "1week":
+        notificationTime.setDate(notificationTime.getDate() - 7)
+        break
+      default:
+        notificationTime.setDate(notificationTime.getDate() - 1)
+    }
+    
+    return notificationTime
+  }
+
+  // 獲取提醒時間顯示文字
+  const getReminderTimingText = (timing: string): string => {
+    switch (timing) {
+      case "15min": return "15分鐘前"
+      case "30min": return "30分鐘前"
+      case "1hour": return "1小時前"
+      case "2hours": return "2小時前"
+      case "1day": return "1天前"
+      case "2days": return "2天前"
+      case "1week": return "1週前"
+      case "default": return "使用統一設定"
+      default: return "1天前"
+    }
+  }
+
+  // 決定使用哪個提醒時機設定
+  const effectiveReminderTiming = exam.customReminderTiming && exam.customReminderTiming !== 'default' 
+    ? exam.customReminderTiming 
+    : notificationSettings?.examReminderTiming || '1day'
+  
+  // 計算提醒時間
+  const notificationTime = calculateNotificationTime(exam.examDate, effectiveReminderTiming)
 
   const getExamStatus = (examDate: Date, duration: number) => {
     const isEnded = isExamEndedTaiwan(examDate, duration)
@@ -101,6 +160,24 @@ export function ExamDetail({ exam, course, onBack, onEdit, onDelete, onStatusCha
         <div className="space-y-1">
           <span className="text-sm font-medium">考試時長</span>
           <p className="text-sm text-muted-foreground">{exam.duration} 分鐘</p>
+        </div>
+
+        {/* Reminder Settings */}
+        <div className="space-y-1">
+          <span className="text-sm font-medium">提醒設定</span>
+          <div className="space-y-1">
+            <p className="text-sm text-muted-foreground">
+              提醒時機：{getReminderTimingText(exam.customReminderTiming || 'default')}
+              {exam.customReminderTiming === 'default' || !exam.customReminderTiming ? (
+                <span className="text-xs text-muted-foreground ml-1">
+                  (實際：{getReminderTimingText(notificationSettings?.examReminderTiming || '1day')})
+                </span>
+              ) : null}
+            </p>
+            <p className="text-sm text-muted-foreground">
+              提醒時間：{notificationTime.toLocaleString("zh-TW")}
+            </p>
+          </div>
         </div>
 
         {/* Location */}

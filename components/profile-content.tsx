@@ -44,6 +44,7 @@ interface NotificationSettings {
   assignmentReminders: boolean
   examReminders: boolean
   assignmentReminderTiming: string
+  examReminderTiming: string
   lineNotifications: boolean
   browserNotifications: boolean
   doNotDisturbEnabled: boolean
@@ -83,6 +84,7 @@ export function ProfileContent({ user: propUser, onUserChange, lineUserId }: Pro
     assignmentReminders: true,
     examReminders: true,
     assignmentReminderTiming: "1week",
+    examReminderTiming: "1week",
     lineNotifications: true,
     browserNotifications: true,
     doNotDisturbEnabled: false,
@@ -410,32 +412,62 @@ export function ProfileContent({ user: propUser, onUserChange, lineUserId }: Pro
           <div>
             <h3 className="font-bold text-lg mb-3">提醒時間</h3>
             <Card className="p-4 sm:p-6">
-              <div className="flex items-center justify-between">
-                <Label htmlFor="reminderTiming" className="font-medium text-base">
-                  待辦事項提醒時機
-                </Label>
-                <Select
-                  value={notificationSettings.assignmentReminderTiming}
-                  onValueChange={(value) =>
-                    setNotificationSettings({
-                      ...notificationSettings,
-                      assignmentReminderTiming: value,
-                    })
-                  }
-                >
-                  <SelectTrigger className="w-32">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="15min">15分鐘前</SelectItem>
-                    <SelectItem value="30min">30分鐘前</SelectItem>
-                    <SelectItem value="1hour">1小時前</SelectItem>
-                    <SelectItem value="2hours">2小時前</SelectItem>
-                    <SelectItem value="1day">1天前</SelectItem>
-                    <SelectItem value="2days">2天前</SelectItem>
-                    <SelectItem value="1week">1週前</SelectItem>
-                  </SelectContent>
-                </Select>
+              <div className="space-y-4">
+                <div className="flex items-center justify-between">
+                  <Label htmlFor="assignmentReminderTiming" className="font-medium text-base">
+                    作業提醒時機
+                  </Label>
+                  <Select
+                    value={notificationSettings.assignmentReminderTiming}
+                    onValueChange={(value) =>
+                      setNotificationSettings({
+                        ...notificationSettings,
+                        assignmentReminderTiming: value,
+                      })
+                    }
+                  >
+                    <SelectTrigger className="w-32">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="15min">15分鐘前</SelectItem>
+                      <SelectItem value="30min">30分鐘前</SelectItem>
+                      <SelectItem value="1hour">1小時前</SelectItem>
+                      <SelectItem value="2hours">2小時前</SelectItem>
+                      <SelectItem value="1day">1天前</SelectItem>
+                      <SelectItem value="2days">2天前</SelectItem>
+                      <SelectItem value="1week">1週前</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div className="flex items-center justify-between">
+                  <Label htmlFor="examReminderTiming" className="font-medium text-base">
+                    考試提醒時機
+                  </Label>
+                  <Select
+                    value={notificationSettings.examReminderTiming}
+                    onValueChange={(value) =>
+                      setNotificationSettings({
+                        ...notificationSettings,
+                        examReminderTiming: value,
+                      })
+                    }
+                  >
+                    <SelectTrigger className="w-32">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="15min">15分鐘前</SelectItem>
+                      <SelectItem value="30min">30分鐘前</SelectItem>
+                      <SelectItem value="1hour">1小時前</SelectItem>
+                      <SelectItem value="2hours">2小時前</SelectItem>
+                      <SelectItem value="1day">1天前</SelectItem>
+                      <SelectItem value="2days">2天前</SelectItem>
+                      <SelectItem value="1week">1週前</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
               </div>
             </Card>
           </div>
@@ -730,6 +762,7 @@ export function getNotificationSettings(): NotificationSettings {
     assignmentReminders: true,
     examReminders: true,
     assignmentReminderTiming: "1week",
+    examReminderTiming: "1week",
     lineNotifications: true,
     browserNotifications: true,
     doNotDisturbEnabled: false,
