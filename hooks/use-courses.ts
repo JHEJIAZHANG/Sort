@@ -268,6 +268,11 @@ export function useCourses(lineUserId: string) {
 
   const updateAssignment = useCallback(async (id: string, updates: Partial<Assignment>) => {
     try {
+      // 添加調試信息
+      console.log('updateAssignment called with id:', id)
+      console.log('updateAssignment called with updates:', updates)
+      console.log('updateAssignment updates.customReminderTiming:', updates.customReminderTiming)
+      
       const uuidRegex = /^[0-9a-fA-F-]{36}$/
       if (!uuidRegex.test(id)) {
         console.warn('忽略更新非UUID的作業，疑似假資料 id=', id)
@@ -277,6 +282,24 @@ export function useCourses(lineUserId: string) {
       // 僅更新狀態：使用專用端點，避免送出其他空欄位
       if (Object.keys(updates).length === 1 && updates.status) {
         const response = await ApiService.updateAssignmentStatus(id, updates.status)
+        if (response.error) throw new Error(response.error)
+        if (response.data) {
+          const updated = transformBackendAssignment(response.data)
+          setAssignments(prev => prev.map(a => (a.id === id ? updated : a)))
+          await fetchAllData()
+          return updated
+        } else {
+          // 如果沒有返回資料，拋出錯誤
+          throw new Error('API 調用成功但沒有返回作業資料')
+        }
+      }
+      
+      // 如果是完整更新（包含所有必填欄位），使用 transformFrontendAssignment
+      if (updates.title && updates.dueDate && (updates as any).courseId) {
+        const payload = transformFrontendAssignment(updates as Assignment, lineUserId)
+        console.log('updateAssignment full update payload:', payload)
+        
+        const response = await ApiService.updateAssignment(id, payload)
         if (response.error) throw new Error(response.error)
         if (response.data) {
           const updated = transformBackendAssignment(response.data)
@@ -300,11 +323,16 @@ export function useCourses(lineUserId: string) {
       if ((updates as any).customReminderTiming !== undefined) minimal.custom_reminder_timing = (updates as any).customReminderTiming
       if ((updates as any).notificationTime !== undefined) minimal.notification_time = (updates as any).notificationTime ? (updates as any).notificationTime.toISOString() : null
 
+      console.log('updateAssignment partial update minimal:', minimal)
+
       const response = await ApiService.updateAssignment(id, minimal)
       if (response.error) throw new Error(response.error)
 
       if (response.data) {
         const updatedAssignment = transformBackendAssignment(response.data)
+        console.log('updateAssignment response.data:', response.data)
+        console.log('updateAssignment updatedAssignment:', updatedAssignment)
+        
         setAssignments(prev => prev.map(assignment => 
           assignment.id === id ? updatedAssignment : assignment
         ))
@@ -312,6 +340,7 @@ export function useCourses(lineUserId: string) {
         return updatedAssignment
       }
     } catch (err) {
+      console.error('updateAssignment error:', err)
       throw err
     }
   }, [lineUserId, fetchAllData])

@@ -42,6 +42,10 @@ const formatDateTimeLocal = (date: Date | string | undefined): string => {
 export function AssignmentForm({ courses, onSubmit, onCancel, initialData }: AssignmentFormProps) {
   const { settings: notificationSettings } = useNotificationSettings()
   
+  // 添加調試信息
+  console.log('AssignmentForm initialData:', initialData)
+  console.log('AssignmentForm initialData.customReminderTiming:', initialData?.customReminderTiming)
+  
   const [formData, setFormData] = useState({
     courseId: initialData?.courseId || courses[0]?.id || "",
     title: initialData?.title || "",
@@ -52,6 +56,10 @@ export function AssignmentForm({ courses, onSubmit, onCancel, initialData }: Ass
     source: initialData?.source || ("manual" as Assignment["source"]),
     customReminderTiming: (initialData?.customReminderTiming || "default") as Assignment["customReminderTiming"],
   })
+
+  // 添加調試信息
+  console.log('AssignmentForm formData:', formData)
+  console.log('AssignmentForm formData.customReminderTiming:', formData.customReminderTiming)
 
   // 計算提醒時間改用共用工具
 

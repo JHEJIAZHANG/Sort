@@ -77,12 +77,18 @@ export function AssignmentManagement({ onBack }: AssignmentManagementProps) {
   }
 
   if (showForm) {
+    // 添加調試信息
+    const assignmentData = editingAssignment ? getAssignmentById(editingAssignment) : undefined
+    console.log('assignment-management editingAssignment:', editingAssignment)
+    console.log('assignment-management assignmentData:', assignmentData)
+    console.log('assignment-management assignmentData.customReminderTiming:', assignmentData?.customReminderTiming)
+    
     return (
       <div>
         <PageHeader title={editingAssignment ? "編輯作業" : "新增作業"} onBack={handleFormCancel} />
         <AssignmentForm
           courses={courses}
-          initialData={editingAssignment ? getAssignmentById(editingAssignment) || undefined : undefined}
+          initialData={assignmentData}
           onSubmit={handleFormSubmit}
           onCancel={handleFormCancel}
         />
