@@ -42,13 +42,26 @@ export function useUserAuth(options?: UserAuthOptions) {
         const user = await UserService.getUserByLineId(lineUserId)
         await UserService.recordLogin(lineUserId)
         console.log('👤 [useUserAuth] 用戶資料:', user)
-        setAuthState({
-          isAuthenticated: true,
-          user,
-          isLoading: false,
-          error: null,
-          needsRegistration: false
-        })
+        
+        // 檢查用戶角色：只有學生可以進入首頁
+        if (user && user.role === 'teacher') {
+          console.log('🚫 [useUserAuth] 老師身分無法進入首頁')
+          setAuthState({
+            isAuthenticated: false,
+            user,
+            isLoading: false,
+            error: '老師身分目前無法使用此應用程式',
+            needsRegistration: false
+          })
+        } else {
+          setAuthState({
+            isAuthenticated: true,
+            user,
+            isLoading: false,
+            error: null,
+            needsRegistration: false
+          })
+        }
       } else {
         console.log('❌ [useUserAuth] 用戶未註冊，需要進入註冊流程')
         // 未註冊，進入註冊流程

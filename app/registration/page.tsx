@@ -65,19 +65,28 @@ export default function RegistrationPage() {
         const registered = await UserService.getOnboardStatus(uidMemo)
 
         if (registered) {
-          console.log('✅ 用戶已註冊，自動跳轉到應用首頁')
-          // 在 LIFF 內直接關閉視窗；一般瀏覽器導回首頁
-          try {
-            if (isLiffEnvironment()) {
-              console.log('LIFF 環境：關閉視窗')
-              closeLiffWindow()
-            } else {
-              console.log('一般瀏覽器：跳轉到首頁')
+          console.log('✅ 用戶已註冊，檢查角色...')
+          // 檢查用戶角色
+          const userProfile = await UserService.getUserByLineId(uidMemo)
+          
+          if (userProfile?.role === 'student') {
+            console.log('✅ 學生身分，自動跳轉到應用首頁')
+            // 在 LIFF 內直接關閉視窗；一般瀏覽器導回首頁
+            try {
+              if (isLiffEnvironment()) {
+                console.log('LIFF 環境：關閉視窗')
+                closeLiffWindow()
+              } else {
+                console.log('一般瀏覽器：跳轉到首頁')
+                router.replace('/')
+              }
+            } catch {
+              console.log('跳轉失敗，使用備用方案')
               router.replace('/')
             }
-          } catch {
-            console.log('跳轉失敗，使用備用方案')
-            router.replace('/')
+          } else if (userProfile?.role === 'teacher') {
+            console.log('🚫 老師身分，顯示提示訊息')
+            setRegistrationStatus('not_registered') // 保持在註冊頁但顯示已註冊狀態
           }
           return
         } else {
@@ -165,21 +174,26 @@ export default function RegistrationPage() {
   }
 
   const handleOnboardingComplete = () => {
-    // 匯入完成後跳轉
-    try {
-      if (isLiffEnvironment()) {
-        closeLiffWindow()
-      } else {
+    // 匯入完成後根據角色決定是否跳轉
+    if (data.role === 'student') {
+      try {
+        if (isLiffEnvironment()) {
+          closeLiffWindow()
+        } else {
+          router.replace('/')
+        }
+      } catch (e) {
+        console.error('跳轉失敗，使用備援至首頁:', e)
         router.replace('/')
       }
-    } catch (e) {
-      console.error('跳轉失敗，使用備援至首頁:', e)
-      router.replace('/')
+    } else if (data.role === 'teacher') {
+      // 老師身分不跳轉，留在註冊頁顯示成功訊息
+      console.log('老師註冊完成，不跳轉到首頁')
     }
   }
 
   const handleOnboardingSkip = () => {
-    // 跳過匯入，直接跳轉
+    // 跳過匯入，根據角色決定是否跳轉
     handleOnboardingComplete()
   }
 
@@ -237,18 +251,36 @@ export default function RegistrationPage() {
 
 
 
-  // 註冊完成後：不顯示成功頁，立即跳轉
+  // 註冊完成後：根據角色決定是否跳轉
   if (isCompleted) {
-    try {
-      if (isLiffEnvironment()) {
-        closeLiffWindow()
-      } else {
+    if (data.role === 'student') {
+      try {
+        if (isLiffEnvironment()) {
+          closeLiffWindow()
+        } else {
+          router.replace('/')
+        }
+      } catch {
         router.replace('/')
       }
-    } catch {
-      router.replace('/')
+      return null
+    } else if (data.role === 'teacher') {
+      // 老師身分顯示成功訊息但不跳轉
+      return (
+        <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-green-50 flex items-center justify-center">
+          <div className="text-center space-y-6 max-w-md mx-auto p-6">
+            <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto">
+              <CheckCircle className="w-8 h-8 text-green-500" />
+            </div>
+            <div className="space-y-2">
+              <h2 className="text-xl font-semibold text-gray-900">註冊成功！</h2>
+              <p className="text-gray-600">您的帳戶已成功建立</p>
+              <p className="text-sm text-gray-500">老師專用功能正在開發中，敬請期待！</p>
+            </div>
+          </div>
+        </div>
+      )
     }
-    return null
   }
 
   // 錯誤狀態
