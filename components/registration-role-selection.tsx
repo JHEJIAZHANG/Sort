@@ -30,7 +30,7 @@ export function RegistrationRoleSelection({
     {
       id: 'student' as UserRole,
       title: '學生',
-      description: '查看課程、提交作業',
+      description: '查看課程、管理學習進度',
       icon: Users,
       color: 'bg-green-50 border-green-200 hover:bg-green-100',
       selectedColor: 'bg-green-100 border-green-400 ring-2 ring-green-200'

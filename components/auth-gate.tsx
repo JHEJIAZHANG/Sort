@@ -76,9 +76,8 @@ export function AuthGate({ children }: AuthGateProps) {
             </svg>
           </div>
           <div className="space-y-2">
-            <h2 className="text-xl font-semibold text-gray-900">暫時無法使用</h2>
-            <p className="text-gray-600">{error}</p>
-            <p className="text-sm text-gray-500">老師專用功能正在開發中，敬請期待！</p>
+            <h2 className="text-xl font-semibold text-gray-900">註冊成功！</h2>
+            <p className="text-gray-600">請轉回LINE應用程式繼續使用</p>
           </div>
         </div>
       </div>

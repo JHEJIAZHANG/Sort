@@ -274,8 +274,7 @@ export default function RegistrationPage() {
             </div>
             <div className="space-y-2">
               <h2 className="text-xl font-semibold text-gray-900">註冊成功！</h2>
-              <p className="text-gray-600">您的帳戶已成功建立</p>
-              <p className="text-sm text-gray-500">老師專用功能正在開發中，敬請期待！</p>
+              <p className="text-gray-600">請轉回LINE應用程式繼續使用</p>
             </div>
           </div>
         </div>
