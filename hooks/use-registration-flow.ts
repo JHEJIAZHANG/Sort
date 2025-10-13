@@ -45,23 +45,17 @@ export function useRegistrationFlow() {
   // 自動設定 LINE User ID
   useEffect(() => {
     if (isLoggedIn && lineUser?.userId) {
-      setState(prev => {
-        // 只有當 lineUserId 真的改變時才更新
-        if (prev.data.lineUserId === lineUser.userId) {
-          return prev
+      setState(prev => ({
+        ...prev,
+        data: {
+          ...prev.data,
+          lineUserId: lineUser.userId
         }
-        return {
-          ...prev,
-          data: {
-            ...prev.data,
-            lineUserId: lineUser.userId
-          }
-        }
-      })
+      }))
       // 同步 ApiService 的 lineUserId，供後續 Google OAuth 使用
       ApiService.setLineUserId(lineUser.userId)
     }
-  }, [isLoggedIn, lineUser?.userId])
+  }, [isLoggedIn, lineUser])
 
   const updateData = (updates: Partial<RegistrationData>) => {
     setState(prev => ({

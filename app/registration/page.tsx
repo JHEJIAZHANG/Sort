@@ -40,10 +40,6 @@ export default function RegistrationPage() {
   const [registrationStatus, setRegistrationStatus] = useState<'checking' | 'not_registered' | 'error'>('checking')
   // 記住最後一次檢查的使用者 ID；避免因初始假 ID 導致永遠停留在註冊頁
   const lastCheckedUidRef = useRef<string>('')
-  // 防止重複跳轉
-  const hasRedirectedRef = useRef(false)
-  // 防止重複檢查
-  const isCheckingRef = useRef(false)
 
   // 已註冊使用者導向守衛：若已綁定則離開註冊頁
   const uidMemo = useMemo(() => {
@@ -53,14 +49,11 @@ export default function RegistrationPage() {
 
   useEffect(() => {
     const checkRegistration = async () => {
-      // 防止重複執行
-      if (!uidMemo || isCheckingRef.current || hasRedirectedRef.current) return
+      if (!uidMemo) return
       
       // 只有當使用者 ID 變更時才重新檢查，避免初始假 ID 導致誤判後不再更新
       if (lastCheckedUidRef.current === uidMemo) return
-      
       lastCheckedUidRef.current = uidMemo
-      isCheckingRef.current = true
 
       setRegistrationStatus('checking')
       console.log('檢查註冊狀態，LINE User ID:', uidMemo)
@@ -78,9 +71,6 @@ export default function RegistrationPage() {
           
           if (userProfile?.role === 'student') {
             console.log('✅ 學生身分，自動跳轉到應用首頁')
-            // 標記已跳轉，防止重複
-            hasRedirectedRef.current = true
-            
             // 在 LIFF 內直接關閉視窗；一般瀏覽器導回首頁
             try {
               if (isLiffEnvironment()) {
@@ -107,28 +97,25 @@ export default function RegistrationPage() {
         console.error('檢查註冊狀態失敗:', e)
         // 如果檢查失敗，為了安全起見，允許用戶進入註冊流程
         setRegistrationStatus('not_registered')
-      } finally {
-        isCheckingRef.current = false
       }
     }
 
     checkRegistration()
-  }, [uidMemo])
+  }, [uidMemo, router])
 
   // 直接輸入 /registration 的守衛：未登入則引導登入或返回首頁
   useEffect(() => {
-    if (lineLoading || hasRedirectedRef.current) return
+    if (lineLoading) return
     if (!isLoggedIn) {
       console.log('未登入，啟動 LINE 登入流程或回首頁')
       try {
         login()
       } catch (e) {
         console.error('啟動 LINE 登入失敗，導向首頁備援:', e)
-        hasRedirectedRef.current = true
         router.replace('/')
       }
     }
-  }, [lineLoading, isLoggedIn])
+  }, [lineLoading, isLoggedIn, login, router])
 
 
 
