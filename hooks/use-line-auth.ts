@@ -40,15 +40,20 @@ export const useLineAuth = () => {
 
   // 初始化 LIFF 並在未登入時自動觸發登入
   useEffect(() => {
+    let isMounted = true // 防止組件卸載後更新狀態
+    
     const initLiff = async () => {
       try {
         console.log('🔄 useLineAuth: 設置 loading 狀態')
+        if (!isMounted) return
         setState(prev => ({ ...prev, isLoading: true, error: null }))
         // 不再讀寫 localStorage，僅使用記憶體與 LIFF 狀態
         
         console.log('🚀 useLineAuth: 調用 initializeLiff')
         const initialized = await initializeLiff()
         console.log('✅ useLineAuth: initializeLiff 結果:', initialized)
+        
+        if (!isMounted) return
         
         if (initialized) {
           const inLineApp = isInLineApp()
@@ -62,6 +67,7 @@ export const useLineAuth = () => {
             if (configCheck.isValid) {
               console.log('👉 未登入，自動觸發 LINE 授權導向')
               // 保持 loading 狀態直到導向發生
+              if (!isMounted) return
               setState({
                 isInitialized: true,
                 isInLineApp: inLineApp,
@@ -74,6 +80,7 @@ export const useLineAuth = () => {
               return
             } else {
               console.warn('⚠️ LIFF 配置不正確，無法自動登入', configCheck.issues)
+              if (!isMounted) return
               setState({
                 isInitialized: true,
                 isInLineApp: inLineApp,
@@ -98,6 +105,7 @@ export const useLineAuth = () => {
           }
           
           console.log('✅ useLineAuth: 設置最終狀態')
+          if (!isMounted) return
           setState({
             isInitialized: true,
             isInLineApp: inLineApp,
@@ -108,6 +116,7 @@ export const useLineAuth = () => {
           })
         } else {
           console.log('❌ useLineAuth: 初始化失敗')
+          if (!isMounted) return
           setState(prev => ({
             ...prev,
             isInitialized: false,
@@ -117,6 +126,7 @@ export const useLineAuth = () => {
         }
       } catch (error) {
         console.error('💥 useLineAuth: 初始化錯誤:', error)
+        if (!isMounted) return
         setState(prev => ({
           ...prev,
           isLoading: false,
@@ -126,6 +136,11 @@ export const useLineAuth = () => {
     }
 
     initLiff()
+    
+    // Cleanup function
+    return () => {
+      isMounted = false
+    }
   }, [])
 
   // 登入（保留為備援）
