@@ -457,9 +457,13 @@ const handleClassroomSave = async () => {
         {/* 上課時間 */}
 <div className="flex items-center gap-2">
   <CalendarIcon className="w-4 h-4 text-primary flex-shrink-0" />
-  <span className="text-sm text-muted-foreground">
-    {courseStats.schedule && courseStats.schedule.length > 0 ? formatSchedule() : "尚未設定上課時間"}
-  </span>
+  {courseStats.schedule && courseStats.schedule.length > 0 ? (
+    <span className="text-sm text-muted-foreground text-balance">
+      {formatSchedule()}
+    </span>
+  ) : (
+    <div className="text-xs text-muted-foreground italic">尚未設定上課時間</div>
+  )}
 </div>
 
 {/* 教室 */}
