@@ -18,7 +18,7 @@ export function BottomNavigation({ activeTab, onTabChange }: BottomNavigationPro
   ]
 
   return (
-    <nav className="fixed bottom-0 left-0 right-0 bg-card/95 backdrop-blur-md border-t border-border lg:hidden shadow-lg z-50 animate-slide-up">
+    <nav className="fixed bottom-0 left-0 right-0 bg-card/95 backdrop-blur-md lg:hidden shadow-lg z-50 animate-slide-up">
       <div className="flex items-center justify-around py-2 pb-safe px-2">
         {tabs.map((tab, index) => {
           const Icon = tab.icon
