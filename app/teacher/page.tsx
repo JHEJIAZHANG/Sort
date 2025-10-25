@@ -287,30 +287,34 @@ export default function TeacherPage() {
               </Card>
             ) : (
               <>
-                <PageHeader
-                  title="課程管理"
-                  subtitle="管理你的所有課程"
-                  action={
-                    <>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => setCourseView(courseView === "list" ? "calendar" : "list")}
-                        className="text-xs sm:text-sm"
-                      >
-                        {courseView === "list" ? (
-                          <CalendarIcon className="w-3 h-3 sm:w-4 sm:h-4 mr-1" />
-                        ) : (
-                          <ListIcon className="w-3 h-3 sm:w-4 sm:h-4 mr-1" />
-                        )}
-                        <span className="hidden sm:inline">{courseView === "list" ? "月曆視圖" : "列表視圖"}</span>
-                        <span className="sm:hidden">{courseView === "list" ? "月曆" : "列表"}</span>
-                      </Button>
-                      {/* 移除手動新增，改為 Classroom 匯入按鈕 */}
-                      <ImportGoogleClassroomButton onImportComplete={() => refetch()} />
-                    </>
-                  }
-                />
+                <div className="mb-6 lg:mb-12 animate-slide-down">
+                  <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 sm:gap-4 mobile-spacing">
+                    <div className="min-w-0 flex-1">
+                      <h1 className="text-xl sm:text-2xl lg:text-3xl xl:text-4xl font-bold text-foreground leading-tight">課程管理</h1>
+                      <p className="hidden sm:block text-sm sm:text-base lg:text-lg text-muted-foreground mt-2 lg:mt-3">管理你的所有課程</p>
+                    </div>
+                    <div className="flex-shrink-0">
+                      <div className="flex flex-row gap-2">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => setCourseView(courseView === "list" ? "calendar" : "list")}
+                          className="text-xs sm:text-sm"
+                        >
+                          {courseView === "list" ? (
+                            <CalendarIcon className="w-3 h-3 sm:w-4 sm:h-4 mr-1" />
+                          ) : (
+                            <ListIcon className="w-3 h-3 sm:w-4 sm:h-4 mr-1" />
+                          )}
+                          <span className="hidden sm:inline">{courseView === "list" ? "月曆視圖" : "列表視圖"}</span>
+                          <span className="sm:hidden">{courseView === "list" ? "月曆" : "列表"}</span>
+                        </Button>
+                        {/* 移除手動新增，改為 Classroom 匯入按鈕 */}
+                        <ImportGoogleClassroomButton onImportComplete={() => refetch()} />
+                      </div>
+                    </div>
+                  </div>
+                </div>
 
                 {courses.length > 0 && (
                   <CourseFilters
