@@ -430,7 +430,7 @@ export default function TeacherPage() {
   }
 
   return (
-    <div className="min-h-screen">
+    <div className="min-h-screen pb-20 lg:pb-0 pb-safe">
       <div className="lg:grid lg:grid-cols-5 lg:gap-4 xl:gap-6 mb-6 max-w-full overflow-hidden">
         {/* 側邊欄 */}
         <div className="hidden lg:block lg:col-span-1">
