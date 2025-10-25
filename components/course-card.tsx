@@ -83,7 +83,7 @@ export function CourseCard({ course, onClick, isSelected, isSelectionMode, onSel
             )}
           </div>
 
-          {course.instructor && <p className="text-sm text-muted-foreground mt-2 font-medium">{course.instructor}</p>}
+          
 
           <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4 mt-3 text-xs text-muted-foreground">
             {course.schedule.length > 0 && (

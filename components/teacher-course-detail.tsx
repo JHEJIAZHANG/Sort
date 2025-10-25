@@ -13,6 +13,7 @@ import { CheckIcon, ExclamationIcon, ClockIcon, UserIcon, BookIcon, CalendarIcon
 import { Users, MessageCircle } from "lucide-react"
 import { useCourses } from "@/hooks/use-courses"
 import { ApiService } from "@/services/apiService"
+import { CourseScheduleEditor } from "@/components/course-schedule-editor"
 import {
   AlertDialog,
   AlertDialogAction,
@@ -110,8 +111,25 @@ export function TeacherCourseDetail({
   const [unbindingGroup, setUnbindingGroup] = useState<string | null>(null)
   const [sendingReport, setSendingReport] = useState(false)
 
-  const { getCourseById } = useCourses(lineUserId)
+  const { getCourseById, updateCourse } = useCourses(lineUserId)
   const course = getCourseById(courseId)
+const [classroomInput, setClassroomInput] = useState(course?.classroom || "")
+useEffect(() => {
+  setClassroomInput(course?.classroom || courseStats?.classroom || "")
+}, [course?.classroom, courseStats?.classroom])
+
+const handleClassroomSave = async () => {
+  try {
+    const value = classroomInput?.trim() || ""
+    await updateCourse(courseId, { classroom: value })
+    setCourseStats(prev => prev ? { ...prev, classroom: value } : prev)
+    alert("教室已更新")
+    onUpdated?.()
+  } catch (error) {
+    console.error("更新教室失敗:", error)
+    alert("更新教室失敗")
+  }
+}
 
   // 載入課程統計資料
   const loadCourseStats = async () => {
@@ -300,7 +318,7 @@ export function TeacherCourseDetail({
       <div className="flex items-center justify-between">
         <div>
           <div className="flex items-center gap-2">
-            <h1 className="text-2xl font-bold text-foreground">{courseStats.name}</h1>
+            <h1 className="text-2xl font-bold text-foreground">{course?.name || courseStats.name}</h1>
             {course?.source === "google_classroom" && (
               <Badge variant="secondary" className="bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200">
                 Google Classroom
@@ -336,13 +354,44 @@ export function TeacherCourseDetail({
           </div>
         </div>
 
-        {/* 上課時間 */}
-        {courseStats.schedule && courseStats.schedule.length > 0 && (
-          <div className="flex items-center gap-2">
-            <CalendarIcon className="w-4 h-4 text-primary flex-shrink-0" />
-            <span className="text-sm text-muted-foreground">{formatSchedule()}</span>
-          </div>
-        )}
+        {/* 上課時間與編輯 */}
+<div className="flex items-center gap-2">
+  <CalendarIcon className="w-4 h-4 text-primary flex-shrink-0" />
+  <span className="text-sm text-muted-foreground">
+    {courseStats.schedule && courseStats.schedule.length > 0 ? formatSchedule() : "尚未設定上課時間"}
+  </span>
+  {course && (
+    <CourseScheduleEditor
+      course={course}
+      trigger={
+        <Button variant="outline" size="sm" className="ml-2 h-7 px-2 text-xs">
+          {course.schedule && course.schedule.length > 0 ? "編輯時間" : "設定時間"}
+        </Button>
+      }
+    />
+  )}
+</div>
+
+{/* 教室顯示與輸入 */}
+<div className="space-y-2">
+  <div className="flex items-center gap-2">
+    <span className="text-sm">📍</span>
+    <span className="text-sm text-muted-foreground">
+      {course?.classroom || courseStats.classroom || "尚未設定教室"}
+    </span>
+  </div>
+  <div className="flex items-center gap-2">
+    <Input
+      placeholder="輸入教室位置"
+      value={classroomInput}
+      onChange={(e) => setClassroomInput(e.target.value)}
+      className="max-w-xs"
+    />
+    <Button variant="outline" size="sm" onClick={handleClassroomSave}>
+      儲存教室
+    </Button>
+  </div>
+</div>
       </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
