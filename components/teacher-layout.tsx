@@ -49,7 +49,7 @@ export function TeacherLayout({
 
       {/* 主要內容區域：改用 CSS 變數控制側欄寬度，避免擠壓或重疊 */}
       <div
-        className={isMobile ? 'pb-16' : ''}
+        className={isMobile ? 'pb-20 pb-safe' : ''}
         style={!isMobile ? { marginLeft: 'var(--sidebar-width, 16rem)' } : undefined}
       >
         <main className="px-3 sm:px-4 md:px-6">
