@@ -8,7 +8,7 @@ import { TeacherDashboard } from "@/components/teacher-dashboard"
 import { PageHeader } from "@/components/page-header"
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
-import { CalendarIcon, ListIcon } from "@/components/icons"
+import { CalendarIcon, ListIcon, ArrowLeftIcon } from "@/components/icons"
 import { CourseFilters } from "@/components/course-filters"
 import { CourseCard } from "@/components/course-card"
 import { UnifiedCalendar } from "@/components/unified-calendar"
@@ -250,11 +250,10 @@ export default function TeacherPage() {
                       variant="outline"
                       size="sm"
                       onClick={() => setSelectedCourseId(null)}
-                      className="text-xs sm:text-sm"
+                      aria-label="返回"
+                      className="p-2"
                     >
-                      <ListIcon className="w-3 h-3 sm:w-4 sm:h-4 mr-1" />
-                      <span className="hidden sm:inline">返回列表</span>
-                      <span className="sm:hidden">返回</span>
+                      <ArrowLeftIcon className="w-4 h-4" />
                     </Button>
                   }
                 />

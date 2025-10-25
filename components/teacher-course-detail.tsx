@@ -299,7 +299,37 @@ export function TeacherCourseDetail({
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold text-foreground">{courseStats.name}</h1>
-          <p className="text-muted-foreground">課程代碼: {courseStats.code}</p>
+          <div className="mt-2">
+            <span className="text-sm px-3 py-1 rounded-full bg-gray-100 text-gray-700 border border-gray-200">課程</span>
+          </div>
+        </div>
+      </div>
+
+      {/* 課程資訊（模仿學生端，移到頂部） */}
+      <div className="space-y-6">
+        <div className="grid grid-cols-2 gap-6">
+          <div className="space-y-4">
+            <div className="space-y-1">
+              <span className="text-sm font-medium">授課教師</span>
+              <p className={`text-sm ${courseStats.instructor ? 'text-muted-foreground' : 'text-gray-400 italic'}`}>
+                {courseStats.instructor || "未設定"}
+              </p>
+            </div>
+            <div className="space-y-1">
+              <span className="text-sm font-medium">教室</span>
+              <p className={`text-sm ${courseStats.classroom ? 'text-muted-foreground' : 'text-gray-400 italic'}`}>
+                {courseStats.classroom || "未設定"}
+              </p>
+            </div>
+          </div>
+          <div className="space-y-4">
+            <div className="space-y-1">
+              <span className="text-sm font-medium">上課時間</span>
+              <p className={`text-sm ${courseStats.schedule && courseStats.schedule.length > 0 ? 'text-muted-foreground' : 'text-gray-400 italic'}`}>
+                {formatSchedule()}
+              </p>
+            </div>
+          </div>
         </div>
       </div>
 
@@ -356,36 +386,7 @@ export function TeacherCourseDetail({
             </Card>
           </div>
 
-          {/* 課程基本資訊 */}
-          <Card className="p-6">
-            <h3 className="text-lg font-semibold mb-4">課程資訊</h3>
-            <div className="grid grid-cols-2 gap-6">
-              <div className="space-y-4">
-                <div className="space-y-1">
-                  <span className="text-sm font-medium">授課教師</span>
-                  <p className={`text-sm ${courseStats.instructor ? 'text-muted-foreground' : 'text-gray-400 italic'}`}>
-                    {courseStats.instructor || "未設定"}
-                  </p>
-                </div>
-                
-                <div className="space-y-1">
-                  <span className="text-sm font-medium">教室</span>
-                  <p className={`text-sm ${courseStats.classroom ? 'text-muted-foreground' : 'text-gray-400 italic'}`}>
-                    {courseStats.classroom || "未設定"}
-                  </p>
-                </div>
-              </div>
-              
-              <div className="space-y-4">
-                <div className="space-y-1">
-                  <span className="text-sm font-medium">上課時間</span>
-                  <p className={`text-sm ${courseStats.schedule && courseStats.schedule.length > 0 ? 'text-muted-foreground' : 'text-gray-400 italic'}`}>
-                    {formatSchedule()}
-                  </p>
-                </div>
-              </div>
-            </div>
-          </Card>
+          {/* 課程資訊已移至上方 */}
         </TabsContent>
 
         <TabsContent value="students" className="space-y-4">
