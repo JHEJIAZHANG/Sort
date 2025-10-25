@@ -239,7 +239,7 @@ export default function TeacherPage() {
         )
       case "courses":
         return (
-          <div className="space-y-6">
+          <div className="space-y-6 pb-24 pb-safe">
             {selectedCourseId ? (
               <>
                 <PageHeader
@@ -257,7 +257,7 @@ export default function TeacherPage() {
                     </Button>
                   }
                 />
-                <div className="max-w-6xl mx-auto px-2 sm:px-4">
+                <div className="max-w-6xl mx-auto px-2 sm:px-4 pb-24 pb-safe">
                   {selectedCourseId && (
                     <TeacherCourseDetail
                       courseId={selectedCourseId}
@@ -438,7 +438,7 @@ export default function TeacherPage() {
         </div>
 
         {/* 主內容區域 */}
-        <div className="lg:col-span-4 px-2 sm:px-4">
+        <div className="lg:col-span-4 px-2 sm:px-4 pb-24 pb-safe">
           {renderTabContent()}
         </div>
       </div>

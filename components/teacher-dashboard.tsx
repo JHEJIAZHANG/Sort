@@ -65,7 +65,7 @@ export function TeacherDashboard({
   }
 
   return (
-    <div className="space-y-6 lg:grid lg:grid-cols-5 lg:gap-4 xl:gap-6 lg:space-y-0 mb-6 max-w-full overflow-hidden">
+    <div className="space-y-6 lg:grid lg:grid-cols-5 lg:gap-4 xl:gap-6 lg:space-y-0 mb-6 max-w-full overflow-hidden pb-24 pb-safe">
       {/* 左側欄位 */}
       <div className="lg:col-span-2 lg:space-y-6">
         {/* 摘要 */}
