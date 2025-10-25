@@ -10,6 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Checkbox } from "@/components/ui/checkbox"
 import { EmptyStateSimple } from "@/components/empty-state"
 import { CheckIcon, ExclamationIcon, ClockIcon, UserIcon, BookIcon, CalendarIcon, DocumentIcon, BellIcon } from "@/components/icons"
+import { Users, MessageCircle } from "lucide-react"
 import { useCourses } from "@/hooks/use-courses"
 import { ApiService } from "@/services/apiService"
 import {
@@ -298,39 +299,50 @@ export function TeacherCourseDetail({
     <div className="space-y-6 pb-24 pb-safe">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-foreground">{courseStats.name}</h1>
+          <div className="flex items-center gap-2">
+            <h1 className="text-2xl font-bold text-foreground">{courseStats.name}</h1>
+            {course?.source === "google_classroom" && (
+              <Badge variant="secondary" className="bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200">
+                Google Classroom
+              </Badge>
+            )}
+          </div>
+          {course?.courseCode && (
+            <p className="text-sm text-muted-foreground font-mono mt-1">
+              課程代碼: {course.courseCode}
+            </p>
+          )}
           <div className="mt-2">
             <span className="text-sm px-3 py-1 rounded-full bg-gray-100 text-gray-700 border border-gray-200">課程</span>
           </div>
         </div>
       </div>
 
-      {/* 課程資訊（模仿學生端，移到頂部） */}
-      <div className="space-y-6">
-        <div className="grid grid-cols-2 gap-6">
-          <div className="space-y-4">
-            <div className="space-y-1">
-              <span className="text-sm font-medium">授課教師</span>
-              <p className={`text-sm ${courseStats.instructor ? 'text-muted-foreground' : 'text-gray-400 italic'}`}>
-                {courseStats.instructor || "未設定"}
-              </p>
-            </div>
-            <div className="space-y-1">
-              <span className="text-sm font-medium">教室</span>
-              <p className={`text-sm ${courseStats.classroom ? 'text-muted-foreground' : 'text-gray-400 italic'}`}>
-                {courseStats.classroom || "未設定"}
-              </p>
-            </div>
+      {/* 課程資訊（對齊管理卡片） */}
+      <div className="space-y-4">
+        {/* 統計資訊 */}
+        <div className="grid grid-cols-2 gap-4">
+          <div className="flex items-center gap-2">
+            <Users className="w-4 h-4 text-primary" />
+            <span className="text-sm text-muted-foreground">
+              學生數: <span className="font-medium text-foreground">{courseStats.students_count}</span>
+            </span>
           </div>
-          <div className="space-y-4">
-            <div className="space-y-1">
-              <span className="text-sm font-medium">上課時間</span>
-              <p className={`text-sm ${courseStats.schedule && courseStats.schedule.length > 0 ? 'text-muted-foreground' : 'text-gray-400 italic'}`}>
-                {formatSchedule()}
-              </p>
-            </div>
+          <div className="flex items-center gap-2">
+            <MessageCircle className="w-4 h-4 text-green-600" />
+            <span className="text-sm text-muted-foreground">
+              LINE群組: <span className="font-medium text-foreground">{courseStats.bound_groups_count}</span>
+            </span>
           </div>
         </div>
+
+        {/* 上課時間 */}
+        {courseStats.schedule && courseStats.schedule.length > 0 && (
+          <div className="flex items-center gap-2">
+            <CalendarIcon className="w-4 h-4 text-primary flex-shrink-0" />
+            <span className="text-sm text-muted-foreground">{formatSchedule()}</span>
+          </div>
+        )}
       </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
