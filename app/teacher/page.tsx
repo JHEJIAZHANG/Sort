@@ -8,7 +8,6 @@ import { TeacherDashboard } from "@/components/teacher-dashboard"
 import { PageHeader } from "@/components/page-header"
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog"
 import { CalendarIcon, ListIcon } from "@/components/icons"
 import { CourseFilters } from "@/components/course-filters"
 import { CourseCard } from "@/components/course-card"
@@ -241,7 +240,35 @@ export default function TeacherPage() {
       case "courses":
         return (
           <div className="space-y-6">
-            {showCourseForm ? (
+            {selectedCourseId ? (
+              <>
+                <PageHeader
+                  title="課程詳情"
+                  subtitle="檢視與管理課程資訊"
+                  action={
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setSelectedCourseId(null)}
+                      className="text-xs sm:text-sm"
+                    >
+                      <ListIcon className="w-3 h-3 sm:w-4 sm:h-4 mr-1" />
+                      <span className="hidden sm:inline">返回列表</span>
+                      <span className="sm:hidden">返回</span>
+                    </Button>
+                  }
+                />
+                <div className="max-w-6xl mx-auto px-2 sm:px-4">
+                  {selectedCourseId && (
+                    <TeacherCourseDetail
+                      courseId={selectedCourseId}
+                      lineUserId={lineUserId}
+                      showBackButton={false}
+                    />
+                  )}
+                </div>
+              </>
+            ) : showCourseForm ? (
               <Card className="p-4 sm:p-6">
                 <CourseForm
                   initialCourse={editingCourse ? getCourseById(editingCourse) || undefined : undefined}
@@ -357,22 +384,6 @@ export default function TeacherPage() {
                   onClose={() => setShowGoogleClassroomImport(false)}
                   onImport={handleBulkImport}
                 />
-
-                <Dialog open={!!selectedCourseId} onOpenChange={(open) => { if (!open) setSelectedCourseId(null) }}>
-                  <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
-                    <DialogHeader>
-                      <DialogTitle>課程詳情</DialogTitle>
-                      <DialogDescription className="sr-only">檢視、編輯或刪除此課程</DialogDescription>
-                    </DialogHeader>
-                    {selectedCourseId && (
-                      <TeacherCourseDetail
-                        courseId={selectedCourseId}
-                        lineUserId={lineUserId}
-                        onClose={() => setSelectedCourseId(null)}
-                      />
-                    )}
-                  </DialogContent>
-                </Dialog>
 
               </>
             )}
