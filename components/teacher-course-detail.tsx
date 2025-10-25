@@ -354,43 +354,20 @@ const handleClassroomSave = async () => {
           </div>
         </div>
 
-        {/* 上課時間與編輯 */}
+        {/* 上課時間 */}
 <div className="flex items-center gap-2">
   <CalendarIcon className="w-4 h-4 text-primary flex-shrink-0" />
   <span className="text-sm text-muted-foreground">
     {courseStats.schedule && courseStats.schedule.length > 0 ? formatSchedule() : "尚未設定上課時間"}
   </span>
-  {course && (
-    <CourseScheduleEditor
-      course={course}
-      trigger={
-        <Button variant="outline" size="sm" className="ml-2 h-7 px-2 text-xs">
-          {course.schedule && course.schedule.length > 0 ? "編輯時間" : "設定時間"}
-        </Button>
-      }
-    />
-  )}
 </div>
 
-{/* 教室顯示與輸入 */}
-<div className="space-y-2">
-  <div className="flex items-center gap-2">
-    <span className="text-sm">📍</span>
-    <span className="text-sm text-muted-foreground">
-      {course?.classroom || courseStats.classroom || "尚未設定教室"}
-    </span>
-  </div>
-  <div className="flex items-center gap-2">
-    <Input
-      placeholder="輸入教室位置"
-      value={classroomInput}
-      onChange={(e) => setClassroomInput(e.target.value)}
-      className="max-w-xs"
-    />
-    <Button variant="outline" size="sm" onClick={handleClassroomSave}>
-      儲存教室
-    </Button>
-  </div>
+{/* 教室 */}
+<div className="flex items-center gap-2">
+  <span className="text-sm">📍</span>
+  <span className="text-sm text-muted-foreground">
+    {course?.classroom || courseStats.classroom || "尚未設定教室"}
+  </span>
 </div>
       </div>
 
@@ -698,6 +675,43 @@ const handleClassroomSave = async () => {
           </Card>
         </TabsContent>
       </Tabs>
-    </div>
-  )
+      </div>
+      <div className="mt-6 pt-4 border-t border-border flex flex-wrap items-center justify-end gap-2">
+        {course && (
+          <CourseScheduleEditor
+            course={course}
+            trigger={
+              <Button variant="outline" size="sm" className="h-9 px-3 text-sm">
+                編輯時間
+              </Button>
+            }
+          />
+        )}
+        <AlertDialog>
+          <AlertDialogTrigger asChild>
+            <Button variant="outline" size="sm" className="h-9 px-3 text-sm">
+              編輯教室
+            </Button>
+          </AlertDialogTrigger>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>編輯教室</AlertDialogTitle>
+              <AlertDialogDescription>更新課程的教室位置</AlertDialogDescription>
+            </AlertDialogHeader>
+            <div className="space-y-2">
+              <Input
+                placeholder="輸入教室位置"
+                value={classroomInput}
+                onChange={(e) => setClassroomInput(e.target.value)}
+              />
+            </div>
+            <AlertDialogFooter>
+              <AlertDialogCancel>取消</AlertDialogCancel>
+              <AlertDialogAction onClick={handleClassroomSave}>儲存</AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
+      </div>
+    )
+  }
 }

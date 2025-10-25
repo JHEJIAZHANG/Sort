@@ -97,11 +97,18 @@ export function TeacherCourseCard({
 
         {/* 課程時間 */}
         {course.schedule && course.schedule.length > 0 && (
-          <div className="flex items-center gap-2 mb-4">
+          <div className="flex items-center gap-2 mb-2">
             <CalendarIcon className="w-4 h-4 text-primary flex-shrink-0" />
             <span className="text-sm text-muted-foreground text-balance">
               {formatSchedule()}
             </span>
+          </div>
+        )}
+
+        {/* 教室位置 */}
+        {course.classroom && (
+          <div className="flex items-center gap-2 mb-4">
+            <span className="text-sm text-muted-foreground text-balance">📍 {course.classroom}</span>
           </div>
         )}
 
