@@ -675,7 +675,6 @@ const handleClassroomSave = async () => {
           </Card>
         </TabsContent>
       </Tabs>
-      </div>
       <div className="mt-6 pt-4 border-t border-border flex flex-wrap items-center justify-end gap-2">
         {course && (
           <CourseScheduleEditor
@@ -712,6 +711,6 @@ const handleClassroomSave = async () => {
           </AlertDialogContent>
         </AlertDialog>
       </div>
+      </div>
     )
-  }
 }
