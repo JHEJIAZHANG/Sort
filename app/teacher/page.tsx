@@ -242,21 +242,18 @@ export default function TeacherPage() {
           <div className="space-y-6 pb-24 pb-safe">
             {selectedCourseId ? (
               <>
-                <PageHeader
-                  title="課程詳情"
-                  subtitle="檢視與管理課程資訊"
-                  action={
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => setSelectedCourseId(null)}
-                      aria-label="返回"
-                      className="p-2"
-                    >
-                      <ArrowLeftIcon className="w-4 h-4" />
-                    </Button>
-                  }
-                />
+                <div className="mb-6 flex items-center justify-center relative">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setSelectedCourseId(null)}
+                    aria-label="返回"
+                    className="p-2 absolute left-0"
+                  >
+                    <ArrowLeftIcon className="w-4 h-4" />
+                  </Button>
+                  <h1 className="text-2xl font-bold text-foreground">課程詳情</h1>
+                </div>
                 {selectedCourseId && (
                   <TeacherCourseDetail
                     courseId={selectedCourseId}

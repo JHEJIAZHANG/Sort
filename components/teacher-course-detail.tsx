@@ -345,9 +345,9 @@ export function TeacherCourseDetail({
           <div className="mt-2 flex items-center gap-2">
             <span className="text-sm px-3 py-1 rounded-full bg-gray-100 text-gray-700 border border-gray-200">課程</span>
             {course?.source === "google_classroom" && (
-              <Badge variant="secondary" className="bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200">
+              <span className="text-sm px-3 py-1 rounded-full bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200 border border-blue-200">
                 Google Classroom
-              </Badge>
+              </span>
             )}
           </div>
         </div>
