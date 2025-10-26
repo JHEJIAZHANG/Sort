@@ -26,14 +26,14 @@ import { ApiService } from "@/services/apiService"
 export default function TeacherPage() {
   const searchParams = useSearchParams()
   const router = useRouter()
-  
+
   // 權限檢查 - 確保用戶已註冊且為老師
   const { isAuthenticated, needsRegistration, isLoading: authLoading } = useUserAuth()
-  
+
   // 從 URL 參數獲取初始標籤頁，如果沒有則默認為 "dashboard"
   const initialTab = searchParams.get('tab') || "dashboard"
   const [activeTab, setActiveTab] = useState(initialTab)
-  
+
   // 使用 LINE 認證獲取真實的 user ID
   const { user: lineUser, isLoggedIn: isLineLoggedIn } = useLineAuth()
   const [lineUserId, setLineUserId] = useState<string>("")
@@ -50,7 +50,7 @@ export default function TeacherPage() {
     avatar: "",
     isLoggedIn: false,
   })
-  
+
   const [showCourseForm, setShowCourseForm] = useState(false)
   const [editingCourse, setEditingCourse] = useState<string | null>(null)
   const [selectedCourseId, setSelectedCourseId] = useState<string | null>(null)
@@ -135,15 +135,15 @@ export default function TeacherPage() {
   const filteredCourses = useMemo(() => {
     const base = classroomCourses
     return base.filter((course) => {
-      const matchesSearch = courseSearchQuery === "" || 
+      const matchesSearch = courseSearchQuery === "" ||
         course.name.toLowerCase().includes(courseSearchQuery.toLowerCase()) ||
         (course.instructor && course.instructor.toLowerCase().includes(courseSearchQuery.toLowerCase())) ||
-        (course.schedule && course.schedule.some(slot => 
+        (course.schedule && course.schedule.some(slot =>
           slot.location && slot.location.toLowerCase().includes(courseSearchQuery.toLowerCase())
         ))
 
-      const matchesDay = courseFilterDay === "all" || 
-        (course.schedule && course.schedule.some(slot => 
+      const matchesDay = courseFilterDay === "all" ||
+        (course.schedule && course.schedule.some(slot =>
           slot.dayOfWeek === parseInt(courseFilterDay)
         ))
 
@@ -157,7 +157,7 @@ export default function TeacherPage() {
       console.log('🔄 正在檢查用戶認證狀態...')
       return
     }
-    
+
     if (needsRegistration) {
       console.log('❌ 用戶未註冊，自動重定向到註冊頁面')
       router.replace('/registration')
@@ -257,15 +257,18 @@ export default function TeacherPage() {
                     </Button>
                   }
                 />
-                <div className="max-w-6xl mx-auto px-2 sm:px-4 pb-24 pb-safe">
-                  {selectedCourseId && (
-                    <TeacherCourseDetail
-                      courseId={selectedCourseId}
-                      lineUserId={lineUserId}
-                      showBackButton={false}
-                    />
-                  )}
-                </div>
+                {selectedCourseId && (
+                  <TeacherCourseDetail
+                    courseId={selectedCourseId}
+                    lineUserId={lineUserId}
+                    showBackButton={false}
+                    onDeleted={() => {
+                      setSelectedCourseId(null)
+                      refetch()
+                    }}
+                    onUpdated={() => refetch()}
+                  />
+                )}
               </>
             ) : showCourseForm ? (
               <Card className="p-4 sm:p-6">
