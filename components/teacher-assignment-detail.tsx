@@ -180,11 +180,33 @@ export function TeacherAssignmentDetail({
 
         {/* 統計卡片 */}
         <div className="grid grid-cols-3 gap-4">
+          {/* 總計卡片 */}
+          <Card 
+            className={`p-4 cursor-pointer transition-all ${
+              statusFilter === "all" 
+                ? "border-2 border-orange-500 shadow-md" 
+                : "hover:shadow-md"
+            }`}
+            onClick={() => setStatusFilter("all")}
+          >
+            <div className="flex items-center space-x-2">
+              <UserIcon className={`w-5 h-5 transition-colors`} style={{ 
+                color: statusFilter === "all" ? "#ff9100" : "#9ca3af"
+              }} />
+              <div>
+                <p className={`text-sm transition-colors ${
+                  statusFilter === "all" ? "font-medium" : "text-muted-foreground"
+                }`} style={{ color: statusFilter === "all" ? "#ff9100" : undefined }}>總計</p>
+                <p className="text-2xl font-bold text-gray-900">{totalCount}</p>
+              </div>
+            </div>
+          </Card>
+
           {/* 已繳交卡片 */}
           <Card 
             className={`p-4 cursor-pointer transition-all ${
               statusFilter === "submitted" 
-                ? "border-green-500 bg-green-50 shadow-md" 
+                ? "border-2 border-green-500 shadow-md" 
                 : "hover:shadow-md"
             }`}
             onClick={() => setStatusFilter(statusFilter === "submitted" ? "all" : "submitted")}
@@ -197,9 +219,7 @@ export function TeacherAssignmentDetail({
                 <p className={`text-sm transition-colors ${
                   statusFilter === "submitted" ? "text-green-600 font-medium" : "text-muted-foreground"
                 }`}>已繳交</p>
-                <p className={`text-2xl font-bold transition-colors ${
-                  statusFilter === "submitted" ? "text-green-600" : "text-gray-500"
-                }`}>{submittedCount}</p>
+                <p className="text-2xl font-bold text-gray-900">{submittedCount}</p>
               </div>
             </div>
           </Card>
@@ -208,7 +228,7 @@ export function TeacherAssignmentDetail({
           <Card 
             className={`p-4 cursor-pointer transition-all ${
               statusFilter === "missing" 
-                ? "border-red-500 bg-red-50 shadow-md" 
+                ? "border-2 border-red-500 shadow-md" 
                 : "hover:shadow-md"
             }`}
             onClick={() => setStatusFilter(statusFilter === "missing" ? "all" : "missing")}
@@ -221,33 +241,7 @@ export function TeacherAssignmentDetail({
                 <p className={`text-sm transition-colors ${
                   statusFilter === "missing" ? "text-red-600 font-medium" : "text-muted-foreground"
                 }`}>未繳交</p>
-                <p className={`text-2xl font-bold transition-colors ${
-                  statusFilter === "missing" ? "text-red-600" : "text-gray-500"
-                }`}>{totalCount - submittedCount}</p>
-              </div>
-            </div>
-          </Card>
-
-          {/* 總人數卡片 */}
-          <Card 
-            className={`p-4 cursor-pointer transition-all ${
-              statusFilter === "all" 
-                ? "border-orange-500 bg-orange-50 shadow-md" 
-                : "hover:shadow-md"
-            }`}
-            onClick={() => setStatusFilter("all")}
-          >
-            <div className="flex items-center space-x-2">
-              <UserIcon className={`w-5 h-5 transition-colors`} style={{ 
-                color: statusFilter === "all" ? "#ff9100" : "#9ca3af"
-              }} />
-              <div>
-                <p className={`text-sm transition-colors ${
-                  statusFilter === "all" ? "font-medium" : "text-muted-foreground"
-                }`} style={{ color: statusFilter === "all" ? "#ff9100" : undefined }}>總人數</p>
-                <p className={`text-2xl font-bold transition-colors`} style={{ 
-                  color: statusFilter === "all" ? "#ff9100" : "#6b7280"
-                }}>{totalCount}</p>
+                <p className="text-2xl font-bold text-gray-900">{totalCount - submittedCount}</p>
               </div>
             </div>
           </Card>
