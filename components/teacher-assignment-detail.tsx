@@ -272,27 +272,27 @@ export function TeacherAssignmentDetail({
                 className="relative p-3 border rounded-lg hover:bg-muted/50 transition-colors"
               >
                 {/* 手機版佈局 */}
-                <div className="flex lg:hidden flex-col gap-2">
-                  <div className="flex items-start justify-between">
-                    <div className="flex items-center gap-3 flex-1">
-                      <UserIcon className="w-5 h-5 text-muted-foreground flex-shrink-0" />
-                      <div className="flex-1 min-w-0">
+                <div className="flex lg:hidden items-center justify-between gap-3">
+                  <div className="flex items-center gap-3 flex-1 min-w-0">
+                    <UserIcon className="w-5 h-5 text-muted-foreground flex-shrink-0" />
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-start justify-between gap-2">
                         <p className="font-medium text-foreground">{student.name}</p>
-                        <p className="text-sm text-muted-foreground">{student.email}</p>
-                        {student.submitted && student.submittedAt && (
-                          <p className="text-sm text-muted-foreground mt-1">
-                            {formatDate(student.submittedAt)} {formatTime(student.submittedAt)}
-                          </p>
+                        {student.grade !== undefined && (
+                          <span className="text-sm font-medium text-primary whitespace-nowrap">
+                            {student.grade}分
+                          </span>
                         )}
                       </div>
+                      <p className="text-sm text-muted-foreground">{student.email}</p>
+                      {student.submitted && student.submittedAt && (
+                        <p className="text-sm text-muted-foreground mt-1">
+                          {formatDate(student.submittedAt)} {formatTime(student.submittedAt)}
+                        </p>
+                      )}
                     </div>
-                    {student.grade !== undefined && (
-                      <div className="text-sm font-medium text-primary ml-2">
-                        {student.grade}分
-                      </div>
-                    )}
                   </div>
-                  <div className="flex justify-end">
+                  <div className="flex-shrink-0">
                     {getStatusBadge(student.status)}
                   </div>
                 </div>
