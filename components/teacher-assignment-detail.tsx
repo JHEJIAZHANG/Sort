@@ -109,9 +109,6 @@ export function TeacherAssignmentDetail({
       <div className="space-y-4">
         <div>
           <h2 className="text-2xl font-bold text-foreground">{assignment.title}</h2>
-          {assignment.description && (
-            <p className="text-muted-foreground mt-2">{assignment.description}</p>
-          )}
           <div className="mt-2 flex items-center gap-2 flex-wrap">
             {course && (
               <span className="text-sm px-3 py-1 rounded-full bg-gray-100 text-gray-700 border border-gray-200">
@@ -124,6 +121,9 @@ export function TeacherAssignmentDetail({
               </span>
             )}
           </div>
+          {assignment.description && (
+            <p className="text-muted-foreground mt-3">{assignment.description}</p>
+          )}
         </div>
 
         <div className="flex flex-col sm:flex-row sm:items-center gap-4">

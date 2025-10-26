@@ -116,8 +116,9 @@ export function TeacherCourseDetail({
   const [deleting, setDeleting] = useState(false)
   const [isEditing, setIsEditing] = useState(false)
 
-  const { getCourseById, updateCourse, deleteCourse } = useCourses(lineUserId)
+  const { getCourseById, updateCourse, deleteCourse, getAssignmentsByCourse } = useCourses(lineUserId)
   const course = getCourseById(courseId)
+  const courseAssignments = getAssignmentsByCourse(courseId)
 
   // 載入課程統計資料
   const loadCourseStats = async () => {
@@ -144,28 +145,24 @@ export function TeacherCourseDetail({
         { id: "3", name: "王小美", email: "mei@example.com", line_bound: true, recent_submission_rate: 95 },
       ]
       
-      const mockAssignments: AssignmentWithMetrics[] = [
-        {
-          id: "1",
-          title: "第一次作業",
-          description: "完成課本第一章習題",
-          due_date: "2024-11-01",
-          submitted_count: 20,
-          total_count: 25,
-          submission_rate: 80,
-          status: "active"
-        },
-        {
-          id: "2", 
-          title: "期中報告",
-          description: "撰寫期中報告",
-          due_date: "2024-10-20",
-          submitted_count: 15,
-          total_count: 25,
-          submission_rate: 60,
-          status: "overdue"
+      // 使用真實的作業資料，轉換為 AssignmentWithMetrics 格式
+      const realAssignments: AssignmentWithMetrics[] = courseAssignments.map(assignment => {
+        const now = new Date()
+        const dueDate = new Date(assignment.dueDate)
+        const isOverdue = dueDate < now
+        const isPending = assignment.status === "pending"
+        
+        return {
+          id: assignment.id,
+          title: assignment.title,
+          description: assignment.description || "",
+          due_date: assignment.dueDate.toISOString().split('T')[0],
+          submitted_count: Math.floor(Math.random() * 25), // TODO: 從 API 獲取真實資料
+          total_count: 25, // TODO: 從 API 獲取真實資料
+          submission_rate: Math.floor(Math.random() * 100), // TODO: 從 API 獲取真實資料
+          status: isOverdue && !isPending ? "overdue" : isPending ? "active" : "completed"
         }
-      ]
+      })
       
       const mockGroups: BoundGroup[] = [
         { id: "1", name: "資管系一年級", member_count: 15, bound_at: "2024-09-01" },
@@ -184,7 +181,7 @@ export function TeacherCourseDetail({
       
       setCourseStats(mockStats)
       setStudents(mockStudents)
-      setAssignments(mockAssignments)
+      setAssignments(realAssignments)
       setBoundGroups(mockGroups)
       setWeeklyReports(mockReports)
     } catch (error) {
