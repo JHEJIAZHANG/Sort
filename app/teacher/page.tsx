@@ -243,16 +243,14 @@ export default function TeacherPage() {
             {selectedCourseId ? (
               <>
                 <div className="mb-6 flex items-center justify-center relative">
-                  <Button
-                    variant="outline"
-                    size="sm"
+                  <button
                     onClick={() => setSelectedCourseId(null)}
                     aria-label="返回"
-                    className="p-2 absolute left-0"
+                    className="absolute left-0 p-2 hover:opacity-70 transition-opacity"
                   >
-                    <ArrowLeftIcon className="w-4 h-4" />
-                  </Button>
-                  <h1 className="text-2xl font-bold text-foreground">課程詳情</h1>
+                    <ArrowLeftIcon className="w-5 h-5" />
+                  </button>
+                  <h1 className="text-lg font-semibold text-foreground">課程詳情</h1>
                 </div>
                 {selectedCourseId && (
                   <TeacherCourseDetail

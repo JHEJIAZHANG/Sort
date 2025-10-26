@@ -345,7 +345,7 @@ export function TeacherCourseDetail({
           <div className="mt-2 flex items-center gap-2">
             <span className="text-sm px-3 py-1 rounded-full bg-gray-100 text-gray-700 border border-gray-200">課程</span>
             {course?.source === "google_classroom" && (
-              <span className="text-sm px-3 py-1 rounded-full bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200 border border-blue-200">
+              <span className="text-sm px-3 py-1 rounded-full bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200">
                 Google Classroom
               </span>
             )}
@@ -395,10 +395,10 @@ export function TeacherCourseDetail({
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
         <TabsList className="grid w-full grid-cols-5">
           <TabsTrigger value="overview">概覽</TabsTrigger>
-          <TabsTrigger value="students">學生名單</TabsTrigger>
-          <TabsTrigger value="assignments">作業管理</TabsTrigger>
-          <TabsTrigger value="groups">群組綁定</TabsTrigger>
-          <TabsTrigger value="reports">週報統計</TabsTrigger>
+          <TabsTrigger value="students">學生</TabsTrigger>
+          <TabsTrigger value="assignments">作業</TabsTrigger>
+          <TabsTrigger value="groups">群組</TabsTrigger>
+          <TabsTrigger value="reports">統計</TabsTrigger>
         </TabsList>
 
         <TabsContent value="overview" className="space-y-6">
