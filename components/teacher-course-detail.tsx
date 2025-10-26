@@ -336,21 +336,19 @@ export function TeacherCourseDetail({
     <div className="space-y-6 pb-24 pb-safe">
       <div className="flex items-center justify-between">
         <div>
-          <div className="flex items-center gap-2">
-            <h1 className="text-2xl font-bold text-foreground">{course?.name || courseStats.name}</h1>
-            {course?.source === "google_classroom" && (
-              <Badge variant="secondary" className="bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200">
-                Google Classroom
-              </Badge>
-            )}
-          </div>
+          <h1 className="text-2xl font-bold text-foreground">{course?.name || courseStats.name}</h1>
           {course?.courseCode && (
             <p className="text-sm text-muted-foreground font-mono mt-1">
               課程代碼: {course.courseCode}
             </p>
           )}
-          <div className="mt-2">
+          <div className="mt-2 flex items-center gap-2">
             <span className="text-sm px-3 py-1 rounded-full bg-gray-100 text-gray-700 border border-gray-200">課程</span>
+            {course?.source === "google_classroom" && (
+              <Badge variant="secondary" className="bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200">
+                Google Classroom
+              </Badge>
+            )}
           </div>
         </div>
       </div>
