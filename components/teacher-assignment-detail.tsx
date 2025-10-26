@@ -272,14 +272,14 @@ export function TeacherAssignmentDetail({
                 className="relative p-3 border rounded-lg hover:bg-muted/50 transition-colors"
               >
                 {/* 手機版佈局 */}
-                <div className="flex lg:hidden gap-3">
-                  <div className="flex items-center gap-3 flex-1 min-w-0">
+                <div className="flex lg:hidden gap-2">
+                  <div className="flex items-center gap-2 flex-1 overflow-hidden">
                     <UserIcon className="w-5 h-5 text-muted-foreground flex-shrink-0 mt-1" />
-                    <div className="flex-1 min-w-0">
-                      <p className="font-medium text-foreground">{student.name}</p>
-                      <p className="text-sm text-muted-foreground">{student.email}</p>
+                    <div className="flex-1 overflow-hidden">
+                      <p className="font-medium text-foreground truncate">{student.name}</p>
+                      <p className="text-sm text-muted-foreground truncate">{student.email}</p>
                       {student.submitted && student.submittedAt && (
-                        <p className="text-sm text-muted-foreground mt-1">
+                        <p className="text-xs text-muted-foreground mt-1 whitespace-nowrap">
                           繳交時間：{formatDate(student.submittedAt)} {formatTime(student.submittedAt)}
                         </p>
                       )}
