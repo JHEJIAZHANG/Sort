@@ -65,11 +65,11 @@ export function CircularProgress({
       </svg>
       {/* 中間文字 */}
       <div className="absolute inset-0 flex flex-col items-center justify-center">
-        <span className="text-4xl font-bold text-primary">
+        <span className="text-3xl sm:text-4xl font-bold text-primary">
           {Math.round(progress)}%
         </span>
         {submittedCount !== undefined && totalCount !== undefined && (
-          <span className="text-sm text-muted-foreground mt-1">
+          <span className="text-xs sm:text-sm text-muted-foreground mt-2">
             {submittedCount} / {totalCount}
           </span>
         )}

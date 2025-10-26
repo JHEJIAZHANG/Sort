@@ -156,22 +156,24 @@ export function TeacherAssignmentDetail({
           <p className="text-sm text-muted-foreground mb-4 text-center">繳交率</p>
           <CircularProgress
             percentage={submissionRate}
-            size={180}
-            strokeWidth={16}
+            size={120}
+            strokeWidth={12}
             submittedCount={submittedCount}
             totalCount={totalCount}
           />
         </div>
 
         {/* 統計數字 */}
-        <div className="flex sm:flex-col gap-8 sm:gap-6 justify-center sm:justify-start sm:py-8">
+        <div className="flex flex-col gap-4 sm:gap-6 justify-center items-center sm:items-start sm:py-8 w-full sm:w-auto">
           <div className="text-center sm:text-left">
-            <p className="text-sm text-muted-foreground mb-2">已繳交</p>
-            <p className="text-4xl font-bold text-green-600">{submittedCount}</p>
+            <p className="text-base text-muted-foreground">
+              已繳交：<span className="text-base text-green-600 font-medium">{submittedCount}</span>
+            </p>
           </div>
           <div className="text-center sm:text-left">
-            <p className="text-sm text-muted-foreground mb-2">未繳交</p>
-            <p className="text-4xl font-bold text-red-600">{totalCount - submittedCount}</p>
+            <p className="text-base text-muted-foreground">
+              未繳交：<span className="text-base text-red-600 font-medium">{totalCount - submittedCount}</span>
+            </p>
           </div>
         </div>
       </div>
