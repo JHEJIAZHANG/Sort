@@ -150,7 +150,7 @@ export function TeacherAssignmentDetail({
       </div>
 
       {/* 繳交統計 */}
-      <div className="flex flex-col sm:flex-row items-center sm:items-start gap-8 sm:gap-12 py-6">
+      <div className="flex flex-row items-center gap-6 sm:gap-12 py-6">
         {/* 圓形進度條 */}
         <div className="flex-shrink-0">
           <p className="text-sm text-muted-foreground mb-4 text-center">繳交率</p>
@@ -158,23 +158,17 @@ export function TeacherAssignmentDetail({
             percentage={submissionRate}
             size={120}
             strokeWidth={12}
-            submittedCount={submittedCount}
-            totalCount={totalCount}
           />
         </div>
 
         {/* 統計數字 */}
-        <div className="flex flex-col gap-4 sm:gap-6 justify-center items-center sm:items-start sm:py-8 w-full sm:w-auto">
-          <div className="text-center sm:text-left">
-            <p className="text-base text-muted-foreground">
-              已繳交：<span className="text-base text-green-600 font-medium">{submittedCount}</span>
-            </p>
-          </div>
-          <div className="text-center sm:text-left">
-            <p className="text-base text-muted-foreground">
-              未繳交：<span className="text-base text-red-600 font-medium">{totalCount - submittedCount}</span>
-            </p>
-          </div>
+        <div className="flex flex-col gap-4 justify-center">
+          <p className="text-sm text-muted-foreground">
+            已繳交：<span className="text-sm text-green-600 font-medium">{submittedCount}</span>
+          </p>
+          <p className="text-sm text-muted-foreground">
+            未繳交：<span className="text-sm text-red-600 font-medium">{totalCount - submittedCount}</span>
+          </p>
         </div>
       </div>
 
