@@ -4,7 +4,7 @@ import { useState, useEffect } from "react"
 import { Card } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+
 import { Input } from "@/components/ui/input"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Checkbox } from "@/components/ui/checkbox"
@@ -392,16 +392,54 @@ export function TeacherCourseDetail({
 </div>
       </div>
 
-      <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-        <TabsList className="grid w-full grid-cols-5">
-          <TabsTrigger value="overview">概覽</TabsTrigger>
-          <TabsTrigger value="students">學生</TabsTrigger>
-          <TabsTrigger value="assignments">作業</TabsTrigger>
-          <TabsTrigger value="groups">群組</TabsTrigger>
-          <TabsTrigger value="reports">統計</TabsTrigger>
-        </TabsList>
+      <div className="mb-6">
+        <div className="inline-flex bg-muted rounded-lg p-1">
+          <Button
+            variant={activeTab === "overview" ? "default" : "ghost"}
+            size="sm"
+            onClick={() => setActiveTab("overview")}
+            className="flex-shrink-0"
+          >
+            概覽
+          </Button>
+          <Button
+            variant={activeTab === "students" ? "default" : "ghost"}
+            size="sm"
+            onClick={() => setActiveTab("students")}
+            className="flex-shrink-0"
+          >
+            學生
+          </Button>
+          <Button
+            variant={activeTab === "assignments" ? "default" : "ghost"}
+            size="sm"
+            onClick={() => setActiveTab("assignments")}
+            className="flex-shrink-0"
+          >
+            作業
+          </Button>
+          <Button
+            variant={activeTab === "groups" ? "default" : "ghost"}
+            size="sm"
+            onClick={() => setActiveTab("groups")}
+            className="flex-shrink-0"
+          >
+            群組
+          </Button>
+          <Button
+            variant={activeTab === "reports" ? "default" : "ghost"}
+            size="sm"
+            onClick={() => setActiveTab("reports")}
+            className="flex-shrink-0"
+          >
+            統計
+          </Button>
+        </div>
+      </div>
 
-        <TabsContent value="overview" className="space-y-6">
+      <div className="w-full">
+        {activeTab === "overview" && (
+        <div className="space-y-6 mt-6">
           {/* 課程統計卡片 */}
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             <Card className="p-4">
@@ -446,9 +484,11 @@ export function TeacherCourseDetail({
           </div>
 
           {/* 課程資訊已移至上方 */}
-        </TabsContent>
+        </div>
+        )}
 
-        <TabsContent value="students" className="space-y-4">
+        {activeTab === "students" && (
+        <div className="space-y-4 mt-6">
           {/* 篩選控制 */}
           <div className="flex flex-col sm:flex-row gap-4">
             <Input
@@ -502,9 +542,11 @@ export function TeacherCourseDetail({
               />
             )}
           </Card>
-        </TabsContent>
+        </div>
+        )}
 
-        <TabsContent value="assignments" className="space-y-4">
+        {activeTab === "assignments" && (
+        <div className="space-y-4 mt-6">
           {/* 篩選控制 */}
           <div className="flex flex-col sm:flex-row gap-4">
             <Input
@@ -590,9 +632,11 @@ export function TeacherCourseDetail({
               />
             )}
           </Card>
-        </TabsContent>
+        </div>
+        )}
 
-        <TabsContent value="groups" className="space-y-4">
+        {activeTab === "groups" && (
+        <div className="space-y-4 mt-6">
           <Card className="p-4">
             <h3 className="text-lg font-semibold mb-4">
               綁定群組 ({boundGroups.length})
@@ -643,9 +687,11 @@ export function TeacherCourseDetail({
               />
             )}
           </Card>
-        </TabsContent>
+        </div>
+        )}
 
-        <TabsContent value="reports" className="space-y-4">
+        {activeTab === "reports" && (
+        <div className="space-y-4 mt-6">
           <Card className="p-4">
             <h3 className="text-lg font-semibold mb-4">週報統計</h3>
             {weeklyReports.length > 0 ? (
@@ -694,8 +740,9 @@ export function TeacherCourseDetail({
               />
             )}
           </Card>
-        </TabsContent>
-      </Tabs>
+        </div>
+        )}
+      </div>
       <div className="flex gap-2">
         <Button variant="outline" className="flex-1 bg-transparent" onClick={() => setIsEditing(true)}>
           編輯
