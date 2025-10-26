@@ -113,7 +113,7 @@ export function TeacherAssignmentManagement({
       {/* 標題 */}
       <div>
         <h1 className="text-2xl font-bold text-foreground">作業管理</h1>
-        <p className="text-muted-foreground">管理所有課程的作業</p>
+        <p className="text-muted-foreground hidden sm:block">管理所有課程的作業</p>
       </div>
 
       {/* 篩選控制 */}

@@ -106,36 +106,33 @@ export function TeacherAssignmentDetail({
   return (
     <div className="space-y-6">
       {/* 作業基本資訊 */}
-      <Card className="p-6">
-        <div className="space-y-4">
-          <div className="flex items-start justify-between gap-4">
-            <div className="flex-1">
-              <h2 className="text-2xl font-bold text-foreground mb-2">{assignment.title}</h2>
-              {assignment.description && (
-                <p className="text-muted-foreground mb-4">{assignment.description}</p>
-              )}
-            </div>
+      <div className="space-y-4">
+        <div>
+          <h2 className="text-2xl font-bold text-foreground">{assignment.title}</h2>
+          {assignment.description && (
+            <p className="text-muted-foreground mt-2">{assignment.description}</p>
+          )}
+          <div className="mt-2 flex items-center gap-2 flex-wrap">
+            {course && (
+              <span className="text-sm px-3 py-1 rounded-full bg-gray-100 text-gray-700 border border-gray-200">
+                {course.name}
+              </span>
+            )}
             {assignment.source === "google_classroom" && (
-              <Badge variant="secondary" className="bg-blue-100 text-blue-800">
+              <span className="text-sm px-3 py-1 rounded-full bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200">
                 Google Classroom
-              </Badge>
+              </span>
             )}
           </div>
+        </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            {course && (
-              <div className="flex items-center gap-2">
-                <span className="text-sm font-medium">課程：</span>
-                <span className="text-sm text-muted-foreground">{course.name}</span>
-              </div>
-            )}
-            <div className="flex items-center gap-2">
-              <CalendarIcon className="w-4 h-4 text-primary" />
-              <span className="text-sm font-medium">截止日期：</span>
-              <span className={`text-sm ${isOverdue ? 'text-red-600' : 'text-muted-foreground'}`}>
-                {formatDate(assignment.dueDate)} {formatTime(assignment.dueDate)}
-              </span>
-            </div>
+        <div className="flex flex-col sm:flex-row sm:items-center gap-4">
+          <div className="flex items-center gap-2">
+            <CalendarIcon className="w-4 h-4 text-primary" />
+            <span className="text-sm font-medium">截止日期：</span>
+            <span className={`text-sm ${isOverdue ? 'text-red-600' : 'text-muted-foreground'}`}>
+              {formatDate(assignment.dueDate)} {formatTime(assignment.dueDate)}
+            </span>
           </div>
 
           {assignment.googleClassroomUrl && (
@@ -149,7 +146,7 @@ export function TeacherAssignmentDetail({
             </Button>
           )}
         </div>
-      </Card>
+      </div>
 
       {/* 繳交統計 */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
