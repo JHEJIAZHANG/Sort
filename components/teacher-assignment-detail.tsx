@@ -9,6 +9,7 @@ import { EmptyStateSimple } from "@/components/empty-state"
 import { CalendarIcon, ClockIcon, CheckIcon, ExclamationIcon, BellIcon, UserIcon } from "@/components/icons"
 import { ExternalLink } from "lucide-react"
 import type { Assignment, Course } from "@/types/course"
+import { CircularProgress } from "@/components/circular-progress"
 import {
   AlertDialog,
   AlertDialogAction,
@@ -149,14 +150,17 @@ export function TeacherAssignmentDetail({
       </div>
 
       {/* 繳交統計 */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-        <Card className="p-4">
-          <div className="text-center">
-            <p className="text-sm text-muted-foreground mb-1">繳交率</p>
-            <p className="text-3xl font-bold text-primary">{submissionRate}%</p>
-            <p className="text-xs text-muted-foreground mt-1">
-              {submittedCount} / {totalCount}
-            </p>
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
+        <Card className="p-6">
+          <div className="flex flex-col items-center">
+            <p className="text-sm text-muted-foreground mb-4">繳交率</p>
+            <CircularProgress
+              percentage={submissionRate}
+              size={180}
+              strokeWidth={16}
+              submittedCount={submittedCount}
+              totalCount={totalCount}
+            />
           </div>
         </Card>
         <Card className="p-4">
