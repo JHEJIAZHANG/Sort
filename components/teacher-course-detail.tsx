@@ -393,12 +393,12 @@ export function TeacherCourseDetail({
       </div>
 
       <div className="mb-6">
-        <div className="inline-flex bg-muted rounded-lg p-1">
+        <div className="flex bg-muted rounded-lg p-1 overflow-x-auto">
           <Button
             variant={activeTab === "overview" ? "default" : "ghost"}
             size="sm"
             onClick={() => setActiveTab("overview")}
-            className="flex-shrink-0"
+            className="flex-1 whitespace-nowrap"
           >
             概覽
           </Button>
@@ -406,7 +406,7 @@ export function TeacherCourseDetail({
             variant={activeTab === "students" ? "default" : "ghost"}
             size="sm"
             onClick={() => setActiveTab("students")}
-            className="flex-shrink-0"
+            className="flex-1 whitespace-nowrap"
           >
             學生
           </Button>
@@ -414,7 +414,7 @@ export function TeacherCourseDetail({
             variant={activeTab === "assignments" ? "default" : "ghost"}
             size="sm"
             onClick={() => setActiveTab("assignments")}
-            className="flex-shrink-0"
+            className="flex-1 whitespace-nowrap"
           >
             作業
           </Button>
@@ -422,7 +422,7 @@ export function TeacherCourseDetail({
             variant={activeTab === "groups" ? "default" : "ghost"}
             size="sm"
             onClick={() => setActiveTab("groups")}
-            className="flex-shrink-0"
+            className="flex-1 whitespace-nowrap"
           >
             群組
           </Button>
@@ -430,7 +430,7 @@ export function TeacherCourseDetail({
             variant={activeTab === "reports" ? "default" : "ghost"}
             size="sm"
             onClick={() => setActiveTab("reports")}
-            className="flex-shrink-0"
+            className="flex-1 whitespace-nowrap"
           >
             統計
           </Button>
