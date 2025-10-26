@@ -119,8 +119,10 @@ export function TeacherCourseDetail({
   const [remindingAssignment, setRemindingAssignment] = useState<string | null>(null)
   const [unbindingGroup, setUnbindingGroup] = useState<string | null>(null)
   const [sendingReport, setSendingReport] = useState(false)
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false)
+  const [deleting, setDeleting] = useState(false)
 
-  const { getCourseById, updateCourse } = useCourses(lineUserId)
+  const { getCourseById, updateCourse, deleteCourse } = useCourses(lineUserId)
   const course = getCourseById(courseId)
 const [classroomInput, setClassroomInput] = useState(course?.classroom || "")
 useEffect(() => {
@@ -242,7 +244,7 @@ const handleClassroomSave = async () => {
       const mockStats: CourseStats = {
         id: courseId,
         name: course?.name || "課程名稱",
-        code: course?.code || "COURSE001",
+        code: course?.courseCode || "COURSE001",
         students_count: 25,
         bound_groups_count: 2,
         instructor: course?.instructor,
@@ -779,90 +781,143 @@ const handleClassroomSave = async () => {
           </Card>
         </TabsContent>
       </Tabs>
-      <div className="mt-6 pt-4 border-t border-border flex flex-wrap items-center justify-end gap-2">
-        <Dialog open={isCombinedOpen} onOpenChange={setIsCombinedOpen}>
-          <DialogTrigger asChild>
-            <Button variant="outline" size="sm" className="h-9 px-3 text-sm">
-              編輯
+      <div className="flex gap-2">
+        <Button variant="outline" className="flex-1 bg-transparent" onClick={() => setIsCombinedOpen(true)}>
+          編輯
+        </Button>
+        <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
+          <AlertDialogTrigger asChild>
+            <Button
+              variant="outline"
+              className="flex-1 text-destructive hover:text-destructive bg-transparent"
+            >
+              刪除課程
             </Button>
-          </DialogTrigger>
-          <DialogContent className="max-w-2xl">
-            <DialogHeader>
-              <DialogTitle>編輯課程時間與教室</DialogTitle>
-              <DialogDescription>一次更新課程的時間時段與教室位置</DialogDescription>
-            </DialogHeader>
+          </AlertDialogTrigger>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>確認刪除課程</AlertDialogTitle>
+              <AlertDialogDescription>
+                {course?.source === "google_classroom" ? (
+                  <>
+                    您確定要刪除「{course?.name || courseStats.name}」這門課程嗎？
+                    <br />
+                    <span className="text-amber-600 font-medium">注意：此課程來自 Google Classroom 同步，刪除後將無法自動重新同步。</span>
+                    <br />
+                    此操作將同時刪除該課程的所有作業、筆記和考試，且無法復原。
+                  </>
+                ) : (
+                  <>
+                    您確定要刪除「{course?.name || courseStats.name}」這門課程嗎？此操作將同時刪除該課程的所有作業、筆記和考試，且無法復原。
+                  </>
+                )}
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel>取消</AlertDialogCancel>
+              <AlertDialogAction
+                disabled={deleting}
+                onClick={async () => {
+                  try {
+                    setDeleting(true)
+                    await deleteCourse(courseId)
+                    setShowDeleteDialog(false)
+                    try { (document.activeElement as HTMLElement | null)?.blur?.() } catch { }
+                    setTimeout(() => { if (onDeleted) onDeleted() }, 80)
+                  } catch (error) {
+                    const errorMessage = error instanceof Error ? error.message : '刪除課程時發生未知錯誤'
+                    alert(errorMessage)
+                    setShowDeleteDialog(false)
+                  } finally {
+                    setDeleting(false)
+                  }
+                }}
+                className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              >
+                {deleting ? '刪除中...' : '確認刪除'}
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
+      </div>
 
-            <div className="space-y-4">
-              <div>
-                <div className="flex items-center justify-between">
-                  <span className="text-sm font-medium">課程時段</span>
-                  <Button type="button" variant="secondary" size="sm" onClick={addEditScheduleSlot}>
-                    新增時段
-                  </Button>
-                </div>
-                <div className="mt-3 space-y-3">
-                  {editSchedules.map((slot, i) => (
-                    <div key={i} className="grid grid-cols-12 gap-2 items-center">
-                      <div className="col-span-3">
-                        <Label className="mb-1 block text-xs">星期</Label>
-                        <Select value={String(slot.dayOfWeek)} onValueChange={(val) => updateEditScheduleSlot(i, "dayOfWeek", Number(val))}>
-                          <SelectTrigger className="h-9">
-                            <SelectValue placeholder="選擇星期" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="1">週一</SelectItem>
-                            <SelectItem value="2">週二</SelectItem>
-                            <SelectItem value="3">週三</SelectItem>
-                            <SelectItem value="4">週四</SelectItem>
-                            <SelectItem value="5">週五</SelectItem>
-                            <SelectItem value="6">週六</SelectItem>
-                            <SelectItem value="7">週日</SelectItem>
-                          </SelectContent>
-                        </Select>
-                      </div>
-                      <div className="col-span-3">
-                        <Label className="mb-1 block text-xs">開始</Label>
-                        <Input type="time" value={slot.startTime} onChange={(e) => updateEditScheduleSlot(i, "startTime", e.target.value)} />
-                      </div>
-                      <div className="col-span-3">
-                        <Label className="mb-1 block text-xs">結束</Label>
-                        <Input type="time" value={slot.endTime} onChange={(e) => updateEditScheduleSlot(i, "endTime", e.target.value)} />
-                      </div>
-                      <div className="col-span-2">
-                        <Label className="mb-1 block text-xs">地點(選填)</Label>
-                        <Input value={slot.location || ""} onChange={(e) => updateEditScheduleSlot(i, "location", e.target.value)} placeholder="如：A201" />
-                      </div>
-                      <div className="col-span-1 flex justify-end">
-                        <Button type="button" variant="outline" size="sm" onClick={() => removeEditScheduleSlot(i)} disabled={editSchedules.length <= 1}>
-                          刪除
-                        </Button>
-                      </div>
-                    </div>
-                  ))}
-                </div>
+      {/* 編輯對話框 */}
+      <Dialog open={isCombinedOpen} onOpenChange={setIsCombinedOpen}>
+        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>編輯課程時間與教室</DialogTitle>
+            <DialogDescription>設定課程的上課時間與教室位置</DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div>
+              <div className="flex items-center justify-between mb-2">
+                <Label className="text-sm font-medium">上課時間</Label>
+                <Button type="button" variant="outline" size="sm" onClick={addEditScheduleSlot}>
+                  新增時段
+                </Button>
               </div>
-
-              <div>
-                <Label className="mb-1 block text-sm">教室</Label>
-                <Input
-                  placeholder="輸入教室位置"
-                  value={classroomEdit}
-                  onChange={(e) => setClassroomEdit(e.target.value)}
-                />
+              <div className="mt-3 space-y-3">
+                {editSchedules.map((slot, i) => (
+                  <div key={i} className="grid grid-cols-12 gap-2 items-center">
+                    <div className="col-span-3">
+                      <Label className="mb-1 block text-xs">星期</Label>
+                      <Select value={String(slot.dayOfWeek)} onValueChange={(val) => updateEditScheduleSlot(i, "dayOfWeek", Number(val))}>
+                        <SelectTrigger className="h-9">
+                          <SelectValue placeholder="選擇星期" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="1">週一</SelectItem>
+                          <SelectItem value="2">週二</SelectItem>
+                          <SelectItem value="3">週三</SelectItem>
+                          <SelectItem value="4">週四</SelectItem>
+                          <SelectItem value="5">週五</SelectItem>
+                          <SelectItem value="6">週六</SelectItem>
+                          <SelectItem value="7">週日</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div className="col-span-3">
+                      <Label className="mb-1 block text-xs">開始</Label>
+                      <Input type="time" value={slot.startTime} onChange={(e) => updateEditScheduleSlot(i, "startTime", e.target.value)} />
+                    </div>
+                    <div className="col-span-3">
+                      <Label className="mb-1 block text-xs">結束</Label>
+                      <Input type="time" value={slot.endTime} onChange={(e) => updateEditScheduleSlot(i, "endTime", e.target.value)} />
+                    </div>
+                    <div className="col-span-2">
+                      <Label className="mb-1 block text-xs">地點(選填)</Label>
+                      <Input value={slot.location || ""} onChange={(e) => updateEditScheduleSlot(i, "location", e.target.value)} placeholder="如：A201" />
+                    </div>
+                    <div className="col-span-1 flex justify-end">
+                      <Button type="button" variant="outline" size="sm" onClick={() => removeEditScheduleSlot(i)} disabled={editSchedules.length <= 1}>
+                        刪除
+                      </Button>
+                    </div>
+                  </div>
+                ))}
               </div>
             </div>
 
-            <DialogFooter>
-              <Button variant="outline" onClick={() => setIsCombinedOpen(false)} disabled={isCombinedSaving}>
-                取消
-              </Button>
-              <Button onClick={handleCombinedSave} disabled={isCombinedSaving}>
-                {isCombinedSaving ? "儲存中..." : "儲存"}
-              </Button>
-            </DialogFooter>
-          </DialogContent>
-        </Dialog>
-      </div>
-      </div>
-    )
+            <div>
+              <Label className="mb-1 block text-sm">教室</Label>
+              <Input
+                placeholder="輸入教室位置"
+                value={classroomEdit}
+                onChange={(e) => setClassroomEdit(e.target.value)}
+              />
+            </div>
+          </div>
+
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setIsCombinedOpen(false)} disabled={isCombinedSaving}>
+              取消
+            </Button>
+            <Button onClick={handleCombinedSave} disabled={isCombinedSaving}>
+              {isCombinedSaving ? "儲存中..." : "儲存"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    </div>
+  )
 }
