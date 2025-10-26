@@ -425,14 +425,6 @@ export function TeacherCourseDetail({
           >
             群組
           </Button>
-          <Button
-            variant={activeTab === "reports" ? "default" : "ghost"}
-            size="sm"
-            onClick={() => setActiveTab("reports")}
-            className="flex-1 whitespace-nowrap"
-          >
-            統計
-          </Button>
         </div>
       </div>
 
@@ -654,12 +646,13 @@ export function TeacherCourseDetail({
             {boundGroups.length > 0 ? (
               <div className="space-y-3">
                 {boundGroups.map((group) => (
-                  <div key={group.id} className="flex items-center justify-between p-3 border rounded-lg">
-                    <div className="flex-1">
+                  <div key={group.id} className="flex items-start justify-between p-3 border rounded-lg gap-3">
+                    <div className="flex-1 min-w-0">
                       <h4 className="font-medium">{group.name}</h4>
-                      <div className="flex items-center gap-4 text-sm text-muted-foreground mt-1">
-                        <span>成員數: {group.member_count}</span>
-                        <span>綁定時間: {group.bound_at}</span>
+                      {/* 手機版和電腦版都垂直排列 */}
+                      <div className="flex flex-col gap-1 text-sm text-muted-foreground mt-1">
+                        <span className="whitespace-nowrap">成員數: {group.member_count}</span>
+                        <span className="whitespace-nowrap">綁定時間: {group.bound_at}</span>
                       </div>
                     </div>
                     <AlertDialog>
@@ -668,6 +661,7 @@ export function TeacherCourseDetail({
                           variant="outline" 
                           size="sm"
                           disabled={unbindingGroup === group.id}
+                          className="flex-shrink-0"
                         >
                           解除綁定
                         </Button>
@@ -700,58 +694,7 @@ export function TeacherCourseDetail({
         </div>
         )}
 
-        {activeTab === "reports" && (
-        <div className="space-y-4 mt-6">
-          <Card className="p-4">
-            <h3 className="text-lg font-semibold mb-4">週報統計</h3>
-            {weeklyReports.length > 0 ? (
-              <div className="space-y-4">
-                {weeklyReports.map((report) => (
-                  <div key={report.week} className="p-4 border rounded-lg">
-                    <div className="flex items-start justify-between mb-3">
-                      <div className="flex-1">
-                        <h4 className="font-medium">第 {report.week} 週</h4>
-                        <div className="grid grid-cols-2 gap-4 mt-2 text-sm">
-                          <div>
-                            <span className="text-muted-foreground">整體繳交率: </span>
-                            <span className={`font-medium ${report.submission_rate >= 70 ? 'text-green-600' : 'text-red-600'}`}>
-                              {report.submission_rate}%
-                            </span>
-                          </div>
-                          <div>
-                            <span className="text-muted-foreground">作業完成度: </span>
-                            <span className="font-medium">{report.completed_assignments}/{report.total_assignments}</span>
-                          </div>
-                        </div>
-                        {report.missing_students.length > 0 && (
-                          <div className="mt-2">
-                            <span className="text-sm text-muted-foreground">缺交學生: </span>
-                            <span className="text-sm">{report.missing_students.join(", ")}</span>
-                          </div>
-                        )}
-                      </div>
-                      <Button 
-                        variant="outline" 
-                        size="sm"
-                        onClick={() => handleSendWeeklyReport(report.week)}
-                        disabled={sendingReport}
-                      >
-                        <DocumentIcon className="w-4 h-4 mr-1" />
-                        發送週報
-                      </Button>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            ) : (
-              <EmptyStateSimple
-                title="尚無週報資料"
-                description="週報將在有作業資料後自動生成"
-              />
-            )}
-          </Card>
-        </div>
-        )}
+
       </div>
       <div className="flex gap-2">
         <Button variant="outline" className="flex-1 bg-transparent" onClick={() => setIsEditing(true)}>
