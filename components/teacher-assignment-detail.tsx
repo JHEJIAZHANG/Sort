@@ -165,7 +165,10 @@ export function TeacherAssignmentDetail({
         <div>
           <div className="flex items-center justify-between mb-2">
             <span className="text-sm font-medium text-muted-foreground">繳交率</span>
-            <span className="text-sm font-bold" style={{ color: "#ff9100" }}>{submissionRate}%</span>
+            <div className="flex items-center gap-2">
+              <span className="text-sm font-bold" style={{ color: "#ff9100" }}>{submissionRate}%</span>
+              <span className="text-sm text-muted-foreground">({submittedCount}/{totalCount})</span>
+            </div>
           </div>
           <div className="w-full bg-gray-200 rounded-full h-3 overflow-hidden">
             <div 
@@ -179,29 +182,7 @@ export function TeacherAssignmentDetail({
         </div>
 
         {/* 統計卡片 */}
-        <div className="grid grid-cols-3 gap-4">
-          {/* 總計卡片 */}
-          <Card 
-            className={`p-4 cursor-pointer transition-all ${
-              statusFilter === "all" 
-                ? "border-2 border-orange-500 shadow-md" 
-                : "hover:shadow-md"
-            }`}
-            onClick={() => setStatusFilter("all")}
-          >
-            <div className="flex items-center space-x-2">
-              <UserIcon className={`w-5 h-5 transition-colors`} style={{ 
-                color: statusFilter === "all" ? "#ff9100" : "#9ca3af"
-              }} />
-              <div>
-                <p className={`text-sm transition-colors ${
-                  statusFilter === "all" ? "font-medium" : "text-muted-foreground"
-                }`} style={{ color: statusFilter === "all" ? "#ff9100" : undefined }}>總計</p>
-                <p className="text-2xl font-bold text-gray-900">{totalCount}</p>
-              </div>
-            </div>
-          </Card>
-
+        <div className="grid grid-cols-2 gap-4">
           {/* 已繳交卡片 */}
           <Card 
             className={`p-4 cursor-pointer transition-all ${
