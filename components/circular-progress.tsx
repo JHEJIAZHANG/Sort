@@ -24,7 +24,7 @@ export function CircularProgress({
 
   // 計算半徑 - 兩個環使用相同的半徑，這樣細的環會卡在粗的環中間
   const outerRadius = (size - thickStrokeWidth) / 2
-  const innerRadius = outerRadius - thickStrokeWidth - 10
+  const innerRadius = outerRadius - thickStrokeWidth - 4
 
   const circumference = outerRadius * 2 * Math.PI
   const offset = circumference - (progress / 100) * circumference
@@ -80,7 +80,7 @@ export function CircularProgress({
 
       {/* 中間文字 */}
       <div className="absolute inset-0 flex items-center justify-center">
-        <span className="text-2xl font-bold text-white">
+        <span className="text-xl font-bold text-white">
           {Math.round(progress)}%
         </span>
       </div>
