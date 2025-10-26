@@ -190,7 +190,7 @@ export function TeacherAssignmentDetail({
 
       {/* 繳交統計（手機版顯示） */}
       <div className="flex lg:hidden justify-center py-6">
-        <div className="flex flex-row items-start gap-4 w-full max-w-md">
+        <div className="flex flex-row items-center gap-4 w-full max-w-md">
           {/* 圓形進度條 */}
           <div className="flex-shrink-0">
             <p className="text-sm text-muted-foreground mb-4 text-center">繳交率</p>
@@ -201,48 +201,58 @@ export function TeacherAssignmentDetail({
             />
           </div>
 
-          {/* 統計卡片 */}
-          <div className="flex flex-col gap-3 flex-1">
+          {/* 統計卡片 - 高度與圓形進度條對齊 */}
+          <div className="flex flex-col gap-2 flex-1 h-[120px] justify-between">
             {/* 已繳交和未繳交水平排列 */}
-            <div className="flex gap-3">
+            <div className="flex gap-2 flex-1">
               {/* 已繳交卡片 */}
               <button
                 onClick={() => setStatusFilter(statusFilter === "submitted" ? "all" : "submitted")}
-                className={`flex-1 flex flex-col items-center justify-center p-4 border rounded-lg transition-all shadow-sm hover:shadow-md ${
+                className={`flex-1 flex flex-col items-center justify-center border rounded-lg transition-all shadow-sm hover:shadow-md ${
                   statusFilter === "submitted" 
                     ? "border-green-500 bg-green-50 shadow-md" 
-                    : "border-gray-200 bg-white hover:border-green-300"
+                    : "border-gray-200 bg-white hover:border-gray-300"
                 }`}
               >
-                <p className="text-xs text-muted-foreground mb-1 whitespace-nowrap">已繳交</p>
-                <p className="text-2xl font-bold text-green-600">{submittedCount}</p>
+                <p className={`text-xs mb-1 whitespace-nowrap transition-colors ${
+                  statusFilter === "submitted" ? "text-green-600 font-medium" : "text-gray-500"
+                }`}>已繳交</p>
+                <p className={`text-xl font-bold transition-colors ${
+                  statusFilter === "submitted" ? "text-green-600" : "text-gray-500"
+                }`}>{submittedCount}</p>
               </button>
 
               {/* 未繳交卡片 */}
               <button
                 onClick={() => setStatusFilter(statusFilter === "missing" ? "all" : "missing")}
-                className={`flex-1 flex flex-col items-center justify-center p-4 border rounded-lg transition-all shadow-sm hover:shadow-md ${
+                className={`flex-1 flex flex-col items-center justify-center border rounded-lg transition-all shadow-sm hover:shadow-md ${
                   statusFilter === "missing" 
                     ? "border-red-500 bg-red-50 shadow-md" 
-                    : "border-gray-200 bg-white hover:border-red-300"
+                    : "border-gray-200 bg-white hover:border-gray-300"
                 }`}
               >
-                <p className="text-xs text-muted-foreground mb-1 whitespace-nowrap">未繳交</p>
-                <p className="text-2xl font-bold text-red-600">{totalCount - submittedCount}</p>
+                <p className={`text-xs mb-1 whitespace-nowrap transition-colors ${
+                  statusFilter === "missing" ? "text-red-600 font-medium" : "text-gray-500"
+                }`}>未繳交</p>
+                <p className={`text-xl font-bold transition-colors ${
+                  statusFilter === "missing" ? "text-red-600" : "text-gray-500"
+                }`}>{totalCount - submittedCount}</p>
               </button>
             </div>
 
             {/* 總人數卡片 */}
             <button
               onClick={() => setStatusFilter("all")}
-              className={`w-full flex flex-col items-center justify-center p-4 border rounded-lg transition-all shadow-sm hover:shadow-md ${
+              className={`w-full flex flex-row items-center justify-center gap-2 py-2 border rounded-lg transition-all shadow-sm hover:shadow-md ${
                 statusFilter === "all" 
                   ? "border-orange-500 bg-orange-50 shadow-md" 
-                  : "border-gray-200 bg-white hover:border-orange-300"
+                  : "border-gray-200 bg-white hover:border-gray-300"
               }`}
             >
-              <p className="text-xs text-muted-foreground mb-1">總人數</p>
-              <p className="text-2xl font-bold" style={{ color: "#ff9100" }}>{totalCount}</p>
+              <p className={`text-xs whitespace-nowrap transition-colors ${
+                statusFilter === "all" ? "font-medium" : ""
+              }`} style={{ color: statusFilter === "all" ? "#ff9100" : "#6b7280" }}>總人數</p>
+              <p className={`text-xl font-bold transition-colors`} style={{ color: statusFilter === "all" ? "#ff9100" : "#6b7280" }}>{totalCount}</p>
             </button>
           </div>
         </div>
