@@ -269,29 +269,58 @@ export function TeacherAssignmentDetail({
             {filteredStudents.map((student) => (
               <div
                 key={student.id}
-                className="flex items-center justify-between p-3 border rounded-lg hover:bg-muted/50 transition-colors"
+                className="relative p-3 border rounded-lg hover:bg-muted/50 transition-colors"
               >
-                <div className="flex items-center gap-3 flex-1">
-                  <UserIcon className="w-5 h-5 text-muted-foreground" />
-                  <div className="flex-1">
-                    <p className="font-medium text-foreground">{student.name}</p>
-                    <p className="text-sm text-muted-foreground">{student.email}</p>
+                {/* 手機版佈局 */}
+                <div className="flex lg:hidden flex-col gap-2">
+                  <div className="flex items-start justify-between">
+                    <div className="flex items-center gap-3 flex-1">
+                      <UserIcon className="w-5 h-5 text-muted-foreground flex-shrink-0" />
+                      <div className="flex-1 min-w-0">
+                        <p className="font-medium text-foreground">{student.name}</p>
+                        <p className="text-sm text-muted-foreground">{student.email}</p>
+                        {student.submitted && student.submittedAt && (
+                          <p className="text-sm text-muted-foreground mt-1">
+                            {formatDate(student.submittedAt)} {formatTime(student.submittedAt)}
+                          </p>
+                        )}
+                      </div>
+                    </div>
+                    {student.grade !== undefined && (
+                      <div className="text-sm font-medium text-primary ml-2">
+                        {student.grade}分
+                      </div>
+                    )}
+                  </div>
+                  <div className="flex justify-end">
+                    {getStatusBadge(student.status)}
                   </div>
                 </div>
-                <div className="flex items-center gap-4">
-                  {student.submitted && student.submittedAt && (
-                    <div className="text-right">
-                      <p className="text-sm text-muted-foreground">
-                        {formatDate(student.submittedAt)} {formatTime(student.submittedAt)}
-                      </p>
-                      {student.grade !== undefined && (
-                        <p className="text-sm font-medium text-primary">
-                          分數: {student.grade}
-                        </p>
-                      )}
+
+                {/* 電腦版佈局 */}
+                <div className="hidden lg:flex items-center justify-between">
+                  <div className="flex items-center gap-3 flex-1">
+                    <UserIcon className="w-5 h-5 text-muted-foreground" />
+                    <div className="flex-1">
+                      <p className="font-medium text-foreground">{student.name}</p>
+                      <p className="text-sm text-muted-foreground">{student.email}</p>
                     </div>
-                  )}
-                  {getStatusBadge(student.status)}
+                  </div>
+                  <div className="flex items-center gap-4">
+                    {student.submitted && student.submittedAt && (
+                      <div className="text-right">
+                        <p className="text-sm text-muted-foreground">
+                          {formatDate(student.submittedAt)} {formatTime(student.submittedAt)}
+                        </p>
+                        {student.grade !== undefined && (
+                          <p className="text-sm font-medium text-primary">
+                            分數: {student.grade}
+                          </p>
+                        )}
+                      </div>
+                    )}
+                    {getStatusBadge(student.status)}
+                  </div>
                 </div>
               </div>
             ))}
