@@ -18,13 +18,13 @@ export function CircularProgress({
   const [progress, setProgress] = useState(0)
 
   // 淺色背景環比較細
-  const thinStrokeWidth = strokeWidth - 10
+  const thinStrokeWidth = 15
   // 深色進度環比較粗
   const thickStrokeWidth = strokeWidth
 
   // 計算半徑 - 兩個環使用相同的半徑，這樣細的環會卡在粗的環中間
   const outerRadius = (size - thickStrokeWidth) / 2
-  const innerRadius = outerRadius - thickStrokeWidth - 8
+  const innerRadius = outerRadius - thickStrokeWidth - 10
 
   const circumference = outerRadius * 2 * Math.PI
   const offset = circumference - (progress / 100) * circumference
@@ -80,7 +80,7 @@ export function CircularProgress({
 
       {/* 中間文字 */}
       <div className="absolute inset-0 flex items-center justify-center">
-        <span className="text-2xl sm:text-3xl font-bold text-white">
+        <span className="text-2xl font-bold text-white">
           {Math.round(progress)}%
         </span>
       </div>

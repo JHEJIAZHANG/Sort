@@ -106,58 +106,84 @@ export function TeacherAssignmentDetail({
 
   return (
     <div className="space-y-6">
-      {/* 作業基本資訊 */}
-      <div className="space-y-4">
-        <div>
-          <h2 className="text-2xl font-bold text-foreground">{assignment.title}</h2>
-          <div className="mt-2 flex items-center gap-2 flex-wrap">
-            {course && (
-              <span className="text-sm px-3 py-1 rounded-full bg-gray-100 text-gray-700 border border-gray-200">
-                {course.name}
-              </span>
-            )}
-            {assignment.source === "google_classroom" && (
-              <span className="text-sm px-3 py-1 rounded-full bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200">
-                Google Classroom
-              </span>
+      {/* 作業基本資訊和繳交統計 */}
+      <div className="flex flex-col lg:flex-row gap-6 lg:gap-8">
+        {/* 左側：作業基本資訊 */}
+        <div className="flex-1 space-y-4">
+          <div>
+            <h2 className="text-2xl font-bold text-foreground">{assignment.title}</h2>
+            <div className="mt-2 flex items-center gap-2 flex-wrap">
+              {course && (
+                <span className="text-sm px-3 py-1 rounded-full bg-gray-100 text-gray-700 border border-gray-200">
+                  {course.name}
+                </span>
+              )}
+              {assignment.source === "google_classroom" && (
+                <span className="text-sm px-3 py-1 rounded-full bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200">
+                  Google Classroom
+                </span>
+              )}
+            </div>
+            {assignment.description && (
+              <p className="text-muted-foreground mt-3">{assignment.description}</p>
             )}
           </div>
-          {assignment.description && (
-            <p className="text-muted-foreground mt-3">{assignment.description}</p>
-          )}
+
+          <div className="flex flex-col sm:flex-row sm:items-center gap-4">
+            <div className="flex items-center gap-2">
+              <CalendarIcon className="w-4 h-4 text-primary" />
+              <span className="text-sm font-medium">截止日期：</span>
+              <span className={`text-sm ${isOverdue ? 'text-red-600' : 'text-muted-foreground'}`}>
+                {formatDate(assignment.dueDate)} {formatTime(assignment.dueDate)}
+              </span>
+            </div>
+
+            {assignment.googleClassroomUrl && (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => window.open(assignment.googleClassroomUrl, '_blank')}
+              >
+                <ExternalLink className="w-4 h-4 mr-2" />
+                在 Google Classroom 中查看
+              </Button>
+            )}
+          </div>
         </div>
 
-        <div className="flex flex-col sm:flex-row sm:items-center gap-4">
-          <div className="flex items-center gap-2">
-            <CalendarIcon className="w-4 h-4 text-primary" />
-            <span className="text-sm font-medium">截止日期：</span>
-            <span className={`text-sm ${isOverdue ? 'text-red-600' : 'text-muted-foreground'}`}>
-              {formatDate(assignment.dueDate)} {formatTime(assignment.dueDate)}
-            </span>
+        {/* 右側：繳交統計（電腦版顯示） */}
+        <div className="hidden lg:flex flex-row items-center gap-6 flex-shrink-0">
+          {/* 圓形進度條 */}
+          <div className="flex-shrink-0">
+            <p className="text-sm text-muted-foreground mb-4 text-center">繳交率</p>
+            <CircularProgress
+              percentage={submissionRate}
+              size={120}
+              strokeWidth={20}
+            />
           </div>
 
-          {assignment.googleClassroomUrl && (
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => window.open(assignment.googleClassroomUrl, '_blank')}
-            >
-              <ExternalLink className="w-4 h-4 mr-2" />
-              在 Google Classroom 中查看
-            </Button>
-          )}
+          {/* 統計數字 */}
+          <div className="flex flex-col gap-4 justify-center">
+            <p className="text-sm text-muted-foreground">
+              已繳交：<span className="text-sm text-green-600 font-medium">{submittedCount}</span>
+            </p>
+            <p className="text-sm text-muted-foreground">
+              未繳交：<span className="text-sm text-red-600 font-medium">{totalCount - submittedCount}</span>
+            </p>
+          </div>
         </div>
       </div>
 
-      {/* 繳交統計 */}
-      <div className="flex flex-row items-center gap-6 sm:gap-12 py-6">
+      {/* 繳交統計（手機版顯示） */}
+      <div className="flex lg:hidden flex-row items-center gap-6 py-6">
         {/* 圓形進度條 */}
         <div className="flex-shrink-0">
           <p className="text-sm text-muted-foreground mb-4 text-center">繳交率</p>
           <CircularProgress
             percentage={submissionRate}
             size={120}
-            strokeWidth={12}
+            strokeWidth={20}
           />
         </div>
 
