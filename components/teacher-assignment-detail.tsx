@@ -228,10 +228,10 @@ export function TeacherAssignmentDetail({
       </div>
 
       {/* 繳交統計（手機版顯示） */}
-      <div className="flex lg:hidden justify-center py-6">
-        <div className="flex flex-col sm:flex-row items-center sm:items-start gap-4 w-full px-4">
-          {/* 圓形進度條 */}
-          <div className="flex-shrink-0">
+      <div className="flex lg:hidden py-6 px-4">
+        <div className="flex flex-row items-center gap-4 w-full">
+          {/* 左側：圓形進度條 */}
+          <div className="flex-shrink-0 flex flex-col items-center">
             <p className="text-sm text-muted-foreground mb-4 text-center">繳交率</p>
             <CircularProgress
               percentage={submissionRate}
@@ -240,8 +240,8 @@ export function TeacherAssignmentDetail({
             />
           </div>
 
-          {/* 統計卡片 - 響應式網格佈局 */}
-          <div className="grid grid-cols-3 gap-3 flex-1 max-w-md">
+          {/* 右側：統計卡片 - 填滿剩餘空間 */}
+          <div className="grid grid-cols-3 gap-3 flex-1">
             {/* 已繳交卡片 */}
             <button
               onClick={() => setStatusFilter(statusFilter === "submitted" ? "all" : "submitted")}
