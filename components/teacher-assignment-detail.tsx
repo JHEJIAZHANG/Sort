@@ -46,6 +46,7 @@ export function TeacherAssignmentDetail({
 }: TeacherAssignmentDetailProps) {
   const [searchQuery, setSearchQuery] = useState("")
   const [reminding, setReminding] = useState(false)
+  const [statusFilter, setStatusFilter] = useState<"all" | "submitted" | "missing">("all")
 
   // 模擬學生繳交資料
   const mockStudents: StudentSubmission[] = [
@@ -57,12 +58,21 @@ export function TeacherAssignmentDetail({
   ]
 
   const filteredStudents = useMemo(() => {
-    return mockStudents.filter(student =>
-      searchQuery === "" ||
-      student.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      student.email.toLowerCase().includes(searchQuery.toLowerCase())
-    )
-  }, [searchQuery])
+    return mockStudents.filter(student => {
+      // 搜尋過濾
+      const matchesSearch = searchQuery === "" ||
+        student.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        student.email.toLowerCase().includes(searchQuery.toLowerCase())
+      
+      // 狀態過濾
+      const matchesStatus = 
+        statusFilter === "all" ||
+        (statusFilter === "submitted" && student.submitted) ||
+        (statusFilter === "missing" && !student.submitted)
+      
+      return matchesSearch && matchesStatus
+    })
+  }, [searchQuery, statusFilter])
 
   const submittedCount = mockStudents.filter(s => s.submitted).length
   const totalCount = mockStudents.length
@@ -180,7 +190,7 @@ export function TeacherAssignmentDetail({
 
       {/* 繳交統計（手機版顯示） */}
       <div className="flex lg:hidden justify-center py-6">
-        <div className="flex flex-row items-center gap-6">
+        <div className="flex flex-row items-start gap-6">
           {/* 圓形進度條 */}
           <div className="flex-shrink-0">
             <p className="text-sm text-muted-foreground mb-4 text-center">繳交率</p>
@@ -191,17 +201,49 @@ export function TeacherAssignmentDetail({
             />
           </div>
 
-          {/* 統計數字 */}
-          <div className="flex flex-col gap-4 justify-center">
-            <p className="text-sm text-muted-foreground">
-              已繳交：<span className="text-sm text-green-600 font-medium">{submittedCount}</span>
-            </p>
-            <p className="text-sm text-muted-foreground">
-              未繳交：<span className="text-sm text-red-600 font-medium">{totalCount - submittedCount}</span>
-            </p>
-            <p className="text-sm text-muted-foreground">
-              總人數：<span className="text-sm text-gray-900 font-medium">{totalCount}</span>
-            </p>
+          {/* 統計方框 */}
+          <div className="flex flex-col gap-3">
+            {/* 已繳交和未繳交水平排列 */}
+            <div className="flex gap-3">
+              {/* 已繳交方框 */}
+              <button
+                onClick={() => setStatusFilter(statusFilter === "submitted" ? "all" : "submitted")}
+                className={`flex flex-col items-center justify-center p-3 border-2 rounded-lg transition-all ${
+                  statusFilter === "submitted" 
+                    ? "border-green-500 bg-green-50" 
+                    : "border-gray-200 hover:border-green-300"
+                }`}
+              >
+                <p className="text-xs text-muted-foreground mb-1">已繳交</p>
+                <p className="text-2xl font-bold text-green-600">{submittedCount}</p>
+              </button>
+
+              {/* 未繳交方框 */}
+              <button
+                onClick={() => setStatusFilter(statusFilter === "missing" ? "all" : "missing")}
+                className={`flex flex-col items-center justify-center p-3 border-2 rounded-lg transition-all ${
+                  statusFilter === "missing" 
+                    ? "border-red-500 bg-red-50" 
+                    : "border-gray-200 hover:border-red-300"
+                }`}
+              >
+                <p className="text-xs text-muted-foreground mb-1">未繳交</p>
+                <p className="text-2xl font-bold text-red-600">{totalCount - submittedCount}</p>
+              </button>
+            </div>
+
+            {/* 總人數方框 */}
+            <button
+              onClick={() => setStatusFilter("all")}
+              className={`flex flex-col items-center justify-center p-3 border-2 rounded-lg transition-all ${
+                statusFilter === "all" 
+                  ? "border-gray-500 bg-gray-50" 
+                  : "border-gray-200 hover:border-gray-400"
+              }`}
+            >
+              <p className="text-xs text-muted-foreground mb-1">總人數</p>
+              <p className="text-2xl font-bold text-gray-900">{totalCount}</p>
+            </button>
           </div>
         </div>
       </div>
