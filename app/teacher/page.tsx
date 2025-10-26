@@ -437,21 +437,16 @@ export default function TeacherPage() {
   }
 
   return (
-    <div className="min-h-screen pb-20 lg:pb-0 pb-safe">
-      <div className="lg:grid lg:grid-cols-5 lg:gap-4 xl:gap-6 mb-6 max-w-full overflow-hidden">
-        {/* 側邊欄 */}
-        <div className="hidden lg:block lg:col-span-1">
-          <TeacherSidebarNavigation activeTab={activeTab} onTabChange={handleTabChange} />
-        </div>
-
-        {/* 主內容區域 */}
-        <div className="lg:col-span-4 px-2 sm:px-4 pb-24 pb-safe">
+    <div className="min-h-screen bg-background">
+      <TeacherSidebarNavigation activeTab={activeTab} onTabChange={handleTabChange} />
+      <div className="lg:ml-[var(--sidebar-width)] transition-[margin] duration-300">
+        <div className="mx-auto w-full px-3 sm:px-4 py-4 sm:py-6 pb-20 sm:pb-24 lg:px-6 xl:px-8 2xl:px-10 lg:py-10 lg:pb-10">
           {renderTabContent()}
         </div>
       </div>
 
       {/* 底部導航（行動版） */}
-      <div className="lg:hidden fixed bottom-0 left-0 right-0">
+      <div className="lg:hidden">
         <TeacherBottomNavigation activeTab={activeTab} onTabChange={handleTabChange} />
       </div>
     </div>
