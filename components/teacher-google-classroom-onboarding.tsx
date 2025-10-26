@@ -83,42 +83,83 @@ export function TeacherGoogleClassroomOnboarding({ isOpen, onComplete, onSkip }:
         throw new Error('未找到 LINE 用戶 ID，請確認已正確登入')
       }
 
+      console.log('========== 教師課程預覽 API 調試 ==========')
       const previewResponse = await ApiService.teacherPreviewImport()
+      console.log('完整 API 回應:', JSON.stringify(previewResponse, null, 2))
 
       if (previewResponse.error) {
+        console.error('❌ API 回應錯誤:', previewResponse.error)
         throw new Error(previewResponse.error)
       }
 
       const responseData = previewResponse.data
+      console.log('響應數據 (previewResponse.data):', JSON.stringify(responseData, null, 2))
+      console.log('響應數據類型:', typeof responseData)
+      console.log('響應數據鍵:', responseData ? Object.keys(responseData) : 'null')
+
       let classroomCourses = []
 
-      // 解析教師課程預覽數據
+      // 根據 API 文檔，回傳結構應該是：
+      // { success: true, message: "...", data: { classroom: { courses: [...], total: N }, existing_local: [...], user_id: "..." } }
+
+      console.log('========== 數據路徑檢查 ==========')
+      console.log('1. responseData?.data?.classroom?.courses:', !!responseData?.data?.classroom?.courses)
+      console.log('2. responseData?.classroom?.courses:', !!responseData?.classroom?.courses)
+      console.log('3. responseData?.courses:', !!responseData?.courses)
+      console.log('4. Array.isArray(responseData):', Array.isArray(responseData))
+
+      // 嘗試多種可能的數據結構
       if (responseData?.data?.classroom?.courses) {
         classroomCourses = responseData.data.classroom.courses
+        console.log('✅ 路徑 1: 找到 data.classroom.courses:', classroomCourses.length, '個課程')
       } else if (responseData?.classroom?.courses) {
         classroomCourses = responseData.classroom.courses
+        console.log('✅ 路徑 2: 找到 classroom.courses:', classroomCourses.length, '個課程')
       } else if (Array.isArray(responseData?.courses)) {
         classroomCourses = responseData.courses
+        console.log('✅ 路徑 3: 找到 courses:', classroomCourses.length, '個課程')
+      } else if (Array.isArray(responseData)) {
+        classroomCourses = responseData
+        console.log('✅ 路徑 4: 響應數據本身是陣列:', classroomCourses.length, '個課程')
+      } else {
+        console.error('❌ 所有路徑都未找到課程數據')
+        console.log('完整回應結構:', JSON.stringify(previewResponse, null, 2))
+        if (responseData?.data) {
+          console.log('data 結構:', Object.keys(responseData.data))
+          if (responseData.data?.classroom) {
+            console.log('classroom 結構:', Object.keys(responseData.data.classroom))
+          }
+        }
       }
 
-      const googleCourses: EditableCourse[] = classroomCourses.map((course: any) => ({
-        google_course_id: course.google_course_id || course.id,
-        name: course.name || '未命名課程',
-        description: course.description || '',
-        section: course.section || '',
-        instructor: course.instructor || '',
-        classroom: course.room || course.location || '',
-        selected: true,
-        schedules: [{
-          day_of_week: 0,
-          start_time: '09:00',
-          end_time: '10:30',
-          location: course.room || course.location || ''
-        }]
-      }))
+      console.log('處理後的課程列表:', classroomCourses)
+      console.log('=====================================')
+
+      const googleCourses: EditableCourse[] = classroomCourses.map((course: any, index: number) => {
+        console.log(`處理課程 ${index}:`, course)
+        return {
+          google_course_id: course.google_course_id || course.id,
+          name: course.name || '未命名課程',
+          description: course.description || '',
+          section: course.section || '',
+          instructor: course.instructor || '',
+          classroom: course.room || course.location || '',
+          selected: true,
+          schedules: [{
+            day_of_week: 0,
+            start_time: '09:00',
+            end_time: '10:30',
+            location: course.room || course.location || ''
+          }]
+        }
+      })
+
+      console.log('轉換後的課程:', googleCourses)
 
       if (googleCourses.length === 0) {
-        setError('沒有找到可匯入的教師課程。請確認您在 Google Classroom 中有教師身份的課程。')
+        const errorMsg = '沒有找到可匯入的教師課程。請確認您在 Google Classroom 中有教師身份的課程。'
+        console.log(errorMsg)
+        setError(errorMsg)
         setStep('welcome')
         return
       }
@@ -126,9 +167,11 @@ export function TeacherGoogleClassroomOnboarding({ isOpen, onComplete, onSkip }:
       setCourses(googleCourses)
       setStep('select')
       setExpandedCourses(new Set(googleCourses.map((_, index) => index)))
+      console.log('課程載入成功，共', googleCourses.length, '個課程')
     } catch (err) {
       console.error('載入教師課程失敗:', err)
-      setError(err instanceof Error ? err.message : '載入失敗，請檢查網路連線和 Google 帳戶授權')
+      const errorMessage = err instanceof Error ? err.message : '載入失敗，請檢查網路連線和 Google 帳戶授權'
+      setError(errorMessage)
       setStep('welcome')
     }
   }
@@ -215,7 +258,7 @@ export function TeacherGoogleClassroomOnboarding({ isOpen, onComplete, onSkip }:
         end_time: string
         location: string
       }>> = {}
-      
+
       selectedCourses.forEach(course => {
         courseSchedules[course.google_course_id] = course.schedules.map(s => ({
           day_of_week: s.day_of_week,
@@ -390,8 +433,8 @@ export function TeacherGoogleClassroomOnboarding({ isOpen, onComplete, onSkip }:
 
               {courses.map((course, courseIndex) => (
                 <Card key={courseIndex} className={`transition-all duration-200 ${course.selected
-                    ? 'border-primary bg-primary/5 shadow-md'
-                    : 'border-border bg-card shadow-sm hover:shadow-md'
+                  ? 'border-primary bg-primary/5 shadow-md'
+                  : 'border-border bg-card shadow-sm hover:shadow-md'
                   }`}>
                   <Collapsible
                     open={expandedCourses.has(courseIndex)}
