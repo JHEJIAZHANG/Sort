@@ -280,12 +280,14 @@ export function TeacherAssignmentDetail({
                       <p className="text-sm text-muted-foreground">{student.email}</p>
                       {student.submitted && student.submittedAt && (
                         <p className="text-sm text-muted-foreground mt-1">
-                          {formatDate(student.submittedAt)} {formatTime(student.submittedAt)}
+                          繳交時間：{formatDate(student.submittedAt)} {formatTime(student.submittedAt)}
                         </p>
                       )}
                     </div>
                   </div>
-                  <div className="flex flex-col items-end gap-2 flex-shrink-0">
+                  <div className={`flex flex-col items-end gap-2 flex-shrink-0 ${
+                    student.grade === undefined ? 'justify-center' : ''
+                  }`}>
                     {student.grade !== undefined && (
                       <span className="text-sm font-medium text-primary whitespace-nowrap">
                         {student.grade}分
