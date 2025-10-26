@@ -582,7 +582,7 @@ export function TeacherCourseDetail({
                              assignment.status === 'overdue' ? '已逾期' : '已完成'}
                           </Badge>
                         </div>
-                        {/* 手機版：垂直排列 */}
+                        {/* 手機版：垂直排列test */}
                         <div className="flex flex-col gap-1 text-sm text-muted-foreground md:hidden">
                           <span className="whitespace-nowrap">截止: {assignment.due_date}</span>
                           <span className="whitespace-nowrap">繳交率: {assignment.submission_rate}% ({assignment.submitted_count}/{assignment.total_count})</span>
