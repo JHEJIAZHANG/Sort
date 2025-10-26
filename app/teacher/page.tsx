@@ -22,6 +22,7 @@ import { useCourses } from "@/hooks/use-courses"
 import type { Course } from "@/types/course"
 import { TeacherStudentManagement } from "@/components/teacher-student-management"
 import { TeacherAssignmentManagement } from "@/components/teacher-assignment-management"
+import { TeacherAssignmentDetail } from "@/components/teacher-assignment-detail"
 import { ApiService } from "@/services/apiService"
 
 export default function TeacherPage() {
@@ -411,10 +412,24 @@ export default function TeacherPage() {
                   </button>
                   <h1 className="text-lg font-semibold text-foreground">作業詳情</h1>
                 </div>
-                {/* TODO: 作業詳情組件 */}
-                <Card className="p-6">
-                  <p className="text-center text-muted-foreground">作業詳情功能開發中...</p>
-                </Card>
+                {(() => {
+                  const assignment = assignments.find(a => a.id === selectedAssignmentId)
+                  if (!assignment) {
+                    return (
+                      <Card className="p-6">
+                        <p className="text-center text-muted-foreground">找不到作業資料</p>
+                      </Card>
+                    )
+                  }
+                  const course = getCourseById(assignment.courseId)
+                  return (
+                    <TeacherAssignmentDetail
+                      assignment={assignment}
+                      course={course}
+                      onBack={() => setSelectedAssignmentId(null)}
+                    />
+                  )
+                })()}
               </>
             ) : (
               <TeacherAssignmentManagement

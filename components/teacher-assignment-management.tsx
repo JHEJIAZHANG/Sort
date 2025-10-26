@@ -40,12 +40,18 @@ export function TeacherAssignmentManagement({
     })
   }, [assignments, searchQuery, filterCourse, filterStatus])
 
-  // 按狀態分組
+  // 按狀態分組（進行中 = pending + overdue，已結束 = completed）
   const groupedAssignments = useMemo(() => {
+    const now = new Date()
     const groups = {
-      overdue: filteredAssignments.filter(a => a.status === "overdue"),
-      pending: filteredAssignments.filter(a => a.status === "pending"),
-      completed: filteredAssignments.filter(a => a.status === "completed")
+      active: filteredAssignments.filter(a => {
+        const dueDate = new Date(a.dueDate)
+        return dueDate >= now || a.status === "pending"
+      }),
+      ended: filteredAssignments.filter(a => {
+        const dueDate = new Date(a.dueDate)
+        return dueDate < now && a.status !== "pending"
+      })
     }
     return groups
   }, [filteredAssignments])
@@ -137,40 +143,30 @@ export function TeacherAssignmentManagement({
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="all">全部狀態</SelectItem>
-            <SelectItem value="pending">進行中</SelectItem>
-            <SelectItem value="overdue">已逾期</SelectItem>
-            <SelectItem value="completed">已完成</SelectItem>
+            <SelectItem value="active">進行中</SelectItem>
+            <SelectItem value="ended">已結束</SelectItem>
           </SelectContent>
         </Select>
       </div>
 
       {/* 統計卡片 */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <Card className="p-4">
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm text-muted-foreground">進行中</p>
-              <p className="text-2xl font-bold text-orange-600">{groupedAssignments.pending.length}</p>
+              <p className="text-2xl font-bold text-blue-600">{groupedAssignments.active.length}</p>
             </div>
-            <ClockIcon className="w-8 h-8 text-orange-600" />
+            <ClockIcon className="w-8 h-8 text-blue-600" />
           </div>
         </Card>
         <Card className="p-4">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm text-muted-foreground">已逾期</p>
-              <p className="text-2xl font-bold text-red-600">{groupedAssignments.overdue.length}</p>
+              <p className="text-sm text-muted-foreground">已結束</p>
+              <p className="text-2xl font-bold text-gray-600">{groupedAssignments.ended.length}</p>
             </div>
-            <ExclamationIcon className="w-8 h-8 text-red-600" />
-          </div>
-        </Card>
-        <Card className="p-4">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm text-muted-foreground">已完成</p>
-              <p className="text-2xl font-bold text-green-600">{groupedAssignments.completed.length}</p>
-            </div>
-            <CheckIcon className="w-8 h-8 text-green-600" />
+            <CheckIcon className="w-8 h-8 text-gray-600" />
           </div>
         </Card>
       </div>
