@@ -148,36 +148,47 @@ Array.isArray(responseData)
 
 ## API 回應範例
 
-### 預期的 API 回應結構（根據文檔）
+### 實際的 API 回應結構
+
+根據實際測試，後端回傳的結構是：
 
 ```json
 {
-  "success": true,
-  "message": "預覽教師課程成功",
   "data": {
-    "classroom": {
-      "courses": [
-        {
-          "google_course_id": "1234567890",
-          "name": "課程名稱",
-          "description": "課程描述",
-          "section": "班別/節次",
-          "course_state": "ACTIVE",
-          "alternate_link": "https://classroom.google.com/...",
-          "enrollment_code": "abcd1234",
-          "instructor": "老師姓名"
-        }
-      ],
-      "total": 1
-    },
-    "existing_local": [
-      {
-        "id": 99,
-        "gc_course_id": "1234567890",
-        "name": "已匯入課程名稱"
-      }
-    ],
-    "user_id": "U1234567890"
+    "success": true,
+    "message": "預覽同步完成",
+    "data": {
+      "preview_data": {
+        "classroom": {
+          "courses": [
+            {
+              "google_course_id": "816989062073",
+              "name": "游泳課",
+              "section": "",
+              "description": "",
+              "ownerId": "115505997615740004401",
+              "courseState": "ACTIVE",
+              "google_classroom_url": "https://classroom.google.com/c/..."
+            },
+            {
+              "google_course_id": "795521701284",
+              "name": "國文課",
+              "section": "",
+              "description": "12345",
+              "ownerId": "115505997615740004401",
+              "courseState": "ACTIVE",
+              "google_classroom_url": "https://classroom.google.com/c/..."
+            }
+          ]
+        },
+        "existing_data": {
+          "courses": ["795521701284", "816989062073"]
+        },
+        "errors": []
+      },
+      "user_id": "U015b486e04b09ae70bde24db70ec9611",
+      "preview_time": "2025-10-26T16:19:03.603342+00:00"
+    }
   }
 }
 ```
@@ -190,20 +201,40 @@ Array.isArray(responseData)
 {
   data: {
     success: true,
-    message: "預覽教師課程成功",
+    message: "預覽同步完成",
     data: {
-      classroom: {
-        courses: [...],
-        total: 1
+      preview_data: {
+        classroom: {
+          courses: [...]
+        },
+        existing_data: {...},
+        errors: []
       },
-      existing_local: [...],
-      user_id: "..."
+      user_id: "...",
+      preview_time: "..."
     }
   }
 }
 
-// 因此需要訪問 responseData.data.classroom.courses
+// 因此需要訪問 responseData.data.preview_data.classroom.courses
 ```
+
+### 課程欄位映射
+
+後端回傳的課程物件欄位：
+- `google_course_id` → 課程 ID
+- `name` → 課程名稱
+- `section` → 班別/節次
+- `description` → 課程描述
+- `ownerId` → 教師 ID
+- `courseState` → 課程狀態（ACTIVE）
+- `google_classroom_url` → Google Classroom 連結
+
+前端需要的欄位：
+- `google_course_id` ✅
+- `name` ✅
+- `instructor` ❌ (後端未提供，使用 ownerId 代替)
+- `classroom` / `room` / `location` ❌ (後端未提供)
 
 ## 修復建議
 

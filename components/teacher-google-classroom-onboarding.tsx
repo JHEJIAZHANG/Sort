@@ -103,31 +103,38 @@ export function TeacherGoogleClassroomOnboarding({ isOpen, onComplete, onSkip }:
       // { success: true, message: "...", data: { classroom: { courses: [...], total: N }, existing_local: [...], user_id: "..." } }
 
       console.log('========== 數據路徑檢查 ==========')
-      console.log('1. responseData?.data?.classroom?.courses:', !!responseData?.data?.classroom?.courses)
-      console.log('2. responseData?.classroom?.courses:', !!responseData?.classroom?.courses)
-      console.log('3. responseData?.courses:', !!responseData?.courses)
-      console.log('4. Array.isArray(responseData):', Array.isArray(responseData))
+      console.log('1. responseData?.data?.preview_data?.classroom?.courses:', !!responseData?.data?.preview_data?.classroom?.courses)
+      console.log('2. responseData?.data?.classroom?.courses:', !!responseData?.data?.classroom?.courses)
+      console.log('3. responseData?.classroom?.courses:', !!responseData?.classroom?.courses)
+      console.log('4. responseData?.courses:', !!responseData?.courses)
+      console.log('5. Array.isArray(responseData):', Array.isArray(responseData))
 
       // 嘗試多種可能的數據結構
-      if (responseData?.data?.classroom?.courses) {
+      if (responseData?.data?.preview_data?.classroom?.courses) {
+        classroomCourses = responseData.data.preview_data.classroom.courses
+        console.log('✅ 路徑 1: 找到 data.preview_data.classroom.courses:', classroomCourses.length, '個課程')
+      } else if (responseData?.data?.classroom?.courses) {
         classroomCourses = responseData.data.classroom.courses
-        console.log('✅ 路徑 1: 找到 data.classroom.courses:', classroomCourses.length, '個課程')
+        console.log('✅ 路徑 2: 找到 data.classroom.courses:', classroomCourses.length, '個課程')
       } else if (responseData?.classroom?.courses) {
         classroomCourses = responseData.classroom.courses
-        console.log('✅ 路徑 2: 找到 classroom.courses:', classroomCourses.length, '個課程')
+        console.log('✅ 路徑 3: 找到 classroom.courses:', classroomCourses.length, '個課程')
       } else if (Array.isArray(responseData?.courses)) {
         classroomCourses = responseData.courses
-        console.log('✅ 路徑 3: 找到 courses:', classroomCourses.length, '個課程')
+        console.log('✅ 路徑 4: 找到 courses:', classroomCourses.length, '個課程')
       } else if (Array.isArray(responseData)) {
         classroomCourses = responseData
-        console.log('✅ 路徑 4: 響應數據本身是陣列:', classroomCourses.length, '個課程')
+        console.log('✅ 路徑 5: 響應數據本身是陣列:', classroomCourses.length, '個課程')
       } else {
         console.error('❌ 所有路徑都未找到課程數據')
         console.log('完整回應結構:', JSON.stringify(previewResponse, null, 2))
         if (responseData?.data) {
           console.log('data 結構:', Object.keys(responseData.data))
-          if (responseData.data?.classroom) {
-            console.log('classroom 結構:', Object.keys(responseData.data.classroom))
+          if (responseData.data?.preview_data) {
+            console.log('preview_data 結構:', Object.keys(responseData.data.preview_data))
+            if (responseData.data.preview_data?.classroom) {
+              console.log('classroom 結構:', Object.keys(responseData.data.preview_data.classroom))
+            }
           }
         }
       }
