@@ -196,7 +196,7 @@ export function TeacherCourseDetail({
     if (courseId && lineUserId) {
       loadCourseStats()
     }
-  }, [courseId, lineUserId])
+  }, [courseId, lineUserId, course])
 
   // 格式化時間
   const formatTime = (time: string) => {
@@ -205,10 +205,11 @@ export function TeacherCourseDetail({
 
   // 格式化課程時間
   const formatSchedule = () => {
-    if (!courseStats?.schedule || courseStats.schedule.length === 0) {
+    const schedule = course?.schedule || courseStats?.schedule
+    if (!schedule || schedule.length === 0) {
       return "未設定上課時間"
     }
-    return courseStats.schedule.map((slot) => 
+    return schedule.map((slot) => 
       `${DAYS[slot.dayOfWeek]} ${formatTime(slot.startTime)}-${formatTime(slot.endTime)}`
     ).join(", ")
   }
@@ -374,7 +375,7 @@ export function TeacherCourseDetail({
         {/* 上課時間 */}
 <div className="flex items-center gap-2">
   <CalendarIcon className="w-4 h-4 text-primary flex-shrink-0" />
-  {courseStats.schedule && courseStats.schedule.length > 0 ? (
+  {(course?.schedule && course.schedule.length > 0) || (courseStats.schedule && courseStats.schedule.length > 0) ? (
     <span className="text-sm text-muted-foreground text-balance">
       {formatSchedule()}
     </span>
