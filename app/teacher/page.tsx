@@ -21,6 +21,7 @@ import { useUserAuth } from "@/hooks/use-user-auth"
 import { useCourses } from "@/hooks/use-courses"
 import type { Course } from "@/types/course"
 import { TeacherStudentManagement } from "@/components/teacher-student-management"
+import { TeacherAssignmentManagement } from "@/components/teacher-assignment-management"
 import { ApiService } from "@/services/apiService"
 
 export default function TeacherPage() {
@@ -60,6 +61,7 @@ export default function TeacherPage() {
   const [courseSearchQuery, setCourseSearchQuery] = useState("")
   const [courseFilterDay, setCourseFilterDay] = useState<string>("all")
   const [showGoogleClassroomImport, setShowGoogleClassroomImport] = useState(false)
+  const [selectedAssignmentId, setSelectedAssignmentId] = useState<string | null>(null)
 
   // 新增：課程選取切換（與學生端一致的行為）
   const handleCourseSelection = (courseId: string) => {
@@ -262,6 +264,10 @@ export default function TeacherPage() {
                       refetch()
                     }}
                     onUpdated={() => refetch()}
+                    onAssignmentClick={(assignmentId) => {
+                      setSelectedAssignmentId(assignmentId)
+                      handleTabChange("assignments")
+                    }}
                   />
                 )}
               </>
@@ -392,15 +398,31 @@ export default function TeacherPage() {
         )
       case "assignments":
         return (
-          <div className="space-y-6">
-            <div>
-              <h1 className="text-2xl font-bold text-foreground">作業管理</h1>
-              <p className="text-muted-foreground">管理所有課程的作業</p>
-            </div>
-            {/* TODO: 作業管理組件 */}
-            <div className="text-center py-12">
-              <p className="text-muted-foreground">作業管理功能開發中...</p>
-            </div>
+          <div className="space-y-6 pb-24 pb-safe">
+            {selectedAssignmentId ? (
+              <>
+                <div className="mb-6 flex items-center justify-center relative">
+                  <button
+                    onClick={() => setSelectedAssignmentId(null)}
+                    aria-label="返回"
+                    className="absolute left-0 p-2 hover:opacity-70 transition-opacity"
+                  >
+                    <ArrowLeftIcon className="w-5 h-5" />
+                  </button>
+                  <h1 className="text-lg font-semibold text-foreground">作業詳情</h1>
+                </div>
+                {/* TODO: 作業詳情組件 */}
+                <Card className="p-6">
+                  <p className="text-center text-muted-foreground">作業詳情功能開發中...</p>
+                </Card>
+              </>
+            ) : (
+              <TeacherAssignmentManagement
+                assignments={assignments}
+                courses={courses}
+                onAssignmentClick={(assignmentId) => setSelectedAssignmentId(assignmentId)}
+              />
+            )}
           </div>
         )
       case "students":

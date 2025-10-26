@@ -32,6 +32,7 @@ interface TeacherCourseDetailProps {
   showBackButton?: boolean
   onDeleted?: () => void
   onUpdated?: () => void
+  onAssignmentClick?: (assignmentId: string) => void
 }
 
 interface CourseStats {
@@ -91,7 +92,8 @@ export function TeacherCourseDetail({
   lineUserId, 
   showBackButton = true, 
   onDeleted, 
-  onUpdated 
+  onUpdated,
+  onAssignmentClick
 }: TeacherCourseDetailProps) {
   const [activeTab, setActiveTab] = useState("overview")
   const [loading, setLoading] = useState(true)
@@ -575,7 +577,11 @@ export function TeacherCourseDetail({
             {filteredAssignments.length > 0 ? (
               <div className="space-y-3">
                 {filteredAssignments.map((assignment) => (
-                  <div key={assignment.id} className="p-4 border rounded-lg">
+                  <div 
+                    key={assignment.id} 
+                    className="p-4 border rounded-lg hover:bg-muted/50 transition-colors cursor-pointer"
+                    onClick={() => onAssignmentClick && onAssignmentClick(assignment.id)}
+                  >
                     <div className="flex items-start justify-between">
                       <div className="flex-1">
                         <div className="flex items-center gap-3 mb-2">
