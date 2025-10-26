@@ -13,6 +13,7 @@ import { CheckIcon, ExclamationIcon, ClockIcon, UserIcon, BookIcon, CalendarIcon
 import { Users, MessageCircle } from "lucide-react"
 import { useCourses } from "@/hooks/use-courses"
 import { ApiService } from "@/services/apiService"
+import { CourseForm } from "@/components/course-form"
 import {
   AlertDialog,
   AlertDialogAction,
@@ -24,16 +25,6 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog"
-import {
-  Dialog,
-  DialogTrigger,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogDescription,
-  DialogFooter,
-} from "@/components/ui/dialog"
-import { Label } from "@/components/ui/label"
 
 interface TeacherCourseDetailProps {
   courseId: string
@@ -121,117 +112,10 @@ export function TeacherCourseDetail({
   const [sendingReport, setSendingReport] = useState(false)
   const [showDeleteDialog, setShowDeleteDialog] = useState(false)
   const [deleting, setDeleting] = useState(false)
+  const [isEditing, setIsEditing] = useState(false)
 
   const { getCourseById, updateCourse, deleteCourse } = useCourses(lineUserId)
   const course = getCourseById(courseId)
-const [classroomInput, setClassroomInput] = useState(course?.classroom || "")
-useEffect(() => {
-  setClassroomInput(course?.classroom || courseStats?.classroom || "")
-}, [course?.classroom, courseStats?.classroom])
-
-const handleClassroomSave = async () => {
-  try {
-    const value = classroomInput?.trim() || ""
-    await updateCourse(courseId, { classroom: value })
-    setCourseStats(prev => prev ? { ...prev, classroom: value } : prev)
-    alert("教室已更新")
-    onUpdated?.()
-  } catch (error) {
-    console.error("更新教室失敗:", error)
-    alert("更新教室失敗")
-  }
-}
-
-  // 合併編輯對話框狀態與邏輯
-  const [isCombinedOpen, setIsCombinedOpen] = useState(false)
-  const [isCombinedSaving, setIsCombinedSaving] = useState(false)
-  const [editSchedules, setEditSchedules] = useState<Array<{ dayOfWeek: number; startTime: string; endTime: string; location?: string }>>([])
-  const [classroomEdit, setClassroomEdit] = useState<string>("")
-
-  useEffect(() => {
-    if (isCombinedOpen) {
-      const sourceSchedules = course?.schedule || courseStats?.schedule || []
-      setEditSchedules(
-        (sourceSchedules && sourceSchedules.length > 0)
-          ? sourceSchedules.map((s) => ({
-              dayOfWeek: s.dayOfWeek ?? 1,
-              startTime: (s.startTime || "09:00").substring(0, 5),
-              endTime: (s.endTime || "10:30").substring(0, 5),
-              location: s.location || "",
-            }))
-          : [{ dayOfWeek: 1, startTime: "09:00", endTime: "10:30", location: "" }]
-      )
-      setClassroomEdit(classroomInput || "")
-    }
-  }, [isCombinedOpen, course?.schedule, courseStats?.schedule, classroomInput])
-
-  const addEditScheduleSlot = () => {
-    setEditSchedules((prev) => [
-      ...prev,
-      { dayOfWeek: 1, startTime: "09:00", endTime: "10:30", location: "" },
-    ])
-  }
-
-  const updateEditScheduleSlot = (index: number, field: "dayOfWeek" | "startTime" | "endTime" | "location", value: string | number) => {
-    setEditSchedules((prev) => prev.map((slot, i) => (i === index ? { ...slot, [field]: value } : slot)))
-  }
-
-  const removeEditScheduleSlot = (index: number) => {
-    setEditSchedules((prev) => (prev.length > 1 ? prev.filter((_, i) => i !== index) : prev))
-  }
-
-  const validateEditSchedules = (): string | null => {
-    for (let i = 0; i < editSchedules.length; i++) {
-      const slot = editSchedules[i]
-      if (!slot.startTime || !slot.endTime) {
-        return `第 ${i + 1} 個時段的時間不完整`
-      }
-      if (slot.startTime >= slot.endTime) {
-        return `第 ${i + 1} 個時段的開始時間必須早於結束時間`
-      }
-      for (let j = i + 1; j < editSchedules.length; j++) {
-        const otherSlot = editSchedules[j]
-        if (slot.dayOfWeek === otherSlot.dayOfWeek) {
-          const overlap = !(slot.endTime <= otherSlot.startTime || slot.startTime >= otherSlot.endTime)
-          if (overlap) {
-            const dayLabel = DAYS[slot.dayOfWeek] || "未知"
-            return `${dayLabel} 的時段有重疊衝突`
-          }
-        }
-      }
-    }
-    return null
-  }
-
-  const handleCombinedSave = async () => {
-    const validationError = validateEditSchedules()
-    if (validationError) {
-      alert(validationError)
-      return
-    }
-    setIsCombinedSaving(true)
-    try {
-      const apiSchedules = editSchedules.map((slot) => ({
-        day_of_week: slot.dayOfWeek,
-        start_time: `${slot.startTime}:00`,
-        end_time: `${slot.endTime}:00`,
-        location: slot.location || "",
-      }))
-      await ApiService.setCourseSchedule(courseId, apiSchedules)
-      const value = classroomEdit?.trim() || ""
-      await updateCourse(courseId, { classroom: value })
-      setCourseStats((prev) => (prev ? { ...prev, classroom: value, schedule: editSchedules } : prev))
-      alert("課程時間與教室已更新")
-      setIsCombinedOpen(false)
-      onUpdated?.()
-      window.location.reload()
-    } catch (error) {
-      console.error("更新失敗:", error)
-      alert("更新失敗")
-    } finally {
-      setIsCombinedSaving(false)
-    }
-  }
 
   // 載入課程統計資料
   const loadCourseStats = async () => {
@@ -411,6 +295,37 @@ const handleClassroomSave = async () => {
     return (
       <div className="p-6 text-center text-muted-foreground">
         <p className="text-sm">無法載入課程資料</p>
+      </div>
+    )
+  }
+
+  const handleCourseUpdate = async (updatedCourse: any) => {
+    try {
+      await updateCourse(courseId, updatedCourse)
+      setIsEditing(false)
+      // 重新載入課程統計資料
+      await loadCourseStats()
+      // 通知父組件刷新數據
+      if (onUpdated) {
+        onUpdated()
+      }
+    } catch (error) {
+      console.error('更新課程失敗:', error)
+      alert('更新課程失敗')
+    }
+  }
+
+  const handleCancelEdit = () => {
+    setIsEditing(false)
+  }
+
+  if (isEditing && course) {
+    return (
+      <div className="space-y-6">
+        <div className="flex items-center justify-between">
+          <h1 className="text-2xl font-bold text-foreground">編輯課程</h1>
+        </div>
+        <CourseForm initialCourse={course} onSubmit={handleCourseUpdate} onCancel={handleCancelEdit} />
       </div>
     )
   }
@@ -782,7 +697,7 @@ const handleClassroomSave = async () => {
         </TabsContent>
       </Tabs>
       <div className="flex gap-2">
-        <Button variant="outline" className="flex-1 bg-transparent" onClick={() => setIsCombinedOpen(true)}>
+        <Button variant="outline" className="flex-1 bg-transparent" onClick={() => setIsEditing(true)}>
           編輯
         </Button>
         <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
@@ -840,84 +755,6 @@ const handleClassroomSave = async () => {
           </AlertDialogContent>
         </AlertDialog>
       </div>
-
-      {/* 編輯對話框 */}
-      <Dialog open={isCombinedOpen} onOpenChange={setIsCombinedOpen}>
-        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle>編輯課程時間與教室</DialogTitle>
-            <DialogDescription>設定課程的上課時間與教室位置</DialogDescription>
-          </DialogHeader>
-          <div className="space-y-4">
-            <div>
-              <div className="flex items-center justify-between mb-2">
-                <Label className="text-sm font-medium">上課時間</Label>
-                <Button type="button" variant="outline" size="sm" onClick={addEditScheduleSlot}>
-                  新增時段
-                </Button>
-              </div>
-              <div className="mt-3 space-y-3">
-                {editSchedules.map((slot, i) => (
-                  <div key={i} className="grid grid-cols-12 gap-2 items-center">
-                    <div className="col-span-3">
-                      <Label className="mb-1 block text-xs">星期</Label>
-                      <Select value={String(slot.dayOfWeek)} onValueChange={(val) => updateEditScheduleSlot(i, "dayOfWeek", Number(val))}>
-                        <SelectTrigger className="h-9">
-                          <SelectValue placeholder="選擇星期" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="1">週一</SelectItem>
-                          <SelectItem value="2">週二</SelectItem>
-                          <SelectItem value="3">週三</SelectItem>
-                          <SelectItem value="4">週四</SelectItem>
-                          <SelectItem value="5">週五</SelectItem>
-                          <SelectItem value="6">週六</SelectItem>
-                          <SelectItem value="7">週日</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
-                    <div className="col-span-3">
-                      <Label className="mb-1 block text-xs">開始</Label>
-                      <Input type="time" value={slot.startTime} onChange={(e) => updateEditScheduleSlot(i, "startTime", e.target.value)} />
-                    </div>
-                    <div className="col-span-3">
-                      <Label className="mb-1 block text-xs">結束</Label>
-                      <Input type="time" value={slot.endTime} onChange={(e) => updateEditScheduleSlot(i, "endTime", e.target.value)} />
-                    </div>
-                    <div className="col-span-2">
-                      <Label className="mb-1 block text-xs">地點(選填)</Label>
-                      <Input value={slot.location || ""} onChange={(e) => updateEditScheduleSlot(i, "location", e.target.value)} placeholder="如：A201" />
-                    </div>
-                    <div className="col-span-1 flex justify-end">
-                      <Button type="button" variant="outline" size="sm" onClick={() => removeEditScheduleSlot(i)} disabled={editSchedules.length <= 1}>
-                        刪除
-                      </Button>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            <div>
-              <Label className="mb-1 block text-sm">教室</Label>
-              <Input
-                placeholder="輸入教室位置"
-                value={classroomEdit}
-                onChange={(e) => setClassroomEdit(e.target.value)}
-              />
-            </div>
-          </div>
-
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setIsCombinedOpen(false)} disabled={isCombinedSaving}>
-              取消
-            </Button>
-            <Button onClick={handleCombinedSave} disabled={isCombinedSaving}>
-              {isCombinedSaving ? "儲存中..." : "儲存"}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
     </div>
   )
 }
