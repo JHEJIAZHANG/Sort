@@ -22,18 +22,12 @@ export function CircularProgress({
   // 深色進度環比較粗
   const thickStrokeWidth = strokeWidth
 
-  // 計算半徑 - 使用粗的進度環來計算
-  const progressRadius = (size - thickStrokeWidth) / 2
-  const backgroundRadius = (size - thinStrokeWidth) / 2
-  const innerRadius = progressRadius - thickStrokeWidth - 4
+  // 計算半徑 - 兩個環使用相同的半徑，這樣細的環會卡在粗的環中間
+  const outerRadius = (size - thickStrokeWidth) / 2
+  const innerRadius = outerRadius - thickStrokeWidth - 8
 
-  const circumference = progressRadius * 2 * Math.PI
+  const circumference = outerRadius * 2 * Math.PI
   const offset = circumference - (progress / 100) * circumference
-
-  // 計算小圓點的位置 - 在進度環的末端
-  const angle = (progress / 100) * 360 - 90 // -90 因為從頂部開始
-  const dotX = size / 2 + progressRadius * Math.cos((angle * Math.PI) / 180)
-  const dotY = size / 2 + progressRadius * Math.sin((angle * Math.PI) / 180)
 
   useEffect(() => {
     // 動畫效果：從 0 到目標百分比
@@ -59,11 +53,11 @@ export function CircularProgress({
           fill="#ff9100"
         />
 
-        {/* 外圈背景圓環（淺色、較細） */}
+        {/* 外圈背景圓環（淺色、較細） - 使用相同半徑 */}
         <circle
           cx={size / 2}
           cy={size / 2}
-          r={backgroundRadius}
+          r={outerRadius}
           stroke="#fed7aa"
           strokeWidth={thinStrokeWidth}
           fill="none"
@@ -73,7 +67,7 @@ export function CircularProgress({
         <circle
           cx={size / 2}
           cy={size / 2}
-          r={progressRadius}
+          r={outerRadius}
           stroke="#ff9100"
           strokeWidth={thickStrokeWidth}
           fill="none"
@@ -82,22 +76,11 @@ export function CircularProgress({
           className="transition-all duration-1000 ease-out"
           strokeLinecap="round"
         />
-
-        {/* 進度末端的小圓點 */}
-        {progress > 0 && (
-          <circle
-            cx={dotX}
-            cy={dotY}
-            r={6}
-            fill="white"
-            className="transition-all duration-1000 ease-out"
-          />
-        )}
       </svg>
 
       {/* 中間文字 */}
       <div className="absolute inset-0 flex items-center justify-center">
-        <span className="text-3xl sm:text-4xl font-bold text-white">
+        <span className="text-2xl sm:text-3xl font-bold text-white">
           {Math.round(progress)}%
         </span>
       </div>
