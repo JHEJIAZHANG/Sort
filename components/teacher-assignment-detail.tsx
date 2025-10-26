@@ -150,31 +150,30 @@ export function TeacherAssignmentDetail({
       </div>
 
       {/* 繳交統計 */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
-        <Card className="p-6">
-          <div className="flex flex-col items-center">
-            <p className="text-sm text-muted-foreground mb-4">繳交率</p>
-            <CircularProgress
-              percentage={submissionRate}
-              size={180}
-              strokeWidth={16}
-              submittedCount={submittedCount}
-              totalCount={totalCount}
-            />
+      <div className="flex flex-col sm:flex-row items-center sm:items-start gap-8 sm:gap-12 py-6">
+        {/* 圓形進度條 */}
+        <div className="flex-shrink-0">
+          <p className="text-sm text-muted-foreground mb-4 text-center">繳交率</p>
+          <CircularProgress
+            percentage={submissionRate}
+            size={180}
+            strokeWidth={16}
+            submittedCount={submittedCount}
+            totalCount={totalCount}
+          />
+        </div>
+
+        {/* 統計數字 */}
+        <div className="flex sm:flex-col gap-8 sm:gap-6 justify-center sm:justify-start sm:py-8">
+          <div className="text-center sm:text-left">
+            <p className="text-sm text-muted-foreground mb-2">已繳交</p>
+            <p className="text-4xl font-bold text-green-600">{submittedCount}</p>
           </div>
-        </Card>
-        <Card className="p-4">
-          <div className="text-center">
-            <p className="text-sm text-muted-foreground mb-1">已繳交</p>
-            <p className="text-3xl font-bold text-green-600">{submittedCount}</p>
+          <div className="text-center sm:text-left">
+            <p className="text-sm text-muted-foreground mb-2">未繳交</p>
+            <p className="text-4xl font-bold text-red-600">{totalCount - submittedCount}</p>
           </div>
-        </Card>
-        <Card className="p-4">
-          <div className="text-center">
-            <p className="text-sm text-muted-foreground mb-1">未繳交</p>
-            <p className="text-3xl font-bold text-red-600">{totalCount - submittedCount}</p>
-          </div>
-        </Card>
+        </div>
       </div>
 
       {/* 學生繳交列表 */}
