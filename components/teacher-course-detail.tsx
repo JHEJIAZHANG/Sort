@@ -576,11 +576,13 @@ export function TeacherCourseDetail({
                 {filteredAssignments.map((assignment) => (
                   <div 
                     key={assignment.id} 
-                    className="p-4 border rounded-lg hover:bg-muted/50 transition-colors cursor-pointer"
-                    onClick={() => onAssignmentClick && onAssignmentClick(assignment.id)}
+                    className="p-4 border rounded-lg hover:bg-muted/50 transition-colors"
                   >
-                    <div className="flex items-start justify-between">
-                      <div className="flex-1">
+                    <div className="flex items-start justify-between gap-3">
+                      <div 
+                        className="flex-1 cursor-pointer"
+                        onClick={() => onAssignmentClick && onAssignmentClick(assignment.id)}
+                      >
                         <div className="flex items-center gap-3 mb-2">
                           <h4 className="font-medium">{assignment.title}</h4>
                           <Badge variant={assignment.status === 'overdue' ? "destructive" : "default"}>
@@ -588,24 +590,29 @@ export function TeacherCourseDetail({
                              assignment.status === 'overdue' ? '已逾期' : '已完成'}
                           </Badge>
                         </div>
-                        {assignment.description && (
-                          <p className="text-sm text-muted-foreground mb-2">{assignment.description}</p>
-                        )}
-                        <div className="flex items-center gap-4 text-sm text-muted-foreground">
-                          <span>截止: {assignment.due_date}</span>
-                          <span>繳交率: {assignment.submission_rate}% ({assignment.submitted_count}/{assignment.total_count})</span>
+                        {/* 手機版：垂直排列 */}
+                        <div className="flex flex-col gap-1 text-sm text-muted-foreground md:hidden">
+                          <span className="whitespace-nowrap">截止: {assignment.due_date}</span>
+                          <span className="whitespace-nowrap">繳交率: {assignment.submission_rate}% ({assignment.submitted_count}/{assignment.total_count})</span>
+                        </div>
+                        {/* 電腦版：水平排列 */}
+                        <div className="hidden md:flex items-center gap-4 text-sm text-muted-foreground">
+                          <span className="whitespace-nowrap">截止: {assignment.due_date}</span>
+                          <span className="whitespace-nowrap">繳交率: {assignment.submission_rate}% ({assignment.submitted_count}/{assignment.total_count})</span>
                         </div>
                       </div>
-                      <div className="flex gap-2">
+                      <div className="flex gap-2 flex-shrink-0">
                         <AlertDialog>
                           <AlertDialogTrigger asChild>
                             <Button 
                               variant="outline" 
                               size="sm"
                               disabled={remindingAssignment === assignment.id}
+                              onClick={(e) => e.stopPropagation()}
                             >
                               <BellIcon className="w-4 h-4 mr-1" />
-                              提醒未繳
+                              <span className="hidden sm:inline">提醒未繳</span>
+                              <span className="sm:hidden">提醒</span>
                             </Button>
                           </AlertDialogTrigger>
                           <AlertDialogContent>

@@ -280,7 +280,7 @@ export function TeacherAssignmentDetail({
                       <p className="text-sm text-muted-foreground truncate">{student.email}</p>
                       {student.submitted && student.submittedAt && (
                         <p className="text-xs text-muted-foreground mt-1 whitespace-nowrap">
-                          繳交時間：{formatDate(student.submittedAt)} {formatTime(student.submittedAt)}
+                          繳交時間:{formatDate(student.submittedAt)} {formatTime(student.submittedAt)}
                         </p>
                       )}
                     </div>
