@@ -99,14 +99,19 @@
 1. `POST /api/classroom/teacher/preview-import/`
    - 請求: `{ line_user_id: string }`
    - 回應: 教師課程列表
+   - 前端調用: `ApiService.teacherPreviewImport()`
 
 2. `POST /api/classroom/teacher/confirm-import/`
    - 請求: `{ line_user_id, selected_courses, course_schedules }`
    - 回應: 匯入結果
+   - 前端調用: `ApiService.teacherConfirmImport(params)`
 
 3. `POST /api/classroom/teacher/sync-assignments/`
    - 請求: `{ line_user_id, mode, course_ids }`
    - 回應: 同步結果
+   - 前端調用: `ApiService.teacherSyncAssignments(params)`
+
+**注意**: 這些端點使用 `/api/classroom/teacher/` 路徑（不是 `/api/v2/`），與學生端點完全分離。
 
 ## 注意事項
 

@@ -89,12 +89,14 @@ export class ApiService {
         // 瀏覽器端一律走 Next.js 代理，避免公開變數配置錯誤造成跨網域與 CORS 問題
         if (apiPrefix === 'oauth') baseUrl = '/api/oauth'
         else if (apiPrefix === 'onboard') baseUrl = '/api'
+        else if (apiPrefix === 'other') baseUrl = '/api'
         else baseUrl = '/api/v2'
       } else {
         // 伺服器端，使用環境變數
         const backendUrl = process.env.BACKEND_API_URL || ''
         if (apiPrefix === 'oauth') baseUrl = `${backendUrl}/api/oauth`
         else if (apiPrefix === 'onboard') baseUrl = `${backendUrl}/api`
+        else if (apiPrefix === 'other') baseUrl = `${backendUrl}/api`
         else baseUrl = `${backendUrl}/api/v2`
       }
 
@@ -889,7 +891,7 @@ export class ApiService {
     return this.request('/classroom/teacher/preview-import/', {
       method: 'POST',
       body: JSON.stringify({ line_user_id: lineUserId })
-    })
+    }, 'other')
   }
 
   // 教師課程確認匯入
@@ -914,7 +916,7 @@ export class ApiService {
         selected_courses: params.selected_courses,
         course_schedules: params.course_schedules || {}
       })
-    })
+    }, 'other')
   }
 
   // 教師作業手動同步
@@ -934,7 +936,7 @@ export class ApiService {
         mode: params?.mode || 'all_active',
         course_ids: params?.course_ids || []
       })
-    })
+    }, 'other')
   }
 
   // Google OAuth 相關 API
