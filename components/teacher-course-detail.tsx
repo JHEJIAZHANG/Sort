@@ -302,13 +302,15 @@ export function TeacherCourseDetail({
   const handleCourseUpdate = async (updatedCourse: any) => {
     try {
       await updateCourse(courseId, updatedCourse)
-      setIsEditing(false)
-      // 重新載入課程統計資料
-      await loadCourseStats()
-      // 通知父組件刷新數據
+      // 通知父組件刷新數據（這會觸發 useCourses 重新載入）
       if (onUpdated) {
         onUpdated()
       }
+      // 等待一小段時間讓 course 對象更新
+      await new Promise(resolve => setTimeout(resolve, 100))
+      // 重新載入課程統計資料
+      await loadCourseStats()
+      setIsEditing(false)
     } catch (error) {
       console.error('更新課程失敗:', error)
       alert('更新課程失敗')
