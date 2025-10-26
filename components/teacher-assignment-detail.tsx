@@ -116,181 +116,141 @@ export function TeacherAssignmentDetail({
 
   return (
     <div className="space-y-6">
-      {/* 作業基本資訊和繳交統計 */}
-      <div className="flex flex-col lg:flex-row gap-6 lg:gap-8">
-        {/* 左側：作業基本資訊 */}
-        <div className="flex-1 space-y-4">
-          <div>
-            <h2 className="text-2xl font-bold text-foreground">{assignment.title}</h2>
-            <div className="mt-2 flex items-center gap-2 flex-wrap">
-              {course && (
-                <span className="text-sm px-3 py-1 rounded-full bg-gray-100 text-gray-700 border border-gray-200">
-                  {course.name}
-                </span>
-              )}
-              {assignment.source === "google_classroom" && (
-                <span className="text-sm px-3 py-1 rounded-full bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200">
-                  Google Classroom
-                </span>
-              )}
-            </div>
-            {assignment.description && (
-              <p className="text-muted-foreground mt-3">{assignment.description}</p>
-            )}
-          </div>
-
-          <div className="flex flex-col sm:flex-row sm:items-center gap-4">
-            <div className="flex items-center gap-2">
-              <CalendarIcon className="w-4 h-4 text-primary" />
-              <span className="text-sm font-medium">截止日期：</span>
-              <span className={`text-sm ${isOverdue ? 'text-red-600' : 'text-muted-foreground'}`}>
-                {formatDate(assignment.dueDate)} {formatTime(assignment.dueDate)}
+      {/* 作業基本資訊 */}
+      <div className="space-y-4">
+        <div>
+          <h2 className="text-2xl font-bold text-foreground">{assignment.title}</h2>
+          <div className="mt-2 flex items-center gap-2 flex-wrap">
+            {course && (
+              <span className="text-sm px-3 py-1 rounded-full bg-gray-100 text-gray-700 border border-gray-200">
+                {course.name}
               </span>
-            </div>
-
-            {assignment.googleClassroomUrl && (
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => window.open(assignment.googleClassroomUrl, '_blank')}
-              >
-                <ExternalLink className="w-4 h-4 mr-2" />
-                在 Google Classroom 中查看
-              </Button>
+            )}
+            {assignment.source === "google_classroom" && (
+              <span className="text-sm px-3 py-1 rounded-full bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200">
+                Google Classroom
+              </span>
             )}
           </div>
+          {assignment.description && (
+            <p className="text-muted-foreground mt-3">{assignment.description}</p>
+          )}
         </div>
 
-        {/* 右側：繳交統計（電腦版顯示） */}
-        <div className="hidden lg:flex flex-row items-center gap-6 flex-shrink-0">
-          {/* 圓形進度條 */}
-          <div className="flex-shrink-0">
-            <p className="text-sm text-muted-foreground mb-4 text-center">繳交率</p>
-            <CircularProgress
-              percentage={submissionRate}
-              size={120}
-              strokeWidth={20}
-            />
+        <div className="flex flex-col sm:flex-row sm:items-center gap-4">
+          <div className="flex items-center gap-2">
+            <CalendarIcon className="w-4 h-4 text-primary" />
+            <span className="text-sm font-medium">截止日期：</span>
+            <span className={`text-sm ${isOverdue ? 'text-red-600' : 'text-muted-foreground'}`}>
+              {formatDate(assignment.dueDate)} {formatTime(assignment.dueDate)}
+            </span>
           </div>
 
-          {/* 統計卡片 - 水平排列 */}
-          <div className="flex gap-3">
-            {/* 已繳交卡片 */}
-            <button
-              onClick={() => setStatusFilter(statusFilter === "submitted" ? "all" : "submitted")}
-              className={`flex flex-col items-center justify-center px-4 py-3 border rounded-lg transition-all shadow-sm hover:shadow-md min-w-[80px] ${
-                statusFilter === "submitted" 
-                  ? "border-green-500 bg-green-50 shadow-md" 
-                  : "border-gray-200 bg-white hover:border-gray-300"
-              }`}
+          {assignment.googleClassroomUrl && (
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => window.open(assignment.googleClassroomUrl, '_blank')}
             >
-              <p className={`text-xs mb-1 whitespace-nowrap transition-colors ${
-                statusFilter === "submitted" ? "text-green-600 font-medium" : "text-gray-500"
-              }`}>已繳交</p>
-              <p className={`text-xl font-bold transition-colors ${
-                statusFilter === "submitted" ? "text-green-600" : "text-gray-500"
-              }`}>{submittedCount}</p>
-            </button>
-
-            {/* 未繳交卡片 */}
-            <button
-              onClick={() => setStatusFilter(statusFilter === "missing" ? "all" : "missing")}
-              className={`flex flex-col items-center justify-center px-4 py-3 border rounded-lg transition-all shadow-sm hover:shadow-md min-w-[80px] ${
-                statusFilter === "missing" 
-                  ? "border-red-500 bg-red-50 shadow-md" 
-                  : "border-gray-200 bg-white hover:border-gray-300"
-              }`}
-            >
-              <p className={`text-xs mb-1 whitespace-nowrap transition-colors ${
-                statusFilter === "missing" ? "text-red-600 font-medium" : "text-gray-500"
-              }`}>未繳交</p>
-              <p className={`text-xl font-bold transition-colors ${
-                statusFilter === "missing" ? "text-red-600" : "text-gray-500"
-              }`}>{totalCount - submittedCount}</p>
-            </button>
-
-            {/* 總人數卡片 */}
-            <button
-              onClick={() => setStatusFilter("all")}
-              className={`flex flex-col items-center justify-center px-4 py-3 border rounded-lg transition-all shadow-sm hover:shadow-md min-w-[80px] ${
-                statusFilter === "all" 
-                  ? "border-orange-500 bg-orange-50 shadow-md" 
-                  : "border-gray-200 bg-white hover:border-gray-300"
-              }`}
-            >
-              <p className={`text-xs mb-1 whitespace-nowrap transition-colors ${
-                statusFilter === "all" ? "font-medium" : ""
-              }`} style={{ color: statusFilter === "all" ? "#ff9100" : "#6b7280" }}>總人數</p>
-              <p className={`text-xl font-bold transition-colors`} style={{ color: statusFilter === "all" ? "#ff9100" : "#6b7280" }}>{totalCount}</p>
-            </button>
-          </div>
+              <ExternalLink className="w-4 h-4 mr-2" />
+              在 Google Classroom 中查看
+            </Button>
+          )}
         </div>
       </div>
 
-      {/* 繳交統計（手機版顯示） */}
-      <div className="flex lg:hidden py-6 px-4">
-        <div className="flex flex-row items-center gap-4 w-full">
-          {/* 左側：圓形進度條 */}
-          <div className="flex-shrink-0 flex flex-col items-center">
-            <p className="text-sm text-muted-foreground mb-4 text-center">繳交率</p>
-            <CircularProgress
-              percentage={submissionRate}
-              size={120}
-              strokeWidth={20}
+      {/* 繳交統計 */}
+      <div className="space-y-4">
+        {/* 繳交率進度條 */}
+        <div>
+          <div className="flex items-center justify-between mb-2">
+            <span className="text-sm font-medium text-muted-foreground">繳交率</span>
+            <span className="text-sm font-bold" style={{ color: "#ff9100" }}>{submissionRate}%</span>
+          </div>
+          <div className="w-full bg-gray-200 rounded-full h-3 overflow-hidden">
+            <div 
+              className="h-full rounded-full transition-all duration-1000 ease-out"
+              style={{ 
+                width: `${submissionRate}%`,
+                backgroundColor: "#ff9100"
+              }}
             />
           </div>
+        </div>
 
-          {/* 右側：統計卡片 - 填滿剩餘空間 */}
-          <div className="grid grid-cols-3 gap-3 flex-1">
-            {/* 已繳交卡片 */}
-            <button
-              onClick={() => setStatusFilter(statusFilter === "submitted" ? "all" : "submitted")}
-              className={`flex flex-col items-center justify-center p-3 border rounded-lg transition-all shadow-sm hover:shadow-md ${
-                statusFilter === "submitted" 
-                  ? "border-green-500 bg-green-50 shadow-md" 
-                  : "border-gray-200 bg-white hover:border-gray-300"
-              }`}
-            >
-              <p className={`text-xs mb-1 whitespace-nowrap transition-colors ${
-                statusFilter === "submitted" ? "text-green-600 font-medium" : "text-gray-500"
-              }`}>已繳交</p>
-              <p className={`text-xl font-bold transition-colors ${
-                statusFilter === "submitted" ? "text-green-600" : "text-gray-500"
-              }`}>{submittedCount}</p>
-            </button>
+        {/* 統計卡片 */}
+        <div className="grid grid-cols-3 gap-4">
+          {/* 已繳交卡片 */}
+          <Card 
+            className={`p-4 cursor-pointer transition-all ${
+              statusFilter === "submitted" 
+                ? "border-green-500 bg-green-50 shadow-md" 
+                : "hover:shadow-md"
+            }`}
+            onClick={() => setStatusFilter(statusFilter === "submitted" ? "all" : "submitted")}
+          >
+            <div className="flex items-center space-x-2">
+              <CheckIcon className={`w-5 h-5 transition-colors ${
+                statusFilter === "submitted" ? "text-green-600" : "text-gray-400"
+              }`} />
+              <div>
+                <p className={`text-sm transition-colors ${
+                  statusFilter === "submitted" ? "text-green-600 font-medium" : "text-muted-foreground"
+                }`}>已繳交</p>
+                <p className={`text-2xl font-bold transition-colors ${
+                  statusFilter === "submitted" ? "text-green-600" : "text-gray-500"
+                }`}>{submittedCount}</p>
+              </div>
+            </div>
+          </Card>
 
-            {/* 未繳交卡片 */}
-            <button
-              onClick={() => setStatusFilter(statusFilter === "missing" ? "all" : "missing")}
-              className={`flex flex-col items-center justify-center p-3 border rounded-lg transition-all shadow-sm hover:shadow-md ${
-                statusFilter === "missing" 
-                  ? "border-red-500 bg-red-50 shadow-md" 
-                  : "border-gray-200 bg-white hover:border-gray-300"
-              }`}
-            >
-              <p className={`text-xs mb-1 whitespace-nowrap transition-colors ${
-                statusFilter === "missing" ? "text-red-600 font-medium" : "text-gray-500"
-              }`}>未繳交</p>
-              <p className={`text-xl font-bold transition-colors ${
-                statusFilter === "missing" ? "text-red-600" : "text-gray-500"
-              }`}>{totalCount - submittedCount}</p>
-            </button>
+          {/* 未繳交卡片 */}
+          <Card 
+            className={`p-4 cursor-pointer transition-all ${
+              statusFilter === "missing" 
+                ? "border-red-500 bg-red-50 shadow-md" 
+                : "hover:shadow-md"
+            }`}
+            onClick={() => setStatusFilter(statusFilter === "missing" ? "all" : "missing")}
+          >
+            <div className="flex items-center space-x-2">
+              <ExclamationIcon className={`w-5 h-5 transition-colors ${
+                statusFilter === "missing" ? "text-red-600" : "text-gray-400"
+              }`} />
+              <div>
+                <p className={`text-sm transition-colors ${
+                  statusFilter === "missing" ? "text-red-600 font-medium" : "text-muted-foreground"
+                }`}>未繳交</p>
+                <p className={`text-2xl font-bold transition-colors ${
+                  statusFilter === "missing" ? "text-red-600" : "text-gray-500"
+                }`}>{totalCount - submittedCount}</p>
+              </div>
+            </div>
+          </Card>
 
-            {/* 總人數卡片 */}
-            <button
-              onClick={() => setStatusFilter("all")}
-              className={`flex flex-col items-center justify-center p-3 border rounded-lg transition-all shadow-sm hover:shadow-md ${
-                statusFilter === "all" 
-                  ? "border-orange-500 bg-orange-50 shadow-md" 
-                  : "border-gray-200 bg-white hover:border-gray-300"
-              }`}
-            >
-              <p className={`text-xs mb-1 whitespace-nowrap transition-colors ${
-                statusFilter === "all" ? "font-medium" : ""
-              }`} style={{ color: statusFilter === "all" ? "#ff9100" : "#6b7280" }}>總人數</p>
-              <p className={`text-xl font-bold transition-colors`} style={{ color: statusFilter === "all" ? "#ff9100" : "#6b7280" }}>{totalCount}</p>
-            </button>
-          </div>
+          {/* 總人數卡片 */}
+          <Card 
+            className={`p-4 cursor-pointer transition-all ${
+              statusFilter === "all" 
+                ? "border-orange-500 bg-orange-50 shadow-md" 
+                : "hover:shadow-md"
+            }`}
+            onClick={() => setStatusFilter("all")}
+          >
+            <div className="flex items-center space-x-2">
+              <UserIcon className={`w-5 h-5 transition-colors`} style={{ 
+                color: statusFilter === "all" ? "#ff9100" : "#9ca3af"
+              }} />
+              <div>
+                <p className={`text-sm transition-colors ${
+                  statusFilter === "all" ? "font-medium" : "text-muted-foreground"
+                }`} style={{ color: statusFilter === "all" ? "#ff9100" : undefined }}>總人數</p>
+                <p className={`text-2xl font-bold transition-colors`} style={{ 
+                  color: statusFilter === "all" ? "#ff9100" : "#6b7280"
+                }}>{totalCount}</p>
+              </div>
+            </div>
+          </Card>
         </div>
       </div>
 
