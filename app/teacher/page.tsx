@@ -14,8 +14,7 @@ import { CourseCard } from "@/components/course-card"
 import { UnifiedCalendar } from "@/components/unified-calendar"
 import { CourseForm } from "@/components/course-form"
 import { TeacherCourseDetail } from "@/components/teacher-course-detail"
-import { GoogleClassroomImport } from "@/components/google-classroom-import"
-import { ImportGoogleClassroomButton } from "@/components/import-google-classroom-button"
+import { ImportTeacherGoogleClassroomButton } from "@/components/import-teacher-google-classroom-button"
 import { useLineAuth } from "@/hooks/use-line-auth"
 import { useUserAuth } from "@/hooks/use-user-auth"
 import { useCourses } from "@/hooks/use-courses"
@@ -61,7 +60,6 @@ export default function TeacherPage() {
   const [courseView, setCourseView] = useState<"list" | "calendar">("list")
   const [courseSearchQuery, setCourseSearchQuery] = useState("")
   const [courseFilterDay, setCourseFilterDay] = useState<string>("all")
-  const [showGoogleClassroomImport, setShowGoogleClassroomImport] = useState(false)
   const [selectedAssignmentId, setSelectedAssignmentId] = useState<string | null>(null)
 
   // 新增：課程選取切換（與學生端一致的行為）
@@ -75,16 +73,7 @@ export default function TeacherPage() {
     setSelectedCourseIds(newSelected)
   }
 
-  // 新增：Google Classroom 批次匯入
-  const handleBulkImport = async (course: Omit<Course, "id" | "createdAt">) => {
-    try {
-      // Classroom 匯入流程已在子元件完成（confirmImport/設排程/同步作業）
-      // 這裡僅重新載入資料即可
-      await refetch()
-    } catch (error) {
-      console.error('匯入課程後刷新失敗:', error)
-    }
-  }
+
 
   useEffect(() => {
     if (isLineLoggedIn && lineUser?.userId) {
@@ -190,10 +179,9 @@ export default function TeacherPage() {
     setSelectedCourseId(course.id)
   }
 
-  // 取消教師手動新增入口：不再顯示或使用此方法
+  // 教師不使用手動新增，僅使用 Google Classroom 匯入
   const handleAddCourse = () => {
-    // 改為開啟 Google Classroom 匯入
-    setShowGoogleClassroomImport(true)
+    // 此方法保留但不使用
   }
 
   // 處理群組管理
@@ -280,9 +268,6 @@ export default function TeacherPage() {
                   onSubmit={async (values) => {
                     if (editingCourse) {
                       await updateCourse(editingCourse, values)
-                    } else {
-                      // 教師不允許手動新增：改為提示或忽略
-                      setShowGoogleClassroomImport(true)
                     }
                     setShowCourseForm(false)
                     setEditingCourse(null)
@@ -314,8 +299,8 @@ export default function TeacherPage() {
                           <span className="hidden sm:inline">{courseView === "list" ? "月曆視圖" : "列表視圖"}</span>
                           <span className="sm:hidden">{courseView === "list" ? "月曆" : "列表"}</span>
                         </Button>
-                        {/* 移除手動新增，改為 Classroom 匯入按鈕 */}
-                        <ImportGoogleClassroomButton onImportComplete={() => refetch()} />
+                        {/* 教師專用 Classroom 匯入按鈕 */}
+                        <ImportTeacherGoogleClassroomButton onImportComplete={() => refetch()} />
                       </div>
                     </div>
                   </div>
@@ -378,21 +363,14 @@ export default function TeacherPage() {
                   ) : (
                     <Card className="p-4 sm:p-8 text-center">
                       <p className="text-muted-foreground mb-4 text-sm sm:text-base">還沒有任何課程</p>
-                      {/* 移除手動新增入口，只提供 Classroom 匯入 */}
+                      {/* 教師專用 Classroom 匯入 */}
                       <div className="flex justify-center">
-                        <ImportGoogleClassroomButton onImportComplete={() => refetch()} />
+                        <ImportTeacherGoogleClassroomButton onImportComplete={() => refetch()} />
                       </div>
                     </Card>
                   )}
 
                 </div>
-
-                <GoogleClassroomImport
-                  isOpen={showGoogleClassroomImport}
-                  onClose={() => setShowGoogleClassroomImport(false)}
-                  onImport={handleBulkImport}
-                />
-
               </>
             )}
           </div>

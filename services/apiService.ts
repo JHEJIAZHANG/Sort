@@ -877,6 +877,66 @@ export class ApiService {
     })
   }
 
+  // ==================== 教師專用 Google Classroom API ====================
+  
+  // 教師課程預覽
+  static async teacherPreviewImport() {
+    const lineUserId = this.ensureLineUserId()
+    if (!lineUserId || lineUserId.trim() === '') {
+      throw new Error('LINE User ID 未設置，請確認已正確登入')
+    }
+    
+    return this.request('/classroom/teacher/preview-import/', {
+      method: 'POST',
+      body: JSON.stringify({ line_user_id: lineUserId })
+    })
+  }
+
+  // 教師課程確認匯入
+  static async teacherConfirmImport(params: {
+    selected_courses: string[]
+    course_schedules?: Record<string, Array<{
+      day_of_week: number
+      start_time: string
+      end_time: string
+      location?: string
+    }>>
+  }) {
+    const lineUserId = this.ensureLineUserId()
+    if (!lineUserId || lineUserId.trim() === '') {
+      throw new Error('LINE User ID 未設置，請確認已正確登入')
+    }
+    
+    return this.request('/classroom/teacher/confirm-import/', {
+      method: 'POST',
+      body: JSON.stringify({ 
+        line_user_id: lineUserId,
+        selected_courses: params.selected_courses,
+        course_schedules: params.course_schedules || {}
+      })
+    })
+  }
+
+  // 教師作業手動同步
+  static async teacherSyncAssignments(params?: {
+    mode?: 'all_active' | 'selected'
+    course_ids?: string[]
+  }) {
+    const lineUserId = this.ensureLineUserId()
+    if (!lineUserId || lineUserId.trim() === '') {
+      throw new Error('LINE User ID 未設置，請確認已正確登入')
+    }
+    
+    return this.request('/classroom/teacher/sync-assignments/', {
+      method: 'POST',
+      body: JSON.stringify({ 
+        line_user_id: lineUserId,
+        mode: params?.mode || 'all_active',
+        course_ids: params?.course_ids || []
+      })
+    })
+  }
+
   // Google OAuth 相關 API
   static async getGoogleOAuthUrl(userData?: { role?: 'teacher' | 'student'; name?: string }) {
     if (!this.lineUserId) {
