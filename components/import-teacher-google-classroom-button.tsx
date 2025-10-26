@@ -17,10 +17,18 @@ export function ImportTeacherGoogleClassroomButton({ onImportComplete }: ImportT
   }
 
   const handleOnboardingComplete = () => {
+    console.log('========== 教師匯入按鈕：匯入完成 ==========')
+    console.log('關閉匯入對話框')
     setShowOnboarding(false)
+    
+    console.log('呼叫 onImportComplete 回調函數')
     if (onImportComplete) {
       onImportComplete()
+      console.log('✅ onImportComplete 已執行')
+    } else {
+      console.warn('⚠️ onImportComplete 未定義')
     }
+    console.log('========================================')
   }
 
   const handleOnboardingSkip = () => {

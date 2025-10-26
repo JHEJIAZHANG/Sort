@@ -300,7 +300,13 @@ export default function TeacherPage() {
                           <span className="sm:hidden">{courseView === "list" ? "月曆" : "列表"}</span>
                         </Button>
                         {/* 教師專用 Classroom 匯入按鈕 */}
-                        <ImportTeacherGoogleClassroomButton onImportComplete={() => refetch()} />
+                        <ImportTeacherGoogleClassroomButton onImportComplete={() => {
+                          console.log('========== 教師頁面：開始刷新課程列表 ==========')
+                          console.log('當前課程數量:', courses.length)
+                          refetch()
+                          console.log('✅ refetch() 已呼叫')
+                          console.log('================================================')
+                        }} />
                       </div>
                     </div>
                   </div>
@@ -365,7 +371,13 @@ export default function TeacherPage() {
                       <p className="text-muted-foreground mb-4 text-sm sm:text-base">還沒有任何課程</p>
                       {/* 教師專用 Classroom 匯入 */}
                       <div className="flex justify-center">
-                        <ImportTeacherGoogleClassroomButton onImportComplete={() => refetch()} />
+                        <ImportTeacherGoogleClassroomButton onImportComplete={() => {
+                          console.log('========== 教師頁面：開始刷新課程列表 ==========')
+                          console.log('當前課程數量:', courses.length)
+                          refetch()
+                          console.log('✅ refetch() 已呼叫')
+                          console.log('================================================')
+                        }} />
                       </div>
                     </Card>
                   )}

@@ -32,10 +32,12 @@ export function useCourses(lineUserId: string) {
 
     // 若已有正在進行的刷新，直接等待同一承諾，避免重複執行
     if (fetchPromiseRef.current) {
+      console.log('⏳ 已有正在進行的刷新，等待完成...')
       return fetchPromiseRef.current
     }
 
-    console.log('🔄 開始載入資料，lineUserId:', lineUserId)
+    console.log('========== useCourses: 開始載入資料 ==========')
+    console.log('lineUserId:', lineUserId)
     const run = (async () => {
       try {
         setLoading(true)
@@ -64,6 +66,13 @@ export function useCourses(lineUserId: string) {
         const filteredAssignments = transformedAssignments.filter(a => uuidRegex.test(a.id))
         const transformedNotes = Array.isArray(notesData) ? notesData.map(transformBackendNote) : []
         const transformedExams = Array.isArray(examsData) ? examsData.map(transformBackendExam) : []
+
+        console.log('✅ 資料載入成功:')
+        console.log('  - 課程數量:', transformedCourses.length)
+        console.log('  - 作業數量:', filteredAssignments.length)
+        console.log('  - 筆記數量:', transformedNotes.length)
+        console.log('  - 考試數量:', transformedExams.length)
+        console.log('================================================')
 
         setCourses(transformedCourses)
         setAssignments(filteredAssignments)

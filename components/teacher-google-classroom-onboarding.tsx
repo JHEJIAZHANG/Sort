@@ -254,6 +254,10 @@ export function TeacherGoogleClassroomOnboarding({ isOpen, onComplete, onSkip }:
       const selectedCourses = courses.filter(c => c.selected)
       const selectedCourseIds = selectedCourses.map(c => c.google_course_id)
 
+      console.log('========== 教師課程匯入開始 ==========')
+      console.log('選中的課程數量:', selectedCourses.length)
+      console.log('選中的課程 IDs:', selectedCourseIds)
+
       if (selectedCourseIds.length === 0) {
         setError('請至少選擇一個課程')
         return
@@ -275,28 +279,46 @@ export function TeacherGoogleClassroomOnboarding({ isOpen, onComplete, onSkip }:
         }))
       })
 
+      console.log('課程時間表:', JSON.stringify(courseSchedules, null, 2))
+
+      // 步驟 1: 匯入課程
+      console.log('步驟 1: 呼叫 teacherConfirmImport API...')
       const importResponse = await ApiService.teacherConfirmImport({
         selected_courses: selectedCourseIds,
         course_schedules: courseSchedules
       })
 
+      console.log('匯入 API 回應:', JSON.stringify(importResponse, null, 2))
+
       if (importResponse.error) {
+        console.error('❌ 匯入失敗:', importResponse.error)
         throw new Error(importResponse.error)
       }
 
-      // 同步教師作業
+      console.log('✅ 課程匯入成功')
+
+      // 步驟 2: 同步教師作業
+      console.log('步驟 2: 呼叫 teacherSyncAssignments API...')
       const assignmentResponse = await ApiService.teacherSyncAssignments({
         mode: 'selected',
         course_ids: selectedCourseIds
       })
 
+      console.log('作業同步 API 回應:', JSON.stringify(assignmentResponse, null, 2))
+
       if (assignmentResponse.error) {
-        console.warn('作業同步失敗:', assignmentResponse.error)
+        console.warn('⚠️ 作業同步失敗:', assignmentResponse.error)
+        // 不拋出錯誤，因為課程已經成功匯入
+      } else {
+        console.log('✅ 作業同步成功')
       }
+
+      console.log('========== 教師課程匯入完成 ==========')
+      console.log('即將呼叫 onComplete() 刷新課程列表')
 
       onComplete()
     } catch (err) {
-      console.error('匯入課程失敗:', err)
+      console.error('❌ 匯入課程失敗:', err)
       setError(err instanceof Error ? err.message : '匯入失敗')
     } finally {
       setImporting(false)
