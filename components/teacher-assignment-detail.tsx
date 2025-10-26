@@ -171,30 +171,38 @@ export function TeacherAssignmentDetail({
             <p className="text-sm text-muted-foreground">
               未繳交：<span className="text-sm text-red-600 font-medium">{totalCount - submittedCount}</span>
             </p>
+            <p className="text-sm text-muted-foreground">
+              總人數：<span className="text-sm text-gray-900 font-medium">{totalCount}</span>
+            </p>
           </div>
         </div>
       </div>
 
       {/* 繳交統計（手機版顯示） */}
-      <div className="flex lg:hidden flex-row items-center gap-6 py-6">
-        {/* 圓形進度條 */}
-        <div className="flex-shrink-0">
-          <p className="text-sm text-muted-foreground mb-4 text-center">繳交率</p>
-          <CircularProgress
-            percentage={submissionRate}
-            size={120}
-            strokeWidth={20}
-          />
-        </div>
+      <div className="flex lg:hidden justify-center py-6">
+        <div className="flex flex-row items-center gap-6">
+          {/* 圓形進度條 */}
+          <div className="flex-shrink-0">
+            <p className="text-sm text-muted-foreground mb-4 text-center">繳交率</p>
+            <CircularProgress
+              percentage={submissionRate}
+              size={120}
+              strokeWidth={20}
+            />
+          </div>
 
-        {/* 統計數字 */}
-        <div className="flex flex-col gap-4 justify-center">
-          <p className="text-sm text-muted-foreground">
-            已繳交：<span className="text-sm text-green-600 font-medium">{submittedCount}</span>
-          </p>
-          <p className="text-sm text-muted-foreground">
-            未繳交：<span className="text-sm text-red-600 font-medium">{totalCount - submittedCount}</span>
-          </p>
+          {/* 統計數字 */}
+          <div className="flex flex-col gap-4 justify-center">
+            <p className="text-sm text-muted-foreground">
+              已繳交：<span className="text-sm text-green-600 font-medium">{submittedCount}</span>
+            </p>
+            <p className="text-sm text-muted-foreground">
+              未繳交：<span className="text-sm text-red-600 font-medium">{totalCount - submittedCount}</span>
+            </p>
+            <p className="text-sm text-muted-foreground">
+              總人數：<span className="text-sm text-gray-900 font-medium">{totalCount}</span>
+            </p>
+          </div>
         </div>
       </div>
 
