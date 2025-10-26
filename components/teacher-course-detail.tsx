@@ -193,7 +193,7 @@ export function TeacherCourseDetail({
   }
 
   useEffect(() => {
-    if (courseId && lineUserId) {
+    if (courseId && lineUserId && course) {
       loadCourseStats()
     }
   }, [courseId, lineUserId, course])
@@ -205,11 +205,10 @@ export function TeacherCourseDetail({
 
   // 格式化課程時間
   const formatSchedule = () => {
-    const schedule = course?.schedule || courseStats?.schedule
-    if (!schedule || schedule.length === 0) {
+    if (!course?.schedule || course.schedule.length === 0) {
       return "未設定上課時間"
     }
-    return schedule.map((slot) => 
+    return course.schedule.map((slot) => 
       `${DAYS[slot.dayOfWeek]} ${formatTime(slot.startTime)}-${formatTime(slot.endTime)}`
     ).join(", ")
   }
@@ -283,7 +282,7 @@ export function TeacherCourseDetail({
     return matchesSearch && matchesFilter
   })
 
-  if (loading) {
+  if (loading || !course) {
     return (
       <div className="p-6 text-center">
         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
@@ -375,7 +374,7 @@ export function TeacherCourseDetail({
         {/* 上課時間 */}
 <div className="flex items-center gap-2">
   <CalendarIcon className="w-4 h-4 text-primary flex-shrink-0" />
-  {(course?.schedule && course.schedule.length > 0) || (courseStats.schedule && courseStats.schedule.length > 0) ? (
+  {course.schedule && course.schedule.length > 0 ? (
     <span className="text-sm text-muted-foreground text-balance">
       {formatSchedule()}
     </span>
@@ -387,8 +386,8 @@ export function TeacherCourseDetail({
 {/* 教室 */}
 <div className="flex items-center gap-2">
   <span className="text-sm">📍</span>
-  <span className="text-sm text-muted-foreground">
-    {course?.classroom || courseStats.classroom || "尚未設定教室"}
+  <span className={`text-sm ${course.classroom ? 'text-muted-foreground' : 'text-gray-400 italic'}`}>
+    {course.classroom || "尚未設定教室"}
   </span>
 </div>
       </div>
