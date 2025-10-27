@@ -542,7 +542,13 @@ export function TeacherCourseDetail({
                           {student.line_bound ? "LINE 已綁定" : "未綁定"}
                         </Badge>
                         {student.recent_submission_rate !== undefined && (
-                          <Badge variant={student.recent_submission_rate >= 70 ? "default" : "destructive"}>
+                          <Badge 
+                            variant="outline"
+                            className={student.recent_submission_rate >= 70 
+                              ? "bg-gradient-to-r from-orange-50 to-orange-100 text-orange-700 border-orange-200" 
+                              : "bg-gradient-to-r from-red-50 to-red-100 text-red-700 border-red-200"
+                            }
+                          >
                             繳交率 {student.recent_submission_rate}%
                           </Badge>
                         )}
