@@ -543,112 +543,136 @@ export function TeacherCourseDetail({
             <div className="relative flex-1" ref={filterRef}>
               <button
                 onClick={() => setIsFilterOpen(!isFilterOpen)}
-                className="w-full flex items-center justify-between px-4 py-2 border border-gray-300 rounded-md bg-white hover:bg-gray-50 transition-colors"
+                className="w-full flex items-center justify-between px-3 py-2 text-sm border border-input rounded-md bg-background hover:bg-accent hover:text-accent-foreground transition-colors"
               >
-                <span className="text-sm text-gray-700">
+                <span className="text-sm">
                   {studentFilters.size === 0 ? "全部學生" : `已選擇 ${studentFilters.size} 個篩選條件`}
                 </span>
-                <ChevronDown className={`w-4 h-4 text-gray-500 transition-transform ${isFilterOpen ? 'rotate-180' : ''}`} />
+                <ChevronDown className={`w-4 h-4 ml-2 transition-transform ${isFilterOpen ? 'rotate-180' : ''}`} />
               </button>
 
               {isFilterOpen && (
-                <div className="absolute z-10 w-full mt-2 bg-white border border-gray-200 rounded-md shadow-lg max-h-96 overflow-y-auto">
-                  <div className="p-2">
-                    <label className="flex items-center gap-2 cursor-pointer hover:bg-gray-50 p-2 rounded">
-                      <Checkbox 
-                        checked={studentFilters.has("line_bound")}
-                        onCheckedChange={(checked) => {
-                          const newFilters = new Set(studentFilters)
-                          if (checked) {
-                            newFilters.add("line_bound")
-                          } else {
-                            newFilters.delete("line_bound")
-                          }
-                          setStudentFilters(newFilters)
-                        }}
-                      />
-                      <span className="text-sm flex-1">已綁定 LINE</span>
-                    </label>
+                <div className="absolute z-50 w-full mt-1 bg-popover border border-border rounded-md shadow-md overflow-hidden">
+                  <div className="max-h-[300px] overflow-y-auto p-1">
+                    <div
+                      className="relative flex w-full cursor-pointer select-none items-center rounded-sm py-1.5 pl-8 pr-2 text-sm outline-none hover:bg-accent hover:text-accent-foreground"
+                      onClick={() => {
+                        const newFilters = new Set(studentFilters)
+                        if (studentFilters.has("line_bound")) {
+                          newFilters.delete("line_bound")
+                        } else {
+                          newFilters.add("line_bound")
+                        }
+                        setStudentFilters(newFilters)
+                      }}
+                    >
+                      <span className="absolute left-2 flex h-3.5 w-3.5 items-center justify-center">
+                        {studentFilters.has("line_bound") && (
+                          <CheckIcon className="h-4 w-4" />
+                        )}
+                      </span>
+                      已綁定 LINE
+                    </div>
                     
-                    <label className="flex items-center gap-2 cursor-pointer hover:bg-gray-50 p-2 rounded">
-                      <Checkbox 
-                        checked={studentFilters.has("line_unbound")}
-                        onCheckedChange={(checked) => {
-                          const newFilters = new Set(studentFilters)
-                          if (checked) {
-                            newFilters.add("line_unbound")
-                          } else {
-                            newFilters.delete("line_unbound")
-                          }
-                          setStudentFilters(newFilters)
-                        }}
-                      />
-                      <span className="text-sm flex-1">未綁定 LINE</span>
-                    </label>
+                    <div
+                      className="relative flex w-full cursor-pointer select-none items-center rounded-sm py-1.5 pl-8 pr-2 text-sm outline-none hover:bg-accent hover:text-accent-foreground"
+                      onClick={() => {
+                        const newFilters = new Set(studentFilters)
+                        if (studentFilters.has("line_unbound")) {
+                          newFilters.delete("line_unbound")
+                        } else {
+                          newFilters.add("line_unbound")
+                        }
+                        setStudentFilters(newFilters)
+                      }}
+                    >
+                      <span className="absolute left-2 flex h-3.5 w-3.5 items-center justify-center">
+                        {studentFilters.has("line_unbound") && (
+                          <CheckIcon className="h-4 w-4" />
+                        )}
+                      </span>
+                      未綁定 LINE
+                    </div>
                     
-                    <label className="flex items-center gap-2 cursor-pointer hover:bg-gray-50 p-2 rounded">
-                      <Checkbox 
-                        checked={studentFilters.has("classroom_joined")}
-                        onCheckedChange={(checked) => {
-                          const newFilters = new Set(studentFilters)
-                          if (checked) {
-                            newFilters.add("classroom_joined")
-                          } else {
-                            newFilters.delete("classroom_joined")
-                          }
-                          setStudentFilters(newFilters)
-                        }}
-                      />
-                      <span className="text-sm flex-1">Classroom 已加入</span>
-                    </label>
+                    <div
+                      className="relative flex w-full cursor-pointer select-none items-center rounded-sm py-1.5 pl-8 pr-2 text-sm outline-none hover:bg-accent hover:text-accent-foreground"
+                      onClick={() => {
+                        const newFilters = new Set(studentFilters)
+                        if (studentFilters.has("classroom_joined")) {
+                          newFilters.delete("classroom_joined")
+                        } else {
+                          newFilters.add("classroom_joined")
+                        }
+                        setStudentFilters(newFilters)
+                      }}
+                    >
+                      <span className="absolute left-2 flex h-3.5 w-3.5 items-center justify-center">
+                        {studentFilters.has("classroom_joined") && (
+                          <CheckIcon className="h-4 w-4" />
+                        )}
+                      </span>
+                      Classroom 已加入
+                    </div>
                     
-                    <label className="flex items-center gap-2 cursor-pointer hover:bg-gray-50 p-2 rounded">
-                      <Checkbox 
-                        checked={studentFilters.has("classroom_not_joined")}
-                        onCheckedChange={(checked) => {
-                          const newFilters = new Set(studentFilters)
-                          if (checked) {
-                            newFilters.add("classroom_not_joined")
-                          } else {
-                            newFilters.delete("classroom_not_joined")
-                          }
-                          setStudentFilters(newFilters)
-                        }}
-                      />
-                      <span className="text-sm flex-1">Classroom 未加入</span>
-                    </label>
+                    <div
+                      className="relative flex w-full cursor-pointer select-none items-center rounded-sm py-1.5 pl-8 pr-2 text-sm outline-none hover:bg-accent hover:text-accent-foreground"
+                      onClick={() => {
+                        const newFilters = new Set(studentFilters)
+                        if (studentFilters.has("classroom_not_joined")) {
+                          newFilters.delete("classroom_not_joined")
+                        } else {
+                          newFilters.add("classroom_not_joined")
+                        }
+                        setStudentFilters(newFilters)
+                      }}
+                    >
+                      <span className="absolute left-2 flex h-3.5 w-3.5 items-center justify-center">
+                        {studentFilters.has("classroom_not_joined") && (
+                          <CheckIcon className="h-4 w-4" />
+                        )}
+                      </span>
+                      Classroom 未加入
+                    </div>
                     
-                    <label className="flex items-center gap-2 cursor-pointer hover:bg-gray-50 p-2 rounded">
-                      <Checkbox 
-                        checked={studentFilters.has("submission_good")}
-                        onCheckedChange={(checked) => {
-                          const newFilters = new Set(studentFilters)
-                          if (checked) {
-                            newFilters.add("submission_good")
-                          } else {
-                            newFilters.delete("submission_good")
-                          }
-                          setStudentFilters(newFilters)
-                        }}
-                      />
-                      <span className="text-sm flex-1">繳交率良好</span>
-                    </label>
+                    <div
+                      className="relative flex w-full cursor-pointer select-none items-center rounded-sm py-1.5 pl-8 pr-2 text-sm outline-none hover:bg-accent hover:text-accent-foreground"
+                      onClick={() => {
+                        const newFilters = new Set(studentFilters)
+                        if (studentFilters.has("submission_good")) {
+                          newFilters.delete("submission_good")
+                        } else {
+                          newFilters.add("submission_good")
+                        }
+                        setStudentFilters(newFilters)
+                      }}
+                    >
+                      <span className="absolute left-2 flex h-3.5 w-3.5 items-center justify-center">
+                        {studentFilters.has("submission_good") && (
+                          <CheckIcon className="h-4 w-4" />
+                        )}
+                      </span>
+                      繳交率良好
+                    </div>
                     
-                    <label className="flex items-center gap-2 cursor-pointer hover:bg-gray-50 p-2 rounded">
-                      <Checkbox 
-                        checked={studentFilters.has("submission_poor")}
-                        onCheckedChange={(checked) => {
-                          const newFilters = new Set(studentFilters)
-                          if (checked) {
-                            newFilters.add("submission_poor")
-                          } else {
-                            newFilters.delete("submission_poor")
-                          }
-                          setStudentFilters(newFilters)
-                        }}
-                      />
-                      <span className="text-sm flex-1">繳交率偏低</span>
-                    </label>
+                    <div
+                      className="relative flex w-full cursor-pointer select-none items-center rounded-sm py-1.5 pl-8 pr-2 text-sm outline-none hover:bg-accent hover:text-accent-foreground"
+                      onClick={() => {
+                        const newFilters = new Set(studentFilters)
+                        if (studentFilters.has("submission_poor")) {
+                          newFilters.delete("submission_poor")
+                        } else {
+                          newFilters.add("submission_poor")
+                        }
+                        setStudentFilters(newFilters)
+                      }}
+                    >
+                      <span className="absolute left-2 flex h-3.5 w-3.5 items-center justify-center">
+                        {studentFilters.has("submission_poor") && (
+                          <CheckIcon className="h-4 w-4" />
+                        )}
+                      </span>
+                      繳交率偏低
+                    </div>
                   </div>
                 </div>
               )}
