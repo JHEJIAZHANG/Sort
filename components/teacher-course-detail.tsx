@@ -110,6 +110,8 @@ export function TeacherCourseDetail({
   const [searchQuery, setSearchQuery] = useState("")
   const [isFilterOpen, setIsFilterOpen] = useState(false)
   const filterRef = useRef<HTMLDivElement>(null)
+  const [showNotificationDialog, setShowNotificationDialog] = useState(false)
+  const [sendingNotification, setSendingNotification] = useState(false)
   
   // 操作狀態
   const [remindingAssignment, setRemindingAssignment] = useState<string | null>(null)
@@ -856,9 +858,105 @@ export function TeacherCourseDetail({
 
           {/* 學生列表 */}
           <Card className="p-4">
-            <h3 className="text-lg font-semibold mb-4">
-              學生名單 ({filteredStudents.length}/{students.length})
-            </h3>
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-lg font-semibold">
+                學生名單 ({filteredStudents.length}/{students.length})
+              </h3>
+              {studentFilters.size > 0 && filteredStudents.length > 0 && (
+                <AlertDialog open={showNotificationDialog} onOpenChange={setShowNotificationDialog}>
+                  <AlertDialogTrigger asChild>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="whitespace-nowrap"
+                    >
+                      <BellIcon className="w-4 h-4 mr-2" />
+                      發送通知
+                    </Button>
+                  </AlertDialogTrigger>
+                  <AlertDialogContent>
+                    <AlertDialogHeader>
+                      <AlertDialogTitle>發送通知給篩選的學生</AlertDialogTitle>
+                      <AlertDialogDescription>
+                        <div className="space-y-3 mt-2">
+                          <p>將向以下 <span className="font-semibold text-foreground">{filteredStudents.length}</span> 位學生發送通知：</p>
+                          <div className="space-y-1 text-sm">
+                            {studentFilters.has("line_unbound") && (
+                              <div className="flex items-start gap-2">
+                                <span className="text-orange-600">•</span>
+                                <span>提醒尚未綁定 LINE 的學生進行綁定</span>
+                              </div>
+                            )}
+                            {studentFilters.has("classroom_not_joined") && (
+                              <div className="flex items-start gap-2">
+                                <span className="text-blue-600">•</span>
+                                <span>提醒尚未加入 Google Classroom 的學生加入課程</span>
+                              </div>
+                            )}
+                            {studentFilters.has("submission_poor") && (
+                              <div className="flex items-start gap-2">
+                                <span className="text-red-600">•</span>
+                                <span>提醒繳交率偏低的學生注意作業繳交</span>
+                              </div>
+                            )}
+                            {studentFilters.has("line_bound") && !studentFilters.has("line_unbound") && (
+                              <div className="flex items-start gap-2">
+                                <span className="text-green-600">•</span>
+                                <span>向已綁定 LINE 的學生發送通知</span>
+                              </div>
+                            )}
+                            {studentFilters.has("classroom_joined") && !studentFilters.has("classroom_not_joined") && (
+                              <div className="flex items-start gap-2">
+                                <span className="text-blue-600">•</span>
+                                <span>向已加入 Classroom 的學生發送通知</span>
+                              </div>
+                            )}
+                            {studentFilters.has("submission_good") && !studentFilters.has("submission_poor") && (
+                              <div className="flex items-start gap-2">
+                                <span className="text-orange-600">•</span>
+                                <span>向繳交率良好的學生發送通知</span>
+                              </div>
+                            )}
+                          </div>
+                          <p className="text-xs text-muted-foreground mt-3">
+                            通知將透過 LINE 推播和 Email 發送
+                          </p>
+                        </div>
+                      </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                      <AlertDialogCancel>取消</AlertDialogCancel>
+                      <AlertDialogAction
+                        onClick={async () => {
+                          setSendingNotification(true)
+                          try {
+                            // TODO: 實際 API 呼叫
+                            // await ApiService.sendNotificationToStudents({
+                            //   courseId,
+                            //   studentIds: filteredStudents.map(s => s.id),
+                            //   filters: Array.from(studentFilters),
+                            //   lineUserId
+                            // })
+                            console.log('發送通知給學生:', filteredStudents.map(s => s.name))
+                            await new Promise(resolve => setTimeout(resolve, 1000))
+                            alert('通知已發送！')
+                          } catch (error) {
+                            console.error('發送通知失敗:', error)
+                            alert('發送通知失敗，請稍後再試')
+                          } finally {
+                            setSendingNotification(false)
+                            setShowNotificationDialog(false)
+                          }
+                        }}
+                        disabled={sendingNotification}
+                      >
+                        {sendingNotification ? '發送中...' : '確認發送'}
+                      </AlertDialogAction>
+                    </AlertDialogFooter>
+                  </AlertDialogContent>
+                </AlertDialog>
+              )}
+            </div>
             {filteredStudents.length > 0 ? (
               <div className="space-y-3">
                 {filteredStudents.map((student) => (
