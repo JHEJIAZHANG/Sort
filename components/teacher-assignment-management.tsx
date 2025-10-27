@@ -193,13 +193,13 @@ export function TeacherAssignmentManagement({
               <>
                 {/* 遮罩層 */}
                 <div 
-                  className="fixed inset-0 z-10" 
+                  className="fixed inset-0 z-10 bg-black/20" 
                   onClick={() => setShowMobileDatePicker(false)}
                 />
                 {/* 卡片 */}
-                <div className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-20 bg-white border border-input rounded-md shadow-lg p-3 sm:p-4 w-[calc(100vw-3rem)] max-w-[320px]">
-                  <div className="flex items-center justify-between mb-2">
-                    <label className="text-xs sm:text-sm font-medium">選擇日期：</label>
+                <div className="fixed bottom-0 left-0 right-0 z-20 bg-white border-t border-input rounded-t-xl shadow-lg p-4 animate-slide-up">
+                  <div className="flex items-center justify-between mb-3">
+                    <label className="text-sm font-medium">選擇日期</label>
                     <Button
                       variant="ghost"
                       size="sm"
@@ -207,32 +207,24 @@ export function TeacherAssignmentManagement({
                         setFilterDate("")
                         setShowMobileDatePicker(false)
                       }}
-                      className="text-xs h-6 sm:h-7 px-2"
+                      className="text-xs h-7 px-2"
                     >
                       清除
                     </Button>
                   </div>
-                  <div className="relative">
-                    <Input
-                      type="date"
-                      value={filterDate}
-                      onChange={(e) => setFilterDate(e.target.value)}
-                      placeholder="年/月/日"
-                      className="w-full text-sm sm:text-base [&::-webkit-calendar-picker-indicator]:ml-auto [&::-webkit-calendar-picker-indicator]:cursor-pointer"
-                      style={{
-                        colorScheme: 'light'
-                      }}
-                    />
-                    {!filterDate && (
-                      <div className="absolute inset-0 flex items-center px-4 pointer-events-none text-muted-foreground text-sm sm:text-base">
-                        年/月/日
-                      </div>
-                    )}
-                  </div>
+                  <Input
+                    type="date"
+                    value={filterDate}
+                    onChange={(e) => setFilterDate(e.target.value)}
+                    className="w-full text-base [&::-webkit-calendar-picker-indicator]:ml-auto [&::-webkit-calendar-picker-indicator]:cursor-pointer [&::-webkit-datetime-edit-text]:text-muted-foreground [&::-webkit-datetime-edit-month-field]:text-muted-foreground [&::-webkit-datetime-edit-day-field]:text-muted-foreground [&::-webkit-datetime-edit-year-field]:text-muted-foreground"
+                    style={{
+                      colorScheme: 'light'
+                    }}
+                  />
                   <Button
                     size="sm"
                     onClick={() => setShowMobileDatePicker(false)}
-                    className="w-full mt-2 text-xs sm:text-sm h-8 sm:h-9"
+                    className="w-full mt-3 h-10"
                   >
                     確定
                   </Button>
@@ -277,23 +269,15 @@ export function TeacherAssignmentManagement({
                     清除
                   </Button>
                 </div>
-                <div className="relative">
-                  <Input
-                    type="date"
-                    value={filterDate}
-                    onChange={(e) => setFilterDate(e.target.value)}
-                    placeholder="年/月/日"
-                    className="w-full text-sm sm:text-base [&::-webkit-calendar-picker-indicator]:ml-auto [&::-webkit-calendar-picker-indicator]:cursor-pointer"
-                    style={{
-                      colorScheme: 'light'
-                    }}
-                  />
-                  {!filterDate && (
-                    <div className="absolute inset-0 flex items-center px-4 pointer-events-none text-muted-foreground text-sm sm:text-base">
-                      年/月/日
-                    </div>
-                  )}
-                </div>
+                <Input
+                  type="date"
+                  value={filterDate}
+                  onChange={(e) => setFilterDate(e.target.value)}
+                  className="w-full text-sm sm:text-base [&::-webkit-calendar-picker-indicator]:ml-auto [&::-webkit-calendar-picker-indicator]:cursor-pointer [&::-webkit-datetime-edit-text]:text-muted-foreground [&::-webkit-datetime-edit-month-field]:text-muted-foreground [&::-webkit-datetime-edit-day-field]:text-muted-foreground [&::-webkit-datetime-edit-year-field]:text-muted-foreground"
+                  style={{
+                    colorScheme: 'light'
+                  }}
+                />
                 <Button
                   size="sm"
                   onClick={() => setShowDatePicker(false)}
