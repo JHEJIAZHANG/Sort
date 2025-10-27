@@ -865,20 +865,7 @@ export function TeacherCourseDetail({
                   <div key={student.id} className="p-3 border rounded-lg">
                     {/* 手機版布局 */}
                     <div className="md:hidden">
-                      <div className="flex items-center justify-between mb-1">
-                        <h4 className="font-medium">{student.name}</h4>
-                        {student.recent_submission_rate !== undefined && (
-                          <Badge 
-                            variant="outline"
-                            className={student.recent_submission_rate >= 70 
-                              ? "bg-gradient-to-r from-orange-50 to-orange-100 text-orange-700 border-0 text-xs" 
-                              : "bg-gradient-to-r from-red-50 to-red-100 text-red-700 border-0 text-xs"
-                            }
-                          >
-                            繳交率 {student.recent_submission_rate}%
-                          </Badge>
-                        )}
-                      </div>
+                      <h4 className="font-medium mb-1">{student.name}</h4>
                       <p className="text-sm text-muted-foreground mb-2">{student.email}</p>
                       <div className="flex items-center gap-1 flex-wrap">
                         <Badge 
@@ -899,6 +886,17 @@ export function TeacherCourseDetail({
                         >
                           {student.classroom_joined ? "已加入 Classroom" : "未加入 Classroom"}
                         </Badge>
+                        {student.recent_submission_rate !== undefined && (
+                          <Badge 
+                            variant="outline"
+                            className={student.recent_submission_rate >= 70 
+                              ? "bg-gradient-to-r from-orange-50 to-orange-100 text-orange-700 border-0 text-xs" 
+                              : "bg-gradient-to-r from-red-50 to-red-100 text-red-700 border-0 text-xs"
+                            }
+                          >
+                            繳交率 {student.recent_submission_rate}%
+                          </Badge>
+                        )}
                       </div>
                     </div>
                     
@@ -906,20 +904,6 @@ export function TeacherCourseDetail({
                     <div className="hidden md:block">
                       <div className="flex items-center justify-between mb-1">
                         <h4 className="font-medium">{student.name}</h4>
-                        {student.recent_submission_rate !== undefined && (
-                          <Badge 
-                            variant="outline"
-                            className={student.recent_submission_rate >= 70 
-                              ? "bg-gradient-to-r from-orange-50 to-orange-100 text-orange-700 border-0" 
-                              : "bg-gradient-to-r from-red-50 to-red-100 text-red-700 border-0"
-                            }
-                          >
-                            繳交率 {student.recent_submission_rate}%
-                          </Badge>
-                        )}
-                      </div>
-                      <div className="flex items-center justify-between">
-                        <p className="text-sm text-muted-foreground">{student.email}</p>
                         <div className="flex items-center gap-2">
                           <Badge 
                             variant="outline" 
@@ -939,7 +923,21 @@ export function TeacherCourseDetail({
                           >
                             {student.classroom_joined ? "已加入 Classroom" : "未加入 Classroom"}
                           </Badge>
+                          {student.recent_submission_rate !== undefined && (
+                            <Badge 
+                              variant="outline"
+                              className={student.recent_submission_rate >= 70 
+                                ? "bg-gradient-to-r from-orange-50 to-orange-100 text-orange-700 border-0" 
+                                : "bg-gradient-to-r from-red-50 to-red-100 text-red-700 border-0"
+                              }
+                            >
+                              繳交率 {student.recent_submission_rate}%
+                            </Badge>
+                          )}
                         </div>
+                      </div>
+                      <div className="flex items-center justify-between">
+                        <p className="text-sm text-muted-foreground">{student.email}</p>
                       </div>
                     </div>
                   </div>
