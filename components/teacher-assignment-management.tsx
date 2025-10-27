@@ -657,11 +657,6 @@ export function TeacherAssignmentManagement({
                       <Badge variant={isActive ? "default" : "secondary"}>
                         {getStatusText(assignment)}
                       </Badge>
-                      {assignment.source === "google_classroom" && (
-                        <span className="text-xs px-2 py-1 rounded-full bg-blue-100 text-blue-800">
-                          Google Classroom
-                        </span>
-                      )}
                     </div>
                     
                     {assignment.description && (
