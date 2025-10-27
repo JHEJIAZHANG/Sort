@@ -118,23 +118,30 @@ export function TeacherAssignmentManagement({
 
   return (
     <div className="space-y-6">
-      {/* 標題 */}
-      <div className="mb-6 lg:mb-12 animate-slide-down">
+      {/* 標題 - 手機版 */}
+      <div className="sm:hidden">
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-2xl font-bold text-foreground">作業管理</h1>
+            <p className="text-muted-foreground">管理所有課程的作業</p>
+          </div>
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={() => setShowMobileSearch(!showMobileSearch)}
+            className="h-10 w-10"
+          >
+            <SearchIcon className="w-6 h-6" />
+          </Button>
+        </div>
+      </div>
+
+      {/* 標題 - 電腦版 */}
+      <div className="hidden sm:block mb-6 lg:mb-12 animate-slide-down">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 sm:gap-4 mobile-spacing">
           <div className="min-w-0 flex-1">
             <h1 className="text-xl sm:text-2xl lg:text-3xl xl:text-4xl font-bold text-foreground leading-tight">作業管理</h1>
-            <p className="hidden sm:block text-sm sm:text-base lg:text-lg text-muted-foreground mt-2 lg:mt-3">管理所有課程的作業</p>
-          </div>
-          {/* 手機版搜尋圖示 */}
-          <div className="flex-shrink-0 sm:hidden">
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={() => setShowMobileSearch(!showMobileSearch)}
-              className="h-10 w-10"
-            >
-              <SearchIcon className="w-6 h-6" />
-            </Button>
+            <p className="text-sm sm:text-base lg:text-lg text-muted-foreground mt-2 lg:mt-3">管理所有課程的作業</p>
           </div>
         </div>
       </div>
