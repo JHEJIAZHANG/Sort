@@ -865,77 +865,69 @@ export function TeacherCourseDetail({
                   <div key={student.id} className="p-3 border rounded-lg">
                     {/* 手機版布局 */}
                     <div className="md:hidden">
-                      <h4 className="font-medium mb-1">{student.name}</h4>
-                      <p className="text-sm text-muted-foreground mb-2">{student.email}</p>
-                      <div className="flex items-center gap-1 flex-wrap">
+                      <div className="flex items-center justify-between mb-1">
+                        <h4 className="font-medium">{student.name}</h4>
                         {student.recent_submission_rate !== undefined && (
-                          <Badge 
-                            variant="outline"
-                            className={student.recent_submission_rate >= 70 
-                              ? "bg-gradient-to-r from-orange-50 to-orange-100 text-orange-700 border-0 text-xs" 
-                              : "bg-gradient-to-r from-red-50 to-red-100 text-red-700 border-0 text-xs"
-                            }
-                          >
+                          <span className={`text-xs font-medium ${
+                            student.recent_submission_rate >= 70 
+                              ? "text-orange-700" 
+                              : "text-red-700"
+                          }`}>
                             繳交率 {student.recent_submission_rate}%
-                          </Badge>
+                          </span>
                         )}
-                        <Badge 
-                          variant="outline" 
-                          className={student.line_bound 
-                            ? "bg-gradient-to-r from-green-50 to-green-100 text-green-700 border-0 text-xs" 
-                            : "bg-gradient-to-r from-gray-50 to-gray-100 text-gray-700 border-0 text-xs"
-                          }
-                        >
+                      </div>
+                      <p className="text-sm text-muted-foreground mb-2">{student.email}</p>
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <span className={`text-xs ${
+                          student.line_bound 
+                            ? "text-green-700" 
+                            : "text-gray-600"
+                        }`}>
                           {student.line_bound ? "已綁定 LINE" : "未綁定 LINE"}
-                        </Badge>
-                        <Badge 
-                          variant="outline" 
-                          className={student.classroom_joined 
-                            ? "bg-gradient-to-r from-blue-50 to-blue-100 text-blue-700 border-0 text-xs" 
-                            : "bg-gradient-to-r from-gray-50 to-gray-100 text-gray-700 border-0 text-xs"
-                          }
-                        >
+                        </span>
+                        <span className={`text-xs ${
+                          student.classroom_joined 
+                            ? "text-blue-700" 
+                            : "text-gray-600"
+                        }`}>
                           {student.classroom_joined ? "已加入 Classroom" : "未加入 Classroom"}
-                        </Badge>
+                        </span>
                       </div>
                     </div>
                     
                     {/* 電腦版布局 */}
-                    <div className="hidden md:flex items-center justify-between gap-4">
-                      <div className="flex-1 min-w-0">
+                    <div className="hidden md:block">
+                      <div className="flex items-center justify-between mb-1">
                         <h4 className="font-medium">{student.name}</h4>
-                        <p className="text-sm text-muted-foreground mt-1">{student.email}</p>
-                      </div>
-                      <div className="flex items-center gap-2 flex-shrink-0">
                         {student.recent_submission_rate !== undefined && (
-                          <Badge 
-                            variant="outline"
-                            className={student.recent_submission_rate >= 70 
-                              ? "bg-gradient-to-r from-orange-50 to-orange-100 text-orange-700 border-0" 
-                              : "bg-gradient-to-r from-red-50 to-red-100 text-red-700 border-0"
-                            }
-                          >
+                          <span className={`text-sm font-medium ${
+                            student.recent_submission_rate >= 70 
+                              ? "text-orange-700" 
+                              : "text-red-700"
+                          }`}>
                             繳交率 {student.recent_submission_rate}%
-                          </Badge>
+                          </span>
                         )}
-                        <Badge 
-                          variant="outline" 
-                          className={student.line_bound 
-                            ? "bg-gradient-to-r from-green-50 to-green-100 text-green-700 border-0" 
-                            : "bg-gradient-to-r from-gray-50 to-gray-100 text-gray-700 border-0"
-                          }
-                        >
-                          {student.line_bound ? "已綁定 LINE" : "未綁定 LINE"}
-                        </Badge>
-                        <Badge 
-                          variant="outline" 
-                          className={student.classroom_joined 
-                            ? "bg-gradient-to-r from-blue-50 to-blue-100 text-blue-700 border-0" 
-                            : "bg-gradient-to-r from-gray-50 to-gray-100 text-gray-700 border-0"
-                          }
-                        >
-                          {student.classroom_joined ? "已加入 Classroom" : "未加入 Classroom"}
-                        </Badge>
+                      </div>
+                      <div className="flex items-center justify-between">
+                        <p className="text-sm text-muted-foreground">{student.email}</p>
+                        <div className="flex items-center gap-3">
+                          <span className={`text-sm ${
+                            student.line_bound 
+                              ? "text-green-700" 
+                              : "text-gray-600"
+                          }`}>
+                            {student.line_bound ? "已綁定 LINE" : "未綁定 LINE"}
+                          </span>
+                          <span className={`text-sm ${
+                            student.classroom_joined 
+                              ? "text-blue-700" 
+                              : "text-gray-600"
+                          }`}>
+                            {student.classroom_joined ? "已加入 Classroom" : "未加入 Classroom"}
+                          </span>
+                        </div>
                       </div>
                     </div>
                   </div>
