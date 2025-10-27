@@ -23,27 +23,42 @@ function ScrollPicker({
   label: string
 }) {
   const scrollRef = useRef<HTMLDivElement>(null)
-  const [isDragging, setIsDragging] = useState(false)
+  const [isScrolling, setIsScrolling] = useState(false)
+  const scrollTimeoutRef = useRef<NodeJS.Timeout>()
+  const isInitialMount = useRef(true)
   
+  // 初始化滾動位置
   useEffect(() => {
-    if (scrollRef.current) {
+    if (scrollRef.current && isInitialMount.current) {
       const index = options.findIndex(opt => opt.value === value)
       if (index !== -1) {
         const itemHeight = 32
-        scrollRef.current.scrollTop = index * itemHeight - itemHeight
+        scrollRef.current.scrollTop = index * itemHeight
       }
+      isInitialMount.current = false
     }
   }, [value, options])
   
   const handleScroll = () => {
-    if (scrollRef.current && !isDragging) {
-      const itemHeight = 32
-      const scrollTop = scrollRef.current.scrollTop
-      const index = Math.round(scrollTop / itemHeight)
-      if (options[index]) {
-        onChange(options[index].value)
-      }
+    setIsScrolling(true)
+    
+    // 清除之前的計時器
+    if (scrollTimeoutRef.current) {
+      clearTimeout(scrollTimeoutRef.current)
     }
+    
+    // 設置新的計時器，在滾動停止後才更新值
+    scrollTimeoutRef.current = setTimeout(() => {
+      if (scrollRef.current) {
+        const itemHeight = 32
+        const scrollTop = scrollRef.current.scrollTop
+        const index = Math.round(scrollTop / itemHeight)
+        if (options[index] && options[index].value !== value) {
+          onChange(options[index].value)
+        }
+      }
+      setIsScrolling(false)
+    }, 150)
   }
   
   return (
@@ -52,10 +67,6 @@ function ScrollPicker({
       <div 
         ref={scrollRef}
         onScroll={handleScroll}
-        onMouseDown={() => setIsDragging(true)}
-        onMouseUp={() => setIsDragging(false)}
-        onTouchStart={() => setIsDragging(true)}
-        onTouchEnd={() => setIsDragging(false)}
         className="h-32 overflow-y-scroll snap-y snap-mandatory scrollbar-hide relative"
         style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
       >
@@ -68,7 +79,17 @@ function ScrollPicker({
                 ? 'text-foreground font-semibold text-base' 
                 : 'text-muted-foreground text-sm'
             }`}
-            onClick={() => onChange(option.value)}
+            onClick={() => {
+              if (scrollRef.current) {
+                const index = options.findIndex(opt => opt.value === option.value)
+                const itemHeight = 32
+                scrollRef.current.scrollTo({
+                  top: index * itemHeight,
+                  behavior: 'smooth'
+                })
+              }
+              onChange(option.value)
+            }}
           >
             {option.label}
           </div>
