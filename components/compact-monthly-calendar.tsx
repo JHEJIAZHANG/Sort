@@ -292,12 +292,16 @@ export function CompactMonthlyCalendar({ className, selectedDate, onDateSelect, 
                     <span
                       className={`
                         flex items-center justify-center font-medium transition-all duration-200
-                        ${isToday(day) 
-                          ? "bg-primary text-primary-foreground rounded-full w-6 h-6 sm:w-7 sm:h-7 text-xs sm:text-sm" 
+                        ${isToday(day) && isSelected(day)
+                          ? "bg-white text-foreground rounded-full w-6 h-6 sm:w-7 sm:h-7 text-xs sm:text-sm border-2 border-orange-500" 
+                          : ""
+                        }
+                        ${isToday(day) && !isSelected(day)
+                          ? "bg-orange-500 text-white rounded-full w-6 h-6 sm:w-7 sm:h-7 text-xs sm:text-sm" 
                           : ""
                         }
                         ${isSelected(day) && !isToday(day) 
-                          ? "border border-primary rounded-full w-6 h-6 sm:w-7 sm:h-7 text-primary text-xs sm:text-sm" 
+                          ? "bg-white text-foreground rounded-full w-6 h-6 sm:w-7 sm:h-7 text-xs sm:text-sm border-2 border-primary" 
                           : ""
                         }
                         ${!isToday(day) && !isSelected(day) ? "text-xs sm:text-sm" : ""}
