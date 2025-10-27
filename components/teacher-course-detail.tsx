@@ -532,13 +532,15 @@ export function TeacherCourseDetail({
                     <div className="flex-1">
                       <div className="flex items-center gap-3">
                         <h4 className="font-medium">{student.name}</h4>
-                        {student.line_bound ? (
-                          <span className="text-xs px-2 py-1 rounded-full bg-gradient-to-r from-green-50 to-green-100 text-green-700 border border-green-200">
-                            LINE 已綁定
-                          </span>
-                        ) : (
-                          <Badge variant="secondary">未綁定</Badge>
-                        )}
+                        <Badge 
+                          variant="outline" 
+                          className={student.line_bound 
+                            ? "bg-gradient-to-r from-green-50 to-green-100 text-green-700 border-green-200" 
+                            : "bg-gray-50 text-gray-700 border-gray-200"
+                          }
+                        >
+                          {student.line_bound ? "LINE 已綁定" : "未綁定"}
+                        </Badge>
                         {student.recent_submission_rate !== undefined && (
                           <Badge variant={student.recent_submission_rate >= 70 ? "default" : "destructive"}>
                             繳交率 {student.recent_submission_rate}%
