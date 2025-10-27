@@ -104,8 +104,8 @@ export function TeacherCourseDetail({
   const [boundGroups, setBoundGroups] = useState<BoundGroup[]>([])
   const [weeklyReports, setWeeklyReports] = useState<WeeklyReport[]>([])
   
-  // 篩選狀態 - 改為多選
-  const [studentFilters, setStudentFilters] = useState<Set<string>>(new Set(["line_bound", "line_unbound", "classroom_joined", "classroom_not_joined", "submission_good", "submission_poor"]))
+  // 篩選狀態 - 改為多選（預設未勾選）
+  const [studentFilters, setStudentFilters] = useState<Set<string>>(new Set())
   const [assignmentFilter, setAssignmentFilter] = useState<"all" | "active" | "overdue">("all")
   const [searchQuery, setSearchQuery] = useState("")
   const [isFilterOpen, setIsFilterOpen] = useState(false)
@@ -281,6 +281,11 @@ export function TeacherCourseDetail({
       student.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
       student.email.toLowerCase().includes(searchQuery.toLowerCase())
     
+    // 如果沒有選擇任何篩選條件，顯示全部學生
+    if (studentFilters.size === 0) {
+      return matchesSearch
+    }
+    
     // 檢查學生是否符合任一選中的篩選條件
     const matchesLineFilter = 
       (studentFilters.has("line_bound") && student.line_bound) ||
@@ -294,7 +299,7 @@ export function TeacherCourseDetail({
       (studentFilters.has("submission_good") && (student.recent_submission_rate || 0) >= 70) ||
       (studentFilters.has("submission_poor") && (student.recent_submission_rate || 0) < 70)
     
-    return matchesSearch && matchesLineFilter && matchesClassroomFilter && matchesSubmissionFilter
+    return matchesSearch && (matchesLineFilter || matchesClassroomFilter || matchesSubmissionFilter)
   })
 
   // 篩選和排序作業
@@ -534,142 +539,131 @@ export function TeacherCourseDetail({
           />
           
           {/* 篩選控制 - 下拉式多選 */}
-          <div className="relative" ref={filterRef}>
-            <button
-              onClick={() => setIsFilterOpen(!isFilterOpen)}
-              className="w-full flex items-center justify-between px-4 py-2 border border-gray-300 rounded-md bg-white hover:bg-gray-50 transition-colors"
-            >
-              <span className="text-sm text-gray-700">
-                {studentFilters.size === 6 ? "全部學生" : `已選擇 ${studentFilters.size} 個篩選條件`}
-              </span>
-              <ChevronDown className={`w-4 h-4 text-gray-500 transition-transform ${isFilterOpen ? 'rotate-180' : ''}`} />
-            </button>
+          <div className="flex gap-2">
+            <div className="relative flex-1" ref={filterRef}>
+              <button
+                onClick={() => setIsFilterOpen(!isFilterOpen)}
+                className="w-full flex items-center justify-between px-4 py-2 border border-gray-300 rounded-md bg-white hover:bg-gray-50 transition-colors"
+              >
+                <span className="text-sm text-gray-700">
+                  {studentFilters.size === 0 ? "全部學生" : `已選擇 ${studentFilters.size} 個篩選條件`}
+                </span>
+                <ChevronDown className={`w-4 h-4 text-gray-500 transition-transform ${isFilterOpen ? 'rotate-180' : ''}`} />
+              </button>
 
-            {isFilterOpen && (
-              <div className="absolute z-10 w-full mt-2 bg-white border border-gray-200 rounded-md shadow-lg max-h-96 overflow-y-auto">
-                <div className="p-3 space-y-4">
-                  {/* LINE 綁定狀態 */}
-                  <div>
-                    <p className="text-xs font-medium text-gray-500 mb-2">LINE 綁定狀態</p>
-                    <div className="space-y-2">
-                      <label className="flex items-center gap-2 cursor-pointer hover:bg-gray-50 p-2 rounded">
-                        <Checkbox 
-                          checked={studentFilters.has("line_bound")}
-                          onCheckedChange={(checked) => {
-                            const newFilters = new Set(studentFilters)
-                            if (checked) {
-                              newFilters.add("line_bound")
-                            } else {
-                              newFilters.delete("line_bound")
-                            }
-                            setStudentFilters(newFilters)
-                          }}
-                        />
-                        <span className="text-sm flex-1">已綁定 LINE</span>
-                        <span className="text-xs text-gray-500">({students.filter(s => s.line_bound).length})</span>
-                      </label>
-                      <label className="flex items-center gap-2 cursor-pointer hover:bg-gray-50 p-2 rounded">
-                        <Checkbox 
-                          checked={studentFilters.has("line_unbound")}
-                          onCheckedChange={(checked) => {
-                            const newFilters = new Set(studentFilters)
-                            if (checked) {
-                              newFilters.add("line_unbound")
-                            } else {
-                              newFilters.delete("line_unbound")
-                            }
-                            setStudentFilters(newFilters)
-                          }}
-                        />
-                        <span className="text-sm flex-1">未綁定 LINE</span>
-                        <span className="text-xs text-gray-500">({students.filter(s => !s.line_bound).length})</span>
-                      </label>
-                    </div>
-                  </div>
-
-                  <div className="border-t border-gray-200"></div>
-
-                  {/* Classroom 加入狀態 */}
-                  <div>
-                    <p className="text-xs font-medium text-gray-500 mb-2">Classroom 加入狀態</p>
-                    <div className="space-y-2">
-                      <label className="flex items-center gap-2 cursor-pointer hover:bg-gray-50 p-2 rounded">
-                        <Checkbox 
-                          checked={studentFilters.has("classroom_joined")}
-                          onCheckedChange={(checked) => {
-                            const newFilters = new Set(studentFilters)
-                            if (checked) {
-                              newFilters.add("classroom_joined")
-                            } else {
-                              newFilters.delete("classroom_joined")
-                            }
-                            setStudentFilters(newFilters)
-                          }}
-                        />
-                        <span className="text-sm flex-1">已加入 Classroom</span>
-                        <span className="text-xs text-gray-500">({students.filter(s => s.classroom_joined).length})</span>
-                      </label>
-                      <label className="flex items-center gap-2 cursor-pointer hover:bg-gray-50 p-2 rounded">
-                        <Checkbox 
-                          checked={studentFilters.has("classroom_not_joined")}
-                          onCheckedChange={(checked) => {
-                            const newFilters = new Set(studentFilters)
-                            if (checked) {
-                              newFilters.add("classroom_not_joined")
-                            } else {
-                              newFilters.delete("classroom_not_joined")
-                            }
-                            setStudentFilters(newFilters)
-                          }}
-                        />
-                        <span className="text-sm flex-1">未加入 Classroom</span>
-                        <span className="text-xs text-gray-500">({students.filter(s => !s.classroom_joined).length})</span>
-                      </label>
-                    </div>
-                  </div>
-
-                  <div className="border-t border-gray-200"></div>
-
-                  {/* 繳交率狀態 */}
-                  <div>
-                    <p className="text-xs font-medium text-gray-500 mb-2">繳交率狀態</p>
-                    <div className="space-y-2">
-                      <label className="flex items-center gap-2 cursor-pointer hover:bg-gray-50 p-2 rounded">
-                        <Checkbox 
-                          checked={studentFilters.has("submission_good")}
-                          onCheckedChange={(checked) => {
-                            const newFilters = new Set(studentFilters)
-                            if (checked) {
-                              newFilters.add("submission_good")
-                            } else {
-                              newFilters.delete("submission_good")
-                            }
-                            setStudentFilters(newFilters)
-                          }}
-                        />
-                        <span className="text-sm flex-1">繳交率良好 (≥70%)</span>
-                        <span className="text-xs text-gray-500">({students.filter(s => (s.recent_submission_rate || 0) >= 70).length})</span>
-                      </label>
-                      <label className="flex items-center gap-2 cursor-pointer hover:bg-gray-50 p-2 rounded">
-                        <Checkbox 
-                          checked={studentFilters.has("submission_poor")}
-                          onCheckedChange={(checked) => {
-                            const newFilters = new Set(studentFilters)
-                            if (checked) {
-                              newFilters.add("submission_poor")
-                            } else {
-                              newFilters.delete("submission_poor")
-                            }
-                            setStudentFilters(newFilters)
-                          }}
-                        />
-                        <span className="text-sm flex-1">繳交率偏低 (&lt;70%)</span>
-                        <span className="text-xs text-gray-500">({students.filter(s => (s.recent_submission_rate || 0) < 70).length})</span>
-                      </label>
-                    </div>
+              {isFilterOpen && (
+                <div className="absolute z-10 w-full mt-2 bg-white border border-gray-200 rounded-md shadow-lg max-h-96 overflow-y-auto">
+                  <div className="p-2">
+                    <label className="flex items-center gap-2 cursor-pointer hover:bg-gray-50 p-2 rounded">
+                      <Checkbox 
+                        checked={studentFilters.has("line_bound")}
+                        onCheckedChange={(checked) => {
+                          const newFilters = new Set(studentFilters)
+                          if (checked) {
+                            newFilters.add("line_bound")
+                          } else {
+                            newFilters.delete("line_bound")
+                          }
+                          setStudentFilters(newFilters)
+                        }}
+                      />
+                      <span className="text-sm flex-1">已綁定 LINE</span>
+                    </label>
+                    
+                    <label className="flex items-center gap-2 cursor-pointer hover:bg-gray-50 p-2 rounded">
+                      <Checkbox 
+                        checked={studentFilters.has("line_unbound")}
+                        onCheckedChange={(checked) => {
+                          const newFilters = new Set(studentFilters)
+                          if (checked) {
+                            newFilters.add("line_unbound")
+                          } else {
+                            newFilters.delete("line_unbound")
+                          }
+                          setStudentFilters(newFilters)
+                        }}
+                      />
+                      <span className="text-sm flex-1">未綁定 LINE</span>
+                    </label>
+                    
+                    <label className="flex items-center gap-2 cursor-pointer hover:bg-gray-50 p-2 rounded">
+                      <Checkbox 
+                        checked={studentFilters.has("classroom_joined")}
+                        onCheckedChange={(checked) => {
+                          const newFilters = new Set(studentFilters)
+                          if (checked) {
+                            newFilters.add("classroom_joined")
+                          } else {
+                            newFilters.delete("classroom_joined")
+                          }
+                          setStudentFilters(newFilters)
+                        }}
+                      />
+                      <span className="text-sm flex-1">Classroom 已加入</span>
+                    </label>
+                    
+                    <label className="flex items-center gap-2 cursor-pointer hover:bg-gray-50 p-2 rounded">
+                      <Checkbox 
+                        checked={studentFilters.has("classroom_not_joined")}
+                        onCheckedChange={(checked) => {
+                          const newFilters = new Set(studentFilters)
+                          if (checked) {
+                            newFilters.add("classroom_not_joined")
+                          } else {
+                            newFilters.delete("classroom_not_joined")
+                          }
+                          setStudentFilters(newFilters)
+                        }}
+                      />
+                      <span className="text-sm flex-1">Classroom 未加入</span>
+                    </label>
+                    
+                    <label className="flex items-center gap-2 cursor-pointer hover:bg-gray-50 p-2 rounded">
+                      <Checkbox 
+                        checked={studentFilters.has("submission_good")}
+                        onCheckedChange={(checked) => {
+                          const newFilters = new Set(studentFilters)
+                          if (checked) {
+                            newFilters.add("submission_good")
+                          } else {
+                            newFilters.delete("submission_good")
+                          }
+                          setStudentFilters(newFilters)
+                        }}
+                      />
+                      <span className="text-sm flex-1">繳交率良好</span>
+                    </label>
+                    
+                    <label className="flex items-center gap-2 cursor-pointer hover:bg-gray-50 p-2 rounded">
+                      <Checkbox 
+                        checked={studentFilters.has("submission_poor")}
+                        onCheckedChange={(checked) => {
+                          const newFilters = new Set(studentFilters)
+                          if (checked) {
+                            newFilters.add("submission_poor")
+                          } else {
+                            newFilters.delete("submission_poor")
+                          }
+                          setStudentFilters(newFilters)
+                        }}
+                      />
+                      <span className="text-sm flex-1">繳交率偏低</span>
+                    </label>
                   </div>
                 </div>
-              </div>
+              )}
+            </div>
+            
+            {/* 清除篩選按鈕 */}
+            {studentFilters.size > 0 && (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setStudentFilters(new Set())}
+                className="whitespace-nowrap"
+              >
+                清除篩選
+              </Button>
             )}
           </div>
 
