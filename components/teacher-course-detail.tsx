@@ -109,7 +109,9 @@ export function TeacherCourseDetail({
   const [assignmentFilter, setAssignmentFilter] = useState<"all" | "active" | "overdue">("all")
   const [searchQuery, setSearchQuery] = useState("")
   const [isFilterOpen, setIsFilterOpen] = useState(false)
+  const [isFilterOpenDesktop, setIsFilterOpenDesktop] = useState(false)
   const filterRef = useRef<HTMLDivElement>(null)
+  const filterRefDesktop = useRef<HTMLDivElement>(null)
   const [showNotificationDialog, setShowNotificationDialog] = useState(false)
   const [sendingNotification, setSendingNotification] = useState(false)
   
@@ -202,11 +204,25 @@ export function TeacherCourseDetail({
     }
   }, [courseId, lineUserId, course])
 
-  // 點擊外部關閉下拉選單
+  // 點擊外部關閉下拉選單 - 手機版
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (filterRef.current && !filterRef.current.contains(event.target as Node)) {
         setIsFilterOpen(false)
+      }
+    }
+
+    document.addEventListener('mousedown', handleClickOutside)
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside)
+    }
+  }, [])
+
+  // 點擊外部關閉下拉選單 - 電腦版
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (filterRefDesktop.current && !filterRefDesktop.current.contains(event.target as Node)) {
+        setIsFilterOpenDesktop(false)
       }
     }
 
@@ -705,18 +721,18 @@ export function TeacherCourseDetail({
             />
             
             {/* 篩選控制 - 下拉式多選 */}
-            <div className="relative w-48">
+            <div className="relative w-48" ref={filterRefDesktop}>
               <button
-                onClick={() => setIsFilterOpen(!isFilterOpen)}
+                onClick={() => setIsFilterOpenDesktop(!isFilterOpenDesktop)}
                 className="w-full flex items-center justify-between px-3 py-2 text-sm border border-input rounded-md bg-background hover:bg-accent hover:text-accent-foreground transition-colors"
               >
                 <span className="text-sm">
                   {studentFilters.size === 0 ? "全部學生" : `已選擇 ${studentFilters.size} 個篩選條件`}
                 </span>
-                <ChevronDown className={`w-4 h-4 ml-2 transition-transform ${isFilterOpen ? 'rotate-180' : ''}`} />
+                <ChevronDown className={`w-4 h-4 ml-2 transition-transform ${isFilterOpenDesktop ? 'rotate-180' : ''}`} />
               </button>
 
-              {isFilterOpen && (
+              {isFilterOpenDesktop && (
                 <div className="absolute z-50 w-full mt-1 bg-popover border border-border rounded-md shadow-md overflow-hidden">
                   <div className="max-h-[300px] overflow-y-auto p-1">
                     <div
