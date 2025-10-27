@@ -7,7 +7,7 @@ import { Badge } from "@/components/ui/badge"
 import { Input } from "@/components/ui/input"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { EmptyStateSimple } from "@/components/empty-state"
-import { ClipboardIcon, CalendarIcon, CheckIcon, ClockIcon, ExclamationIcon } from "@/components/icons"
+import { ClipboardIcon, CalendarIcon, CheckIcon, ClockIcon, ExclamationIcon, SearchIcon } from "@/components/icons"
 import type { Assignment, Course } from "@/types/course"
 
 interface TeacherAssignmentManagementProps {
@@ -24,6 +24,7 @@ export function TeacherAssignmentManagement({
   const [searchQuery, setSearchQuery] = useState("")
   const [filterCourse, setFilterCourse] = useState<string>("all")
   const [filterStatus, setFilterStatus] = useState<string>("all")
+  const [showMobileSearch, setShowMobileSearch] = useState(false)
 
   // 篩選作業
   const filteredAssignments = useMemo(() => {
@@ -118,13 +119,36 @@ export function TeacherAssignmentManagement({
   return (
     <div className="space-y-6">
       {/* 標題 */}
-      <div>
-        <h1 className="text-2xl font-bold text-foreground">作業管理</h1>
-        <p className="text-muted-foreground hidden sm:block">管理所有課程的作業</p>
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-2xl font-bold text-foreground">作業管理</h1>
+          <p className="text-muted-foreground hidden sm:block">管理所有課程的作業</p>
+        </div>
+        {/* 手機版搜尋圖示 */}
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={() => setShowMobileSearch(!showMobileSearch)}
+          className="sm:hidden"
+        >
+          <SearchIcon className="w-5 h-5" />
+        </Button>
       </div>
 
-      {/* 篩選控制 */}
-      <div className="flex flex-col sm:flex-row gap-4">
+      {/* 手機版搜尋框 */}
+      {showMobileSearch && (
+        <div className="sm:hidden">
+          <Input
+            placeholder="搜尋作業標題或描述..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="w-full"
+          />
+        </div>
+      )}
+
+      {/* 篩選控制 - 電腦版 */}
+      <div className="hidden sm:flex sm:flex-row gap-4">
         <Input
           placeholder="搜尋作業標題或描述..."
           value={searchQuery}
@@ -146,8 +170,54 @@ export function TeacherAssignmentManagement({
         </Select>
       </div>
 
-      {/* 狀態按鈕 */}
-      <div className="flex gap-2 overflow-x-auto pb-2">
+      {/* 手機版篩選控制 - 狀態按鈕在上，課程選擇在下 */}
+      <div className="sm:hidden space-y-4">
+        {/* 狀態按鈕 */}
+        <div className="flex gap-2 overflow-x-auto pb-2">
+          <Button
+            variant={filterStatus === "all" ? "default" : "outline"}
+            size="sm"
+            onClick={() => setFilterStatus("all")}
+            className="whitespace-nowrap"
+          >
+            全部 ({statusCounts.all})
+          </Button>
+          <Button
+            variant={filterStatus === "active" ? "default" : "outline"}
+            size="sm"
+            onClick={() => setFilterStatus("active")}
+            className="whitespace-nowrap"
+          >
+            進行中 ({statusCounts.active})
+          </Button>
+          <Button
+            variant={filterStatus === "ended" ? "default" : "outline"}
+            size="sm"
+            onClick={() => setFilterStatus("ended")}
+            className="whitespace-nowrap"
+          >
+            已結束 ({statusCounts.ended})
+          </Button>
+        </div>
+        
+        {/* 課程篩選 */}
+        <Select value={filterCourse} onValueChange={setFilterCourse}>
+          <SelectTrigger className="w-full">
+            <SelectValue placeholder="篩選課程" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">全部課程</SelectItem>
+            {courses.map((course) => (
+              <SelectItem key={course.id} value={course.id}>
+                {course.name}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </div>
+
+      {/* 電腦版狀態按鈕 */}
+      <div className="hidden sm:flex gap-2 overflow-x-auto pb-2">
         <Button
           variant={filterStatus === "all" ? "default" : "outline"}
           size="sm"
