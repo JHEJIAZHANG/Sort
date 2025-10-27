@@ -4,12 +4,184 @@ import type React from "react"
 
 import { useState, useEffect, useRef } from "react"
 import type { Course, Assignment, Exam } from "@/types/course"
-import { isSameDayTaiwan, isTodayTaiwan } from "@/lib/taiwan-time"
-import { ChevronLeft, ChevronRight, CalendarIcon } from "lucide-react"
+import { isSameDayTaiwan, isTodayTaiwan, getTaiwanTime } from "@/lib/taiwan-time"
+import { ChevronLeft, ChevronRight, CalendarIcon, ChevronLeftIcon, ChevronRightIcon } from "lucide-react"
 import { Button } from "@/components/ui/button"
-import { Calendar } from "@/components/ui/calendar"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 import { cn } from "@/lib/utils"
+
+// 自訂日期選擇器組件（與作業管理一致）
+function DatePickerCalendar({ selectedDate, onDateSelect }: { selectedDate?: Date; onDateSelect: (date: Date) => void }) {
+  const [currentDate, setCurrentDate] = useState(selectedDate || getTaiwanTime())
+  const [showYearPicker, setShowYearPicker] = useState(false)
+  const [showMonthPicker, setShowMonthPicker] = useState(false)
+  
+  const today = getTaiwanTime()
+  const currentMonth = currentDate.getMonth()
+  const currentYear = currentDate.getFullYear()
+  
+  const firstDayOfMonth = new Date(currentYear, currentMonth, 1)
+  const lastDayOfMonth = new Date(currentYear, currentMonth + 1, 0)
+  const daysInMonth = lastDayOfMonth.getDate()
+  
+  const taiwanFirstDay = new Date(firstDayOfMonth.getTime() + (8 * 60 * 60 * 1000))
+  const startingDayOfWeek = taiwanFirstDay.getUTCDay()
+  const adjustedStartDay = startingDayOfWeek === 0 ? 6 : startingDayOfWeek - 1
+  
+  const monthNames = ["一月", "二月", "三月", "四月", "五月", "六月", "七月", "八月", "九月", "十月", "十一月", "十二月"]
+  const dayNames = ["一", "二", "三", "四", "五", "六", "日"]
+  
+  const isToday = (day: number) => {
+    return today.getDate() === day && today.getMonth() === currentMonth && today.getFullYear() === currentYear
+  }
+  
+  const isSelected = (day: number) => {
+    if (!selectedDate) return false
+    const selDate = new Date(selectedDate)
+    return selDate.getDate() === day && selDate.getMonth() === currentMonth && selDate.getFullYear() === currentYear
+  }
+  
+  // 當 selectedDate 改變時，更新 currentDate 到該月份
+  useEffect(() => {
+    if (selectedDate) {
+      const selDate = new Date(selectedDate)
+      setCurrentDate(new Date(selDate.getFullYear(), selDate.getMonth(), 1))
+    }
+  }, [selectedDate])
+  
+  const calendarDays = []
+  for (let i = 0; i < adjustedStartDay; i++) {
+    calendarDays.push(null)
+  }
+  for (let day = 1; day <= daysInMonth; day++) {
+    calendarDays.push(day)
+  }
+  
+  return (
+    <div className="w-full">
+      {/* 月份導航 */}
+      <div className="flex items-center justify-between mb-3">
+        <Button 
+          variant="ghost" 
+          size="sm" 
+          onClick={() => setCurrentDate(new Date(currentYear, currentMonth - 1, 1))}
+          className="h-8 w-8 p-0"
+        >
+          <ChevronLeftIcon className="h-4 w-4" />
+        </Button>
+        <div className="flex items-center gap-1">
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => {
+              setShowYearPicker(!showYearPicker)
+              setShowMonthPicker(false)
+            }}
+            className="h-8 px-2 font-medium text-sm hover:bg-accent"
+          >
+            {currentYear}年
+          </Button>
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => {
+              setShowMonthPicker(!showMonthPicker)
+              setShowYearPicker(false)
+            }}
+            className="h-8 px-2 font-medium text-sm hover:bg-accent"
+          >
+            {monthNames[currentMonth]}
+          </Button>
+        </div>
+        <Button 
+          variant="ghost" 
+          size="sm" 
+          onClick={() => setCurrentDate(new Date(currentYear, currentMonth + 1, 1))}
+          className="h-8 w-8 p-0"
+        >
+          <ChevronRightIcon className="h-4 w-4" />
+        </Button>
+      </div>
+      
+      {/* 年份選擇器 */}
+      {showYearPicker && (
+        <div className="grid grid-cols-3 gap-2 mb-3 max-h-48 overflow-y-auto p-2 border rounded-md">
+          {Array.from({ length: 21 }, (_, i) => currentYear - 10 + i).map((year) => (
+            <Button
+              key={year}
+              variant={year === currentYear ? "default" : "outline"}
+              size="sm"
+              onClick={() => {
+                setCurrentDate(new Date(year, currentMonth, 1))
+                setShowYearPicker(false)
+              }}
+              className="h-8 text-xs"
+            >
+              {year}
+            </Button>
+          ))}
+        </div>
+      )}
+      
+      {/* 月份選擇器 */}
+      {showMonthPicker && (
+        <div className="grid grid-cols-3 gap-2 mb-3 p-2 border rounded-md">
+          {monthNames.map((month, index) => (
+            <Button
+              key={index}
+              variant={index === currentMonth ? "default" : "outline"}
+              size="sm"
+              onClick={() => {
+                setCurrentDate(new Date(currentYear, index, 1))
+                setShowMonthPicker(false)
+              }}
+              className="h-8 text-xs"
+            >
+              {month}
+            </Button>
+          ))}
+        </div>
+      )}
+      
+      {/* 星期標題 */}
+      <div className="grid grid-cols-7 gap-1 mb-2">
+        {dayNames.map((day) => (
+          <div key={day} className="text-center text-xs font-medium text-muted-foreground py-1">
+            {day}
+          </div>
+        ))}
+      </div>
+      
+      {/* 日期格子 */}
+      <div className="grid grid-cols-7 gap-1">
+        {calendarDays.map((day, index) => (
+          <div
+            key={index}
+            className={`
+              aspect-square flex items-center justify-center text-sm rounded-md p-1 relative min-h-[40px]
+              ${day === null ? "" : "hover:bg-accent cursor-pointer transition-colors"}
+            `}
+            onClick={day ? () => {
+              // 使用本地時間創建日期，避免時區問題
+              const selectedDate = new Date(currentYear, currentMonth, day, 12, 0, 0)
+              onDateSelect(selectedDate)
+            } : undefined}
+          >
+            {day && (
+              <span className={`
+                flex items-center justify-center font-medium w-7 h-7 rounded-full
+                ${isToday(day) ? "bg-primary text-primary-foreground" : ""}
+                ${isSelected(day) && !isToday(day) ? "border border-primary text-primary" : ""}
+              `}>
+                {day}
+              </span>
+            )}
+          </div>
+        ))}
+      </div>
+    </div>
+  )
+}
 
 interface ScrollSummaryProps {
   courses: Course[]
@@ -224,12 +396,10 @@ export function ScrollSummary({ courses, assignments, exams, selectedDate, onDat
                 {dateStr}
               </Button>
             </PopoverTrigger>
-            <PopoverContent className="w-auto p-0" align="start">
-              <Calendar
-                mode="single"
-                selected={selectedDate}
-                onSelect={handleDateSelect}
-                initialFocus
+            <PopoverContent className="w-auto p-4" align="start">
+              <DatePickerCalendar
+                selectedDate={selectedDate}
+                onDateSelect={handleDateSelect}
               />
             </PopoverContent>
           </Popover>

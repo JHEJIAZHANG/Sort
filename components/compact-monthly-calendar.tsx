@@ -264,16 +264,16 @@ export function CompactMonthlyCalendar({ className, selectedDate, onDateSelect, 
         )}
 
         {/* Day headers */}
-        <div className="grid grid-cols-7 gap-1 mb-2">
+        <div className="grid grid-cols-7 gap-1 sm:gap-2 mb-2 sm:mb-3">
           {dayNames.map((day) => (
-            <div key={day} className="text-center text-xs font-medium text-muted-foreground py-1">
+            <div key={day} className="text-center text-xs sm:text-sm font-medium text-muted-foreground py-1 sm:py-2">
               {day}
             </div>
           ))}
         </div>
 
         {/* Calendar grid */}
-        <div className="grid grid-cols-7 gap-1">
+        <div className="grid grid-cols-7 gap-1 sm:gap-2">
           {calendarDays.map((day, index) => {
             const dayEventsCount = day ? getEventsCountForDay(day) : 0
 
@@ -281,8 +281,8 @@ export function CompactMonthlyCalendar({ className, selectedDate, onDateSelect, 
               <div
                 key={index}
                 className={`
-                  aspect-square flex flex-col items-center justify-center text-sm rounded-md p-1 relative min-h-[40px]
-                  ${day === null ? "" : "hover:bg-accent cursor-pointer transition-colors"}
+                  aspect-square flex flex-col items-center justify-center text-xs sm:text-sm rounded-md p-1 sm:p-2 relative min-h-[40px] sm:min-h-[48px]
+                  ${day === null ? "" : "hover:bg-accent cursor-pointer transition-colors duration-200"}
                   ${day === null ? "text-transparent" : ""}
                 `}
                 onClick={day ? () => handleDateClick(day) : undefined}
@@ -291,9 +291,20 @@ export function CompactMonthlyCalendar({ className, selectedDate, onDateSelect, 
                   <>
                     <span
                       className={`
-                        flex items-center justify-center font-medium w-7 h-7 rounded-full
-                        ${isToday(day) ? "bg-primary text-primary-foreground" : ""}
-                        ${isSelected(day) && !isToday(day) ? "border border-primary text-primary" : ""}
+                        flex items-center justify-center font-medium transition-all duration-200
+                        ${isToday(day) && isSelected(day)
+                          ? "bg-white text-foreground rounded-full w-6 h-6 sm:w-7 sm:h-7 text-xs sm:text-sm border-2 border-orange-500" 
+                          : ""
+                        }
+                        ${isToday(day) && !isSelected(day)
+                          ? "bg-orange-500 text-white rounded-full w-6 h-6 sm:w-7 sm:h-7 text-xs sm:text-sm" 
+                          : ""
+                        }
+                        ${isSelected(day) && !isToday(day) 
+                          ? "bg-white text-foreground rounded-full w-6 h-6 sm:w-7 sm:h-7 text-xs sm:text-sm border-2 border-primary" 
+                          : ""
+                        }
+                        ${!isToday(day) && !isSelected(day) ? "text-xs sm:text-sm" : ""}
                       `}
                     >
                       {day}
