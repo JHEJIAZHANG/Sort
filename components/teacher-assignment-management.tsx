@@ -27,6 +27,7 @@ export function TeacherAssignmentManagement({
   const [showMobileSearch, setShowMobileSearch] = useState(false)
   const [filterDate, setFilterDate] = useState<string>("")
   const [showDatePicker, setShowDatePicker] = useState(false)
+  const [showMobileDatePicker, setShowMobileDatePicker] = useState(false)
   const datePickerRef = useRef<HTMLDivElement>(null)
 
   // 點擊外部關閉日期選擇器
@@ -179,56 +180,100 @@ export function TeacherAssignmentManagement({
             onChange={(e) => setSearchQuery(e.target.value)}
             className="flex-1"
           />
-          <Input
-            type="date"
-            value={filterDate}
-            onChange={(e) => setFilterDate(e.target.value)}
-            className="w-36"
-            placeholder="選擇日期"
-          />
+          <div className="relative">
+            <Button
+              variant="outline"
+              size="icon"
+              onClick={() => setShowMobileDatePicker(!showMobileDatePicker)}
+              className="h-10 w-10"
+            >
+              <CalendarIcon className="w-5 h-5" />
+            </Button>
+            {showMobileDatePicker && (
+              <div className="absolute top-full right-0 mt-2 z-10 bg-white border border-input rounded-md shadow-lg p-4 min-w-[280px]">
+                <div className="flex items-center justify-between mb-2">
+                  <label className="text-sm font-medium">選擇日期：</label>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => {
+                      setFilterDate("")
+                      setShowMobileDatePicker(false)
+                    }}
+                    className="text-xs h-7"
+                  >
+                    清除
+                  </Button>
+                </div>
+                <Input
+                  type="date"
+                  value={filterDate}
+                  onChange={(e) => setFilterDate(e.target.value)}
+                  className="w-full"
+                />
+                <Button
+                  size="sm"
+                  onClick={() => setShowMobileDatePicker(false)}
+                  className="w-full mt-2"
+                >
+                  確定
+                </Button>
+              </div>
+            )}
+          </div>
         </div>
       )}
 
       {/* 篩選控制 - 電腦版 */}
       <div className="hidden sm:flex sm:flex-row gap-4">
-        <div className="flex-1 relative" ref={datePickerRef}>
+        <div className="flex-1 flex gap-2">
           <Input
             placeholder="搜尋作業標題或描述..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            onFocus={() => setShowDatePicker(true)}
-            className="w-full"
+            className="flex-1"
           />
-          {showDatePicker && (
-            <div className="absolute top-full left-0 mt-2 z-10 bg-white border border-input rounded-md shadow-lg p-4 min-w-[280px]">
-              <div className="flex items-center justify-between mb-2">
-                <label className="text-sm font-medium">篩選日期：</label>
+          <div className="relative" ref={datePickerRef}>
+            <Button
+              variant="outline"
+              size="icon"
+              onClick={() => setShowDatePicker(!showDatePicker)}
+              className="h-10 w-10"
+            >
+              <CalendarIcon className="w-5 h-5" />
+            </Button>
+            {showDatePicker && (
+              <div className="absolute top-full right-0 mt-2 z-10 bg-white border border-input rounded-md shadow-lg p-4 min-w-[280px]">
+                <div className="flex items-center justify-between mb-2">
+                  <label className="text-sm font-medium">選擇日期：</label>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => {
+                      setFilterDate("")
+                      setShowDatePicker(false)
+                    }}
+                    className="text-xs h-7"
+                  >
+                    清除
+                  </Button>
+                </div>
+                <Input
+                  type="date"
+                  value={filterDate}
+                  onChange={(e) => setFilterDate(e.target.value)}
+                  className="w-full [&::-webkit-calendar-picker-indicator]:ml-auto"
+                />
                 <Button
-                  variant="ghost"
                   size="sm"
-                  onClick={() => {
-                    setFilterDate("")
-                  }}
-                  className="text-xs h-7"
+                  onClick={() => setShowDatePicker(false)}
+                  className="w-full mt-2"
                 >
-                  清除
+                  確定
                 </Button>
               </div>
-              <Input
-                type="date"
-                value={filterDate}
-                onChange={(e) => setFilterDate(e.target.value)}
-                className="w-full"
-              />
-              <Button
-                size="sm"
-                onClick={() => setShowDatePicker(false)}
-                className="w-full mt-2"
-              >
-                確定
-              </Button>
-            </div>
-          )}
+            )}
+          </div>
         </div>
         <div className="w-full sm:w-48">
           <Select value={filterCourse} onValueChange={setFilterCourse}>
