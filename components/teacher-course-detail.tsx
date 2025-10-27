@@ -56,6 +56,7 @@ interface StudentWithBinding {
   name: string
   email: string
   line_bound: boolean
+  classroom_joined: boolean
   recent_submission_rate?: number
 }
 
@@ -140,9 +141,9 @@ export function TeacherCourseDetail({
       }
       
       const mockStudents: StudentWithBinding[] = [
-        { id: "1", name: "張小明", email: "ming@example.com", line_bound: true, recent_submission_rate: 85 },
-        { id: "2", name: "李小華", email: "hua@example.com", line_bound: false, recent_submission_rate: 60 },
-        { id: "3", name: "王小美", email: "mei@example.com", line_bound: true, recent_submission_rate: 95 },
+        { id: "1", name: "張小明", email: "ming@example.com", line_bound: true, classroom_joined: true, recent_submission_rate: 85 },
+        { id: "2", name: "李小華", email: "hua@example.com", line_bound: false, classroom_joined: false, recent_submission_rate: 60 },
+        { id: "3", name: "王小美", email: "mei@example.com", line_bound: true, classroom_joined: true, recent_submission_rate: 95 },
       ]
       
       // 使用真實的作業資料，轉換為 AssignmentWithMetrics 格式
@@ -543,6 +544,15 @@ export function TeacherCourseDetail({
                           >
                             {student.line_bound ? "LINE 已綁定" : "未綁定"}
                           </Badge>
+                          <Badge 
+                            variant="outline" 
+                            className={student.classroom_joined 
+                              ? "bg-gradient-to-r from-blue-50 to-blue-100 text-blue-700 border-0 text-xs" 
+                              : "bg-gradient-to-r from-gray-50 to-gray-100 text-gray-700 border-0 text-xs"
+                            }
+                          >
+                            {student.classroom_joined ? "已加入 Classroom" : "未加入"}
+                          </Badge>
                           {student.recent_submission_rate !== undefined && (
                             <Badge 
                               variant="outline"
@@ -574,6 +584,15 @@ export function TeacherCourseDetail({
                           }
                         >
                           {student.line_bound ? "LINE 已綁定" : "未綁定"}
+                        </Badge>
+                        <Badge 
+                          variant="outline" 
+                          className={student.classroom_joined 
+                            ? "bg-gradient-to-r from-blue-50 to-blue-100 text-blue-700 border-0" 
+                            : "bg-gradient-to-r from-gray-50 to-gray-100 text-gray-700 border-0"
+                          }
+                        >
+                          {student.classroom_joined ? "已加入 Classroom" : "未加入"}
                         </Badge>
                         {student.recent_submission_rate !== undefined && (
                           <Badge 
