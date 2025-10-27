@@ -133,7 +133,7 @@ export function TeacherAssignmentDetail({
             )}
           </div>
           {assignment.description && (
-            <p className="text-muted-foreground mt-3">{assignment.description}</p>
+            <p className="text-muted-foreground mt-3 whitespace-pre-wrap">{assignment.description}</p>
           )}
         </div>
 
