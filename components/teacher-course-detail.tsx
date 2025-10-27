@@ -531,17 +531,18 @@ export function TeacherCourseDetail({
 
         {activeTab === "students" && (
         <div className="space-y-4 mt-6">
-          {/* 搜尋框和篩選控制 */}
-          <div className="flex gap-2">
+          {/* 搜尋框 - 手機版獨立一行 */}
+          <div className="sm:hidden">
             <Input
               placeholder="搜尋學生姓名或信箱..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="flex-1"
             />
-            
-            {/* 篩選控制 - 下拉式多選 */}
-            <div className="relative w-48" ref={filterRef}>
+          </div>
+          
+          {/* 篩選控制 - 手機版在搜尋框下方 */}
+          <div className="sm:hidden flex gap-2">
+            <div className="relative flex-1" ref={filterRef}>
               <button
                 onClick={() => setIsFilterOpen(!isFilterOpen)}
                 className="w-full flex items-center justify-between px-3 py-2 text-sm border border-input rounded-md bg-background hover:bg-accent hover:text-accent-foreground transition-colors"
@@ -679,7 +680,168 @@ export function TeacherCourseDetail({
               )}
             </div>
             
-            {/* 清除篩選按鈕 */}
+            {/* 清除篩選按鈕 - 手機版 */}
+            {studentFilters.size > 0 && (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setStudentFilters(new Set())}
+                className="whitespace-nowrap"
+              >
+                清除篩選
+              </Button>
+            )}
+          </div>
+          
+          {/* 搜尋框和篩選控制 - 電腦版在同一行 */}
+          <div className="hidden sm:flex gap-2">
+            <Input
+              placeholder="搜尋學生姓名或信箱..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="flex-1"
+            />
+            
+            {/* 篩選控制 - 下拉式多選 */}
+            <div className="relative w-48">
+              <button
+                onClick={() => setIsFilterOpen(!isFilterOpen)}
+                className="w-full flex items-center justify-between px-3 py-2 text-sm border border-input rounded-md bg-background hover:bg-accent hover:text-accent-foreground transition-colors"
+              >
+                <span className="text-sm">
+                  {studentFilters.size === 0 ? "全部學生" : `已選擇 ${studentFilters.size} 個篩選條件`}
+                </span>
+                <ChevronDown className={`w-4 h-4 ml-2 transition-transform ${isFilterOpen ? 'rotate-180' : ''}`} />
+              </button>
+
+              {isFilterOpen && (
+                <div className="absolute z-50 w-full mt-1 bg-popover border border-border rounded-md shadow-md overflow-hidden">
+                  <div className="max-h-[300px] overflow-y-auto p-1">
+                    <div
+                      className="relative flex w-full cursor-pointer select-none items-center rounded-sm py-1.5 pl-8 pr-2 text-sm outline-none hover:bg-accent hover:text-accent-foreground"
+                      onClick={() => {
+                        const newFilters = new Set(studentFilters)
+                        if (studentFilters.has("line_bound")) {
+                          newFilters.delete("line_bound")
+                        } else {
+                          newFilters.add("line_bound")
+                        }
+                        setStudentFilters(newFilters)
+                      }}
+                    >
+                      <span className="absolute left-2 flex h-3.5 w-3.5 items-center justify-center">
+                        {studentFilters.has("line_bound") && (
+                          <CheckIcon className="h-4 w-4" />
+                        )}
+                      </span>
+                      已綁定 LINE
+                    </div>
+                    
+                    <div
+                      className="relative flex w-full cursor-pointer select-none items-center rounded-sm py-1.5 pl-8 pr-2 text-sm outline-none hover:bg-accent hover:text-accent-foreground"
+                      onClick={() => {
+                        const newFilters = new Set(studentFilters)
+                        if (studentFilters.has("line_unbound")) {
+                          newFilters.delete("line_unbound")
+                        } else {
+                          newFilters.add("line_unbound")
+                        }
+                        setStudentFilters(newFilters)
+                      }}
+                    >
+                      <span className="absolute left-2 flex h-3.5 w-3.5 items-center justify-center">
+                        {studentFilters.has("line_unbound") && (
+                          <CheckIcon className="h-4 w-4" />
+                        )}
+                      </span>
+                      未綁定 LINE
+                    </div>
+                    
+                    <div
+                      className="relative flex w-full cursor-pointer select-none items-center rounded-sm py-1.5 pl-8 pr-2 text-sm outline-none hover:bg-accent hover:text-accent-foreground"
+                      onClick={() => {
+                        const newFilters = new Set(studentFilters)
+                        if (studentFilters.has("classroom_joined")) {
+                          newFilters.delete("classroom_joined")
+                        } else {
+                          newFilters.add("classroom_joined")
+                        }
+                        setStudentFilters(newFilters)
+                      }}
+                    >
+                      <span className="absolute left-2 flex h-3.5 w-3.5 items-center justify-center">
+                        {studentFilters.has("classroom_joined") && (
+                          <CheckIcon className="h-4 w-4" />
+                        )}
+                      </span>
+                      Classroom 已加入
+                    </div>
+                    
+                    <div
+                      className="relative flex w-full cursor-pointer select-none items-center rounded-sm py-1.5 pl-8 pr-2 text-sm outline-none hover:bg-accent hover:text-accent-foreground"
+                      onClick={() => {
+                        const newFilters = new Set(studentFilters)
+                        if (studentFilters.has("classroom_not_joined")) {
+                          newFilters.delete("classroom_not_joined")
+                        } else {
+                          newFilters.add("classroom_not_joined")
+                        }
+                        setStudentFilters(newFilters)
+                      }}
+                    >
+                      <span className="absolute left-2 flex h-3.5 w-3.5 items-center justify-center">
+                        {studentFilters.has("classroom_not_joined") && (
+                          <CheckIcon className="h-4 w-4" />
+                        )}
+                      </span>
+                      Classroom 未加入
+                    </div>
+                    
+                    <div
+                      className="relative flex w-full cursor-pointer select-none items-center rounded-sm py-1.5 pl-8 pr-2 text-sm outline-none hover:bg-accent hover:text-accent-foreground"
+                      onClick={() => {
+                        const newFilters = new Set(studentFilters)
+                        if (studentFilters.has("submission_good")) {
+                          newFilters.delete("submission_good")
+                        } else {
+                          newFilters.add("submission_good")
+                        }
+                        setStudentFilters(newFilters)
+                      }}
+                    >
+                      <span className="absolute left-2 flex h-3.5 w-3.5 items-center justify-center">
+                        {studentFilters.has("submission_good") && (
+                          <CheckIcon className="h-4 w-4" />
+                        )}
+                      </span>
+                      繳交率良好
+                    </div>
+                    
+                    <div
+                      className="relative flex w-full cursor-pointer select-none items-center rounded-sm py-1.5 pl-8 pr-2 text-sm outline-none hover:bg-accent hover:text-accent-foreground"
+                      onClick={() => {
+                        const newFilters = new Set(studentFilters)
+                        if (studentFilters.has("submission_poor")) {
+                          newFilters.delete("submission_poor")
+                        } else {
+                          newFilters.add("submission_poor")
+                        }
+                        setStudentFilters(newFilters)
+                      }}
+                    >
+                      <span className="absolute left-2 flex h-3.5 w-3.5 items-center justify-center">
+                        {studentFilters.has("submission_poor") && (
+                          <CheckIcon className="h-4 w-4" />
+                        )}
+                      </span>
+                      繳交率偏低
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
+            
+            {/* 清除篩選按鈕 - 電腦版 */}
             {studentFilters.size > 0 && (
               <Button
                 variant="outline"
@@ -763,7 +925,7 @@ export function TeacherCourseDetail({
                             : "bg-gradient-to-r from-gray-50 to-gray-100 text-gray-700 border-0"
                           }
                         >
-                          {student.line_bound ? "LINE 已綁定" : "未綁定"}
+                          {student.line_bound ? "已綁定 LINE" : "未綁定 LINE"}
                         </Badge>
                         <Badge 
                           variant="outline" 
@@ -772,7 +934,7 @@ export function TeacherCourseDetail({
                             : "bg-gradient-to-r from-gray-50 to-gray-100 text-gray-700 border-0"
                           }
                         >
-                          {student.classroom_joined ? "已加入 Classroom" : "未加入"}
+                          {student.classroom_joined ? "已加入 Classroom" : "未加入 Classroom"}
                         </Badge>
                       </div>
                     </div>
