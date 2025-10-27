@@ -23,7 +23,6 @@ function ScrollPicker({
   label: string
 }) {
   const scrollRef = useRef<HTMLDivElement>(null)
-  const [isScrolling, setIsScrolling] = useState(false)
   const scrollTimeoutRef = useRef<NodeJS.Timeout>()
   const isInitialMount = useRef(true)
   
@@ -40,8 +39,6 @@ function ScrollPicker({
   }, [value, options])
   
   const handleScroll = () => {
-    setIsScrolling(true)
-    
     // 清除之前的計時器
     if (scrollTimeoutRef.current) {
       clearTimeout(scrollTimeoutRef.current)
@@ -57,7 +54,6 @@ function ScrollPicker({
           onChange(options[index].value)
         }
       }
-      setIsScrolling(false)
     }, 150)
   }
   

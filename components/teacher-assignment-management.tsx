@@ -25,7 +25,6 @@ function ScrollPicker({
   label: string
 }) {
   const scrollRef = useRef<HTMLDivElement>(null)
-  const [isScrolling, setIsScrolling] = useState(false)
   const scrollTimeoutRef = useRef<NodeJS.Timeout>()
   const isInitialMount = useRef(true)
   
@@ -42,8 +41,6 @@ function ScrollPicker({
   }, [value, options])
   
   const handleScroll = () => {
-    setIsScrolling(true)
-    
     // 清除之前的計時器
     if (scrollTimeoutRef.current) {
       clearTimeout(scrollTimeoutRef.current)
@@ -59,7 +56,6 @@ function ScrollPicker({
           onChange(options[index].value)
         }
       }
-      setIsScrolling(false)
     }, 150)
   }
   
@@ -321,9 +317,18 @@ export function TeacherAssignmentManagement({
         (filterStatus === "active" && isActive) ||
         (filterStatus === "ended" && isEnded)
 
-      // 日期篩選
-      const matchesDate = filterDate === "" || 
-        dueDate.toISOString().split('T')[0] === filterDate
+      // 日期篩選 - 使用本地時間比較，避免時區問題
+      let matchesDate = true
+      if (filterDate !== "") {
+        const dueDateLocal = new Date(dueDate.getFullYear(), dueDate.getMonth(), dueDate.getDate())
+        const filterDateParts = filterDate.split('-')
+        const filterDateLocal = new Date(
+          parseInt(filterDateParts[0]), 
+          parseInt(filterDateParts[1]) - 1, 
+          parseInt(filterDateParts[2])
+        )
+        matchesDate = dueDateLocal.getTime() === filterDateLocal.getTime()
+      }
 
       return matchesSearch && matchesCourse && matchesStatus && matchesDate
     })
