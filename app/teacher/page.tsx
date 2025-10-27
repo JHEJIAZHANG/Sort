@@ -277,11 +277,45 @@ export default function TeacherPage() {
               </Card>
             ) : (
               <>
-                <div className="mb-6 lg:mb-12 animate-slide-down">
+                {/* 標題 - 手機版 */}
+                <div className="sm:hidden">
+                  <div className="flex items-center justify-between mb-4">
+                    <div>
+                      <h1 className="text-2xl font-bold text-foreground">課程管理</h1>
+                      <p className="text-muted-foreground">管理你的所有課程</p>
+                    </div>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setCourseView(courseView === "list" ? "calendar" : "list")}
+                      className="text-xs"
+                    >
+                      {courseView === "list" ? (
+                        <CalendarIcon className="w-3 h-3 mr-1" />
+                      ) : (
+                        <ListIcon className="w-3 h-3 mr-1" />
+                      )}
+                      <span>{courseView === "list" ? "月曆" : "列表"}</span>
+                    </Button>
+                  </div>
+                  {/* 匯入按鈕 - 手機版獨立一行 */}
+                  <div className="mb-4">
+                    <ImportTeacherGoogleClassroomButton onImportComplete={() => {
+                      console.log('========== 教師頁面：開始刷新課程列表 ==========')
+                      console.log('當前課程數量:', courses.length)
+                      refetch()
+                      console.log('✅ refetch() 已呼叫')
+                      console.log('================================================')
+                    }} />
+                  </div>
+                </div>
+
+                {/* 標題 - 電腦版 */}
+                <div className="hidden sm:block mb-6 lg:mb-12 animate-slide-down">
                   <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 sm:gap-4 mobile-spacing">
                     <div className="min-w-0 flex-1">
                       <h1 className="text-xl sm:text-2xl lg:text-3xl xl:text-4xl font-bold text-foreground leading-tight">課程管理</h1>
-                      <p className="hidden sm:block text-sm sm:text-base lg:text-lg text-muted-foreground mt-2 lg:mt-3">管理你的所有課程</p>
+                      <p className="text-sm sm:text-base lg:text-lg text-muted-foreground mt-2 lg:mt-3">管理你的所有課程</p>
                     </div>
                     <div className="flex-shrink-0">
                       <div className="flex flex-row gap-2">
