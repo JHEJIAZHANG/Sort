@@ -432,20 +432,28 @@ export default function TeacherPage() {
         )
       case "students":
         return (
-          <div className="space-y-6">
-            <div>
-              <h1 className="text-xl sm:text-2xl lg:text-3xl xl:text-4xl font-bold text-foreground">學生管理</h1>
-              <p className="text-muted-foreground">管理學生名單和LINE綁定</p>
+          <div className="space-y-6 pb-24 pb-safe">
+            <div className="mb-6 lg:mb-12 animate-slide-down">
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 sm:gap-4 mobile-spacing">
+                <div className="min-w-0 flex-1">
+                  <h1 className="text-xl sm:text-2xl lg:text-3xl xl:text-4xl font-bold text-foreground leading-tight">學生管理</h1>
+                  <p className="hidden sm:block text-sm sm:text-base lg:text-lg text-muted-foreground mt-2 lg:mt-3">管理學生名單和LINE綁定</p>
+                </div>
+              </div>
             </div>
             <TeacherStudentManagement />
           </div>
         )
       case "reports":
         return (
-          <div className="space-y-6">
-            <div>
-              <h1 className="text-xl sm:text-2xl lg:text-3xl xl:text-4xl font-bold text-foreground">週報統計</h1>
-              <p className="text-muted-foreground">查看繳交率和缺交統計</p>
+          <div className="space-y-6 pb-24 pb-safe">
+            <div className="mb-6 lg:mb-12 animate-slide-down">
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 sm:gap-4 mobile-spacing">
+                <div className="min-w-0 flex-1">
+                  <h1 className="text-xl sm:text-2xl lg:text-3xl xl:text-4xl font-bold text-foreground leading-tight">週報統計</h1>
+                  <p className="hidden sm:block text-sm sm:text-base lg:text-lg text-muted-foreground mt-2 lg:mt-3">查看繳交率和缺交統計</p>
+                </div>
+              </div>
             </div>
             {/* TODO: 週報統計組件 */}
             <div className="text-center py-12">
