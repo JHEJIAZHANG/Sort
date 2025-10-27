@@ -28,6 +28,8 @@ interface CompactMonthlyCalendarProps {
 
 export function CompactMonthlyCalendar({ className, selectedDate, onDateSelect, assignments = [], exams = [] }: CompactMonthlyCalendarProps) {
   const [currentDate, setCurrentDate] = useState(getTaiwanTime())
+  const [showYearPicker, setShowYearPicker] = useState(false)
+  const [showMonthPicker, setShowMonthPicker] = useState(false)
   // const [googleEvents, setGoogleEvents] = useState<CalendarEvent[]>([])
 
   const defaultEvents: CalendarEvent[] = []
@@ -186,9 +188,30 @@ export function CompactMonthlyCalendar({ className, selectedDate, onDateSelect, 
             <ChevronLeftIcon className="h-4 w-4 sm:h-5 sm:w-5" />
           </Button>
 
-          <h3 className="font-medium text-sm sm:text-base text-center min-w-0 px-2">
-            {currentYear}年 {monthNames[currentMonth]}
-          </h3>
+          <div className="flex items-center gap-1">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => {
+                setShowYearPicker(!showYearPicker)
+                setShowMonthPicker(false)
+              }}
+              className="h-8 px-2 font-medium text-sm sm:text-base hover:bg-accent"
+            >
+              {currentYear}年
+            </Button>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => {
+                setShowMonthPicker(!showMonthPicker)
+                setShowYearPicker(false)
+              }}
+              className="h-8 px-2 font-medium text-sm sm:text-base hover:bg-accent"
+            >
+              {monthNames[currentMonth]}
+            </Button>
+          </div>
 
           <Button 
             variant="ghost" 
@@ -199,6 +222,46 @@ export function CompactMonthlyCalendar({ className, selectedDate, onDateSelect, 
             <ChevronRightIcon className="h-4 w-4 sm:h-5 sm:w-5" />
           </Button>
         </div>
+        
+        {/* 年份選擇器 */}
+        {showYearPicker && (
+          <div className="grid grid-cols-3 gap-2 mb-3 max-h-48 overflow-y-auto p-2 border rounded-md">
+            {Array.from({ length: 21 }, (_, i) => currentYear - 10 + i).map((year) => (
+              <Button
+                key={year}
+                variant={year === currentYear ? "default" : "outline"}
+                size="sm"
+                onClick={() => {
+                  setCurrentDate(new Date(year, currentMonth, 1))
+                  setShowYearPicker(false)
+                }}
+                className="h-8 text-xs sm:text-sm"
+              >
+                {year}
+              </Button>
+            ))}
+          </div>
+        )}
+        
+        {/* 月份選擇器 */}
+        {showMonthPicker && (
+          <div className="grid grid-cols-3 gap-2 mb-3 p-2 border rounded-md">
+            {monthNames.map((month, index) => (
+              <Button
+                key={index}
+                variant={index === currentMonth ? "default" : "outline"}
+                size="sm"
+                onClick={() => {
+                  setCurrentDate(new Date(currentYear, index, 1))
+                  setShowMonthPicker(false)
+                }}
+                className="h-8 text-xs sm:text-sm"
+              >
+                {month}
+              </Button>
+            ))}
+          </div>
+        )}
 
         {/* Day headers */}
         <div className="grid grid-cols-7 gap-1 sm:gap-2 mb-2 sm:mb-3">

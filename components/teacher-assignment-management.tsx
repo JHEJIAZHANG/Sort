@@ -15,6 +15,8 @@ import { getTaiwanTime } from "@/lib/taiwan-time"
 // 簡化的日期選擇器組件
 function DatePickerCalendar({ selectedDate, onDateSelect }: { selectedDate?: Date; onDateSelect: (date: Date) => void }) {
   const [currentDate, setCurrentDate] = useState(selectedDate || getTaiwanTime())
+  const [showYearPicker, setShowYearPicker] = useState(false)
+  const [showMonthPicker, setShowMonthPicker] = useState(false)
   
   const today = getTaiwanTime()
   const currentMonth = currentDate.getMonth()
@@ -69,9 +71,30 @@ function DatePickerCalendar({ selectedDate, onDateSelect }: { selectedDate?: Dat
         >
           <ChevronLeftIcon className="h-4 w-4" />
         </Button>
-        <h3 className="font-medium text-sm text-center">
-          {currentYear}年 {monthNames[currentMonth]}
-        </h3>
+        <div className="flex items-center gap-1">
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => {
+              setShowYearPicker(!showYearPicker)
+              setShowMonthPicker(false)
+            }}
+            className="h-8 px-2 font-medium text-sm hover:bg-accent"
+          >
+            {currentYear}年
+          </Button>
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => {
+              setShowMonthPicker(!showMonthPicker)
+              setShowYearPicker(false)
+            }}
+            className="h-8 px-2 font-medium text-sm hover:bg-accent"
+          >
+            {monthNames[currentMonth]}
+          </Button>
+        </div>
         <Button 
           variant="ghost" 
           size="sm" 
@@ -81,6 +104,46 @@ function DatePickerCalendar({ selectedDate, onDateSelect }: { selectedDate?: Dat
           <ChevronRightIcon className="h-4 w-4" />
         </Button>
       </div>
+      
+      {/* 年份選擇器 */}
+      {showYearPicker && (
+        <div className="grid grid-cols-3 gap-2 mb-3 max-h-48 overflow-y-auto p-2 border rounded-md">
+          {Array.from({ length: 21 }, (_, i) => currentYear - 10 + i).map((year) => (
+            <Button
+              key={year}
+              variant={year === currentYear ? "default" : "outline"}
+              size="sm"
+              onClick={() => {
+                setCurrentDate(new Date(year, currentMonth, 1))
+                setShowYearPicker(false)
+              }}
+              className="h-8 text-xs"
+            >
+              {year}
+            </Button>
+          ))}
+        </div>
+      )}
+      
+      {/* 月份選擇器 */}
+      {showMonthPicker && (
+        <div className="grid grid-cols-3 gap-2 mb-3 p-2 border rounded-md">
+          {monthNames.map((month, index) => (
+            <Button
+              key={index}
+              variant={index === currentMonth ? "default" : "outline"}
+              size="sm"
+              onClick={() => {
+                setCurrentDate(new Date(currentYear, index, 1))
+                setShowMonthPicker(false)
+              }}
+              className="h-8 text-xs"
+            >
+              {month}
+            </Button>
+          ))}
+        </div>
+      )}
       
       {/* 星期標題 */}
       <div className="grid grid-cols-7 gap-1 mb-2">
