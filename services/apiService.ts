@@ -1100,6 +1100,42 @@ export class ApiService {
     })
   }
 
+  // ==================== 教師專用 API ====================
+  
+  // 教師課程列表（根據 API 文件：/api/courses/）
+  static async getTeacherCourses(lineUserId: string) {
+    this.setLineUserId(lineUserId)
+    const effective = this.ensureLineUserId()
+    const qs = `?${new URLSearchParams({ line_user_id: effective, _ts: String(Date.now()) }).toString()}`
+    const resp = await this.request<any>(`/courses/${qs}`, {}, 'other')
+    if (resp?.error) return resp
+    const courses = resp?.data?.courses ?? []
+    return { data: courses }
+  }
+
+  // 教師作業列表（根據 API 文件：/api/teacher/assignments/）
+  static async getTeacherAssignments(lineUserId: string, params?: {
+    course_id?: string
+    status?: string
+    upcoming_within_days?: number
+  }) {
+    this.setLineUserId(lineUserId)
+    const effective = this.ensureLineUserId()
+    const queryParams = new URLSearchParams({ 
+      line_user_id: effective, 
+      _ts: String(Date.now()) 
+    })
+    if (params?.course_id) queryParams.set('course_id', params.course_id)
+    if (params?.status) queryParams.set('status', params.status)
+    if (params?.upcoming_within_days) queryParams.set('upcoming_within_days', String(params.upcoming_within_days))
+    
+    const qs = `?${queryParams.toString()}`
+    const resp = await this.request<any>(`/teacher/assignments/${qs}`, {}, 'other')
+    if (resp?.error) return resp
+    const assignments = resp?.data?.assignments ?? []
+    return { data: assignments }
+  }
+  
   // 教師課程詳情相關 API
   static async getTeacherCourseDetail(courseId: string) {
     if (!this.lineUserId) {

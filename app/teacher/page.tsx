@@ -17,7 +17,7 @@ import { TeacherCourseDetail } from "@/components/teacher-course-detail"
 import { ImportTeacherGoogleClassroomButton } from "@/components/import-teacher-google-classroom-button"
 import { useLineAuth } from "@/hooks/use-line-auth"
 import { useUserAuth } from "@/hooks/use-user-auth"
-import { useCourses } from "@/hooks/use-courses"
+import { useTeacherCourses } from "@/hooks/use-teacher-courses"
 import type { Course } from "@/types/course"
 import { TeacherAssignmentManagement } from "@/components/teacher-assignment-management"
 import { TeacherAssignmentDetail } from "@/components/teacher-assignment-detail"
@@ -51,8 +51,6 @@ export default function TeacherPage() {
     isLoggedIn: false,
   })
 
-  const [showCourseForm, setShowCourseForm] = useState(false)
-  const [editingCourse, setEditingCourse] = useState<string | null>(null)
   const [selectedCourseId, setSelectedCourseId] = useState<string | null>(null)
   const [selectedCourseIds, setSelectedCourseIds] = useState<Set<string>>(new Set())
   const [isSelectionMode, setIsSelectionMode] = useState(false)
@@ -106,18 +104,15 @@ export default function TeacherPage() {
     }
   }, [lineUserId])
 
-  // 使用 useCourses hook 獲取課程和作業數據
+  // 使用教師專用 hook 獲取課程和作業數據
   const {
     courses,
     assignments,
     loading,
     error,
-    addCourse,
-    updateCourse,
-    deleteCourse,
     getCourseById,
     refetch
-  } = useCourses(lineUserId)
+  } = useTeacherCourses(lineUserId)
 
   const classroomCourses = useMemo(() => {
     return courses.filter((c) => c.source === "google_classroom")
@@ -259,21 +254,6 @@ export default function TeacherPage() {
                   />
                 )}
               </>
-            ) : showCourseForm ? (
-              <Card className="p-4 sm:p-6">
-                <CourseForm
-                  initialCourse={editingCourse ? getCourseById(editingCourse) || undefined : undefined}
-                  onCancel={() => { setShowCourseForm(false); setEditingCourse(null) }}
-                  onSubmit={async (values) => {
-                    if (editingCourse) {
-                      await updateCourse(editingCourse, values)
-                    }
-                    setShowCourseForm(false)
-                    setEditingCourse(null)
-                    await refetch()
-                  }}
-                />
-              </Card>
             ) : (
               <>
                 {/* 標題 - 手機版 */}
