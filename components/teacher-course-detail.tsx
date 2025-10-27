@@ -533,7 +533,7 @@ export function TeacherCourseDetail({
                       <div className="flex items-center gap-3">
                         <h4 className="font-medium">{student.name}</h4>
                         {student.line_bound ? (
-                          <span className="text-xs px-2 py-1 rounded-full bg-green-100 text-green-800">
+                          <span className="text-xs px-2 py-1 rounded-full bg-gradient-to-r from-green-50 to-green-100 text-green-700 border border-green-200">
                             LINE 已綁定
                           </span>
                         ) : (
