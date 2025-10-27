@@ -299,10 +299,10 @@ export function TeacherAssignmentManagement({
     }
   }, [showDatePicker])
 
-  // 篩選作業
+  // 篩選和排序作業
   const filteredAssignments = useMemo(() => {
     const now = new Date()
-    return assignments.filter((assignment) => {
+    const filtered = assignments.filter((assignment) => {
       const matchesSearch = searchQuery === "" ||
         assignment.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
         (assignment.description && assignment.description.toLowerCase().includes(searchQuery.toLowerCase()))
@@ -331,6 +331,27 @@ export function TeacherAssignmentManagement({
       }
 
       return matchesSearch && matchesCourse && matchesStatus && matchesDate
+    })
+
+    // 排序：進行中在上方，已結束在下方，各自按日期排序
+    return filtered.sort((a, b) => {
+      const nowTime = now.getTime()
+      const aDueTime = new Date(a.dueDate).getTime()
+      const bDueTime = new Date(b.dueDate).getTime()
+      const aIsActive = aDueTime >= nowTime
+      const bIsActive = bDueTime >= nowTime
+
+      // 先按狀態分組：進行中(true)在前，已結束(false)在後
+      if (aIsActive !== bIsActive) {
+        return aIsActive ? -1 : 1
+      }
+
+      // 同狀態內按日期排序：進行中按截止日期升序，已結束按截止日期降序
+      if (aIsActive) {
+        return aDueTime - bDueTime // 進行中：越早截止的在前
+      } else {
+        return bDueTime - aDueTime // 已結束：越晚結束的在前
+      }
     })
   }, [assignments, searchQuery, filterCourse, filterStatus, filterDate])
 

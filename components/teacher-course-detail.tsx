@@ -271,15 +271,35 @@ export function TeacherCourseDetail({
     return matchesSearch && matchesFilter
   })
 
-  // 篩選作業
-  const filteredAssignments = assignments.filter(assignment => {
-    const matchesSearch = searchQuery === "" || 
-      assignment.title.toLowerCase().includes(searchQuery.toLowerCase())
-    
-    const matchesFilter = assignmentFilter === "all" || assignment.status === assignmentFilter
-    
-    return matchesSearch && matchesFilter
-  })
+  // 篩選和排序作業
+  const filteredAssignments = assignments
+    .filter(assignment => {
+      const matchesSearch = searchQuery === "" || 
+        assignment.title.toLowerCase().includes(searchQuery.toLowerCase())
+      
+      const matchesFilter = assignmentFilter === "all" || assignment.status === assignmentFilter
+      
+      return matchesSearch && matchesFilter
+    })
+    .sort((a, b) => {
+      const now = new Date()
+      const aDueDate = new Date(a.due_date)
+      const bDueDate = new Date(b.due_date)
+      const aIsActive = a.status === 'active'
+      const bIsActive = b.status === 'active'
+
+      // 先按狀態分組：進行中在前，已結束在後
+      if (aIsActive !== bIsActive) {
+        return aIsActive ? -1 : 1
+      }
+
+      // 同狀態內按日期排序
+      if (aIsActive) {
+        return aDueDate.getTime() - bDueDate.getTime() // 進行中：越早截止的在前
+      } else {
+        return bDueDate.getTime() - aDueDate.getTime() // 已結束：越晚結束的在前
+      }
+    })
 
   if (loading || !course) {
     return (
