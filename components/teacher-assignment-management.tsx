@@ -8,7 +8,106 @@ import { Input } from "@/components/ui/input"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { EmptyStateSimple } from "@/components/empty-state"
 import { ClipboardIcon, CalendarIcon, CheckIcon, ClockIcon, ExclamationIcon, SearchIcon } from "@/components/icons"
+import { ChevronLeftIcon, ChevronRightIcon } from "lucide-react"
 import type { Assignment, Course } from "@/types/course"
+import { getTaiwanTime } from "@/lib/taiwan-time"
+
+// 簡化的日期選擇器組件
+function DatePickerCalendar({ selectedDate, onDateSelect }: { selectedDate?: Date; onDateSelect: (date: Date) => void }) {
+  const [currentDate, setCurrentDate] = useState(selectedDate || getTaiwanTime())
+  
+  const today = getTaiwanTime()
+  const currentMonth = currentDate.getMonth()
+  const currentYear = currentDate.getFullYear()
+  
+  const firstDayOfMonth = new Date(currentYear, currentMonth, 1)
+  const lastDayOfMonth = new Date(currentYear, currentMonth + 1, 0)
+  const daysInMonth = lastDayOfMonth.getDate()
+  
+  const taiwanFirstDay = new Date(firstDayOfMonth.getTime() + (8 * 60 * 60 * 1000))
+  const startingDayOfWeek = taiwanFirstDay.getUTCDay()
+  const adjustedStartDay = startingDayOfWeek === 0 ? 6 : startingDayOfWeek - 1
+  
+  const monthNames = ["一月", "二月", "三月", "四月", "五月", "六月", "七月", "八月", "九月", "十月", "十一月", "十二月"]
+  const dayNames = ["一", "二", "三", "四", "五", "六", "日"]
+  
+  const isToday = (day: number) => {
+    return today.getDate() === day && today.getMonth() === currentMonth && today.getFullYear() === currentYear
+  }
+  
+  const isSelected = (day: number) => {
+    if (!selectedDate) return false
+    return selectedDate.getDate() === day && selectedDate.getMonth() === currentMonth && selectedDate.getFullYear() === currentYear
+  }
+  
+  const calendarDays = []
+  for (let i = 0; i < adjustedStartDay; i++) {
+    calendarDays.push(null)
+  }
+  for (let day = 1; day <= daysInMonth; day++) {
+    calendarDays.push(day)
+  }
+  
+  return (
+    <div className="w-full">
+      {/* 月份導航 */}
+      <div className="flex items-center justify-between mb-3">
+        <Button 
+          variant="ghost" 
+          size="sm" 
+          onClick={() => setCurrentDate(new Date(currentYear, currentMonth - 1, 1))}
+          className="h-8 w-8 p-0"
+        >
+          <ChevronLeftIcon className="h-4 w-4" />
+        </Button>
+        <h3 className="font-medium text-sm text-center">
+          {currentYear}年 {monthNames[currentMonth]}
+        </h3>
+        <Button 
+          variant="ghost" 
+          size="sm" 
+          onClick={() => setCurrentDate(new Date(currentYear, currentMonth + 1, 1))}
+          className="h-8 w-8 p-0"
+        >
+          <ChevronRightIcon className="h-4 w-4" />
+        </Button>
+      </div>
+      
+      {/* 星期標題 */}
+      <div className="grid grid-cols-7 gap-1 mb-2">
+        {dayNames.map((day) => (
+          <div key={day} className="text-center text-xs font-medium text-muted-foreground py-1">
+            {day}
+          </div>
+        ))}
+      </div>
+      
+      {/* 日期格子 */}
+      <div className="grid grid-cols-7 gap-1">
+        {calendarDays.map((day, index) => (
+          <div
+            key={index}
+            className={`
+              aspect-square flex items-center justify-center text-sm rounded-md p-1 relative min-h-[40px]
+              ${day === null ? "" : "hover:bg-accent cursor-pointer transition-colors"}
+            `}
+            onClick={day ? () => onDateSelect(new Date(currentYear, currentMonth, day)) : undefined}
+          >
+            {day && (
+              <span className={`
+                flex items-center justify-center font-medium w-7 h-7 rounded-full
+                ${isToday(day) ? "bg-primary text-primary-foreground" : ""}
+                ${isSelected(day) && !isToday(day) ? "border border-primary text-primary" : ""}
+              `}>
+                {day}
+              </span>
+            )}
+          </div>
+        ))}
+      </div>
+    </div>
+  )
+}
 
 interface TeacherAssignmentManagementProps {
   assignments: Assignment[]
@@ -196,10 +295,10 @@ export function TeacherAssignmentManagement({
                   className="fixed inset-0 z-10 bg-black/20" 
                   onClick={() => setShowMobileDatePicker(false)}
                 />
-                {/* 卡片 */}
-                <div className="fixed bottom-0 left-0 right-0 z-20 bg-white border-t border-input rounded-t-xl shadow-lg p-4 animate-slide-up">
+                {/* 日期選擇器卡片 */}
+                <div className="fixed bottom-0 left-0 right-0 z-20 bg-white border-t border-input rounded-t-xl shadow-lg p-4 max-h-[80vh] overflow-y-auto">
                   <div className="flex items-center justify-between mb-3">
-                    <label className="text-sm font-medium">選擇日期</label>
+                    <h3 className="font-medium text-base">選擇日期</h3>
                     <Button
                       variant="ghost"
                       size="sm"
@@ -212,22 +311,13 @@ export function TeacherAssignmentManagement({
                       清除
                     </Button>
                   </div>
-                  <Input
-                    type="date"
-                    value={filterDate}
-                    onChange={(e) => setFilterDate(e.target.value)}
-                    className="w-full text-base [&::-webkit-calendar-picker-indicator]:ml-auto [&::-webkit-calendar-picker-indicator]:cursor-pointer [&::-webkit-datetime-edit-text]:text-muted-foreground [&::-webkit-datetime-edit-month-field]:text-muted-foreground [&::-webkit-datetime-edit-day-field]:text-muted-foreground [&::-webkit-datetime-edit-year-field]:text-muted-foreground"
-                    style={{
-                      colorScheme: 'light'
+                  <DatePickerCalendar
+                    selectedDate={filterDate ? new Date(filterDate) : undefined}
+                    onDateSelect={(date) => {
+                      setFilterDate(date.toISOString().split('T')[0])
+                      setShowMobileDatePicker(false)
                     }}
                   />
-                  <Button
-                    size="sm"
-                    onClick={() => setShowMobileDatePicker(false)}
-                    className="w-full mt-3 h-10"
-                  >
-                    確定
-                  </Button>
                 </div>
               </>
             )}
@@ -254,9 +344,9 @@ export function TeacherAssignmentManagement({
               <CalendarIcon className="w-5 h-5" />
             </Button>
             {showDatePicker && (
-              <div className="absolute top-full right-0 mt-2 z-10 bg-white border border-input rounded-md shadow-lg p-3 sm:p-4 w-[calc(100vw-3rem)] max-w-[320px] sm:min-w-[280px]">
-                <div className="flex items-center justify-between mb-2">
-                  <label className="text-xs sm:text-sm font-medium">選擇日期：</label>
+              <div className="absolute top-full right-0 mt-2 z-10 bg-white border border-input rounded-md shadow-lg p-4 w-[320px]">
+                <div className="flex items-center justify-between mb-3">
+                  <h3 className="font-medium text-sm">選擇日期</h3>
                   <Button
                     variant="ghost"
                     size="sm"
@@ -264,27 +354,18 @@ export function TeacherAssignmentManagement({
                       setFilterDate("")
                       setShowDatePicker(false)
                     }}
-                    className="text-xs h-6 sm:h-7 px-2"
+                    className="text-xs h-7 px-2"
                   >
                     清除
                   </Button>
                 </div>
-                <Input
-                  type="date"
-                  value={filterDate}
-                  onChange={(e) => setFilterDate(e.target.value)}
-                  className="w-full text-sm sm:text-base [&::-webkit-calendar-picker-indicator]:ml-auto [&::-webkit-calendar-picker-indicator]:cursor-pointer [&::-webkit-datetime-edit-text]:text-muted-foreground [&::-webkit-datetime-edit-month-field]:text-muted-foreground [&::-webkit-datetime-edit-day-field]:text-muted-foreground [&::-webkit-datetime-edit-year-field]:text-muted-foreground"
-                  style={{
-                    colorScheme: 'light'
+                <DatePickerCalendar
+                  selectedDate={filterDate ? new Date(filterDate) : undefined}
+                  onDateSelect={(date) => {
+                    setFilterDate(date.toISOString().split('T')[0])
+                    setShowDatePicker(false)
                   }}
                 />
-                <Button
-                  size="sm"
-                  onClick={() => setShowDatePicker(false)}
-                  className="w-full mt-2 text-xs sm:text-sm h-8 sm:h-9"
-                >
-                  確定
-                </Button>
               </div>
             )}
           </div>
