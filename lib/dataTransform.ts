@@ -21,19 +21,30 @@ export function transformBackendCourse(backendCourse: any): Course {
     throw new Error('無效的課程資料')
   }
 
+  console.log('🔄 transformBackendCourse 輸入:', backendCourse)
+
   // 嘗試多種可能的 ID 欄位
-  const rawId = backendCourse?.id ?? backendCourse?.pk ?? backendCourse?.uuid ?? backendCourse?.course_id
+  const rawId = backendCourse?.id ?? backendCourse?.pk ?? backendCourse?.uuid ?? backendCourse?.course_id ?? backendCourse?.classroom_id
   const fallbackId = (typeof crypto !== 'undefined' && (crypto as any).randomUUID) ? (crypto as any).randomUUID() : String(Date.now())
   const id = rawId != null ? String(rawId) : fallbackId
 
   const created = backendCourse?.created_at ? new Date(backendCourse.created_at) : new Date()
 
-  return {
+  // 課程名稱：優先使用 name，其次 title
+  const courseName = backendCourse.name || backendCourse.title || ''
+  
+  // 判斷是否為 Google Classroom 課程
+  const isGoogleClassroom = backendCourse.is_google_classroom || 
+                           backendCourse.source === 'google_classroom' ||
+                           !!backendCourse.classroom_id ||
+                           !!backendCourse.google_classroom_url
+
+  const result: Course = {
     id,
-    name: backendCourse.title || backendCourse.name || '',
-    courseCode: backendCourse.section || '',
+    name: courseName,
+    courseCode: backendCourse.section || backendCourse.course_code || '',
     instructor: backendCourse.instructor || '',
-    classroom: backendCourse.classroom || '',
+    classroom: backendCourse.classroom || backendCourse.room || backendCourse.location || '',
     studentCount: backendCourse.student_count || 0,
     schedule: backendCourse.schedules?.map((schedule: any) => ({
       dayOfWeek: schedule.day_of_week,
@@ -42,9 +53,12 @@ export function transformBackendCourse(backendCourse: any): Course {
     })) || [],
     color: backendCourse.color || '#3B82F6',
     createdAt: created,
-    source: backendCourse.is_google_classroom ? 'google_classroom' : 'manual',
-    googleClassroomUrl: backendCourse.google_classroom_url || undefined
+    source: (isGoogleClassroom ? 'google_classroom' : 'manual') as 'google_classroom' | 'manual',
+    googleClassroomUrl: backendCourse.google_classroom_url || backendCourse.alternate_link || undefined
   }
+
+  console.log('✅ transformBackendCourse 輸出:', result)
+  return result
 }
 
 // 前端 Course 轉換為後端格式

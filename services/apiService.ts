@@ -1107,9 +1107,32 @@ export class ApiService {
     this.setLineUserId(lineUserId)
     const effective = this.ensureLineUserId()
     const qs = `?${new URLSearchParams({ line_user_id: effective, _ts: String(Date.now()) }).toString()}`
+    console.log('🔍 getTeacherCourses: 呼叫 API /courses/' + qs)
     const resp = await this.request<any>(`/courses/${qs}`, {}, 'other')
-    if (resp?.error) return resp
-    const courses = resp?.data?.courses ?? []
+    console.log('🔍 getTeacherCourses: API 完整回應:', JSON.stringify(resp, null, 2))
+    
+    if (resp?.error) {
+      console.error('❌ getTeacherCourses: API 錯誤:', resp.error)
+      return resp
+    }
+    
+    // 嘗試多種可能的資料路徑
+    let courses = []
+    const respData: any = resp?.data
+    if (respData?.courses) {
+      courses = respData.courses
+      console.log('✅ getTeacherCourses: 從 data.courses 取得課程')
+    } else if (Array.isArray(respData)) {
+      courses = respData
+      console.log('✅ getTeacherCourses: data 本身是陣列')
+    } else if ((resp as any)?.courses) {
+      courses = (resp as any).courses
+      console.log('✅ getTeacherCourses: 從 courses 取得課程')
+    } else {
+      console.warn('⚠️ getTeacherCourses: 找不到課程資料，回應結構:', Object.keys(resp || {}))
+    }
+    
+    console.log('🔍 getTeacherCourses: 最終課程數量:', courses.length)
     return { data: courses }
   }
 
