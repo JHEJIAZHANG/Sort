@@ -485,9 +485,9 @@ export function TeacherCourseDetail({
             
             <Card className="p-4">
               <div className="flex items-center space-x-2">
-                <ExclamationIcon className="w-5 h-5 text-red-500" />
+                <CheckIcon className="w-5 h-5 text-gray-500" />
                 <div>
-                  <p className="text-sm text-muted-foreground">逾期作業</p>
+                  <p className="text-sm text-muted-foreground">已結束作業</p>
                   <p className="text-2xl font-bold">{assignments.filter(a => a.status === 'overdue').length}</p>
                 </div>
               </div>
@@ -532,9 +532,13 @@ export function TeacherCourseDetail({
                     <div className="flex-1">
                       <div className="flex items-center gap-3">
                         <h4 className="font-medium">{student.name}</h4>
-                        <Badge variant={student.line_bound ? "default" : "secondary"}>
-                          {student.line_bound ? "已綁定 LINE" : "未綁定"}
-                        </Badge>
+                        {student.line_bound ? (
+                          <span className="text-xs px-2 py-1 rounded-full bg-green-100 text-green-800">
+                            LINE 已綁定
+                          </span>
+                        ) : (
+                          <Badge variant="secondary">未綁定</Badge>
+                        )}
                         {student.recent_submission_rate !== undefined && (
                           <Badge variant={student.recent_submission_rate >= 70 ? "default" : "destructive"}>
                             繳交率 {student.recent_submission_rate}%
