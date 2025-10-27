@@ -12,11 +12,9 @@ import { ChevronLeftIcon, ChevronRightIcon } from "lucide-react"
 import type { Assignment, Course } from "@/types/course"
 import { getTaiwanTime } from "@/lib/taiwan-time"
 
-// 簡化的日期選擇器組件
+// 簡化的日期選擇器組件（使用原生選擇器）
 function DatePickerCalendar({ selectedDate, onDateSelect }: { selectedDate?: Date; onDateSelect: (date: Date) => void }) {
   const [currentDate, setCurrentDate] = useState(selectedDate || getTaiwanTime())
-  const [showYearPicker, setShowYearPicker] = useState(false)
-  const [showMonthPicker, setShowMonthPicker] = useState(false)
   
   const today = getTaiwanTime()
   const currentMonth = currentDate.getMonth()
@@ -72,28 +70,36 @@ function DatePickerCalendar({ selectedDate, onDateSelect }: { selectedDate?: Dat
           <ChevronLeftIcon className="h-4 w-4" />
         </Button>
         <div className="flex items-center gap-1">
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => {
-              setShowYearPicker(!showYearPicker)
-              setShowMonthPicker(false)
+          <div className="relative">
+            <input
+              type="number"
+              value={currentYear}
+              onChange={(e) => {
+                const year = parseInt(e.target.value)
+                if (!isNaN(year) && year > 1900 && year < 2200) {
+                  setCurrentDate(new Date(year, currentMonth, 1))
+                }
+              }}
+              className="h-8 w-20 px-2 text-sm font-medium text-center border rounded hover:bg-accent focus:outline-none focus:ring-2 focus:ring-primary"
+              min="1900"
+              max="2200"
+            />
+          </div>
+          <span className="text-sm font-medium">年</span>
+          <select
+            value={currentMonth}
+            onChange={(e) => {
+              const month = parseInt(e.target.value)
+              setCurrentDate(new Date(currentYear, month, 1))
             }}
-            className="h-8 px-2 font-medium text-sm hover:bg-accent"
+            className="h-8 px-2 text-sm font-medium border rounded hover:bg-accent focus:outline-none focus:ring-2 focus:ring-primary cursor-pointer"
           >
-            {currentYear}年
-          </Button>
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => {
-              setShowMonthPicker(!showMonthPicker)
-              setShowYearPicker(false)
-            }}
-            className="h-8 px-2 font-medium text-sm hover:bg-accent"
-          >
-            {monthNames[currentMonth]}
-          </Button>
+            {monthNames.map((month, index) => (
+              <option key={index} value={index}>
+                {month}
+              </option>
+            ))}
+          </select>
         </div>
         <Button 
           variant="ghost" 
@@ -104,46 +110,6 @@ function DatePickerCalendar({ selectedDate, onDateSelect }: { selectedDate?: Dat
           <ChevronRightIcon className="h-4 w-4" />
         </Button>
       </div>
-      
-      {/* 年份選擇器 */}
-      {showYearPicker && (
-        <div className="grid grid-cols-3 gap-2 mb-3 max-h-48 overflow-y-auto p-2 border rounded-md">
-          {Array.from({ length: 21 }, (_, i) => currentYear - 10 + i).map((year) => (
-            <Button
-              key={year}
-              variant={year === currentYear ? "default" : "outline"}
-              size="sm"
-              onClick={() => {
-                setCurrentDate(new Date(year, currentMonth, 1))
-                setShowYearPicker(false)
-              }}
-              className="h-8 text-xs"
-            >
-              {year}
-            </Button>
-          ))}
-        </div>
-      )}
-      
-      {/* 月份選擇器 */}
-      {showMonthPicker && (
-        <div className="grid grid-cols-3 gap-2 mb-3 p-2 border rounded-md">
-          {monthNames.map((month, index) => (
-            <Button
-              key={index}
-              variant={index === currentMonth ? "default" : "outline"}
-              size="sm"
-              onClick={() => {
-                setCurrentDate(new Date(currentYear, index, 1))
-                setShowMonthPicker(false)
-              }}
-              className="h-8 text-xs"
-            >
-              {month}
-            </Button>
-          ))}
-        </div>
-      )}
       
       {/* 星期標題 */}
       <div className="grid grid-cols-7 gap-1 mb-2">
