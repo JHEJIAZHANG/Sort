@@ -528,32 +528,65 @@ export function TeacherCourseDetail({
             {filteredStudents.length > 0 ? (
               <div className="space-y-3">
                 {filteredStudents.map((student) => (
-                  <div key={student.id} className="flex items-center justify-between p-3 border rounded-lg gap-4">
-                    <div className="flex-1 min-w-0">
-                      <h4 className="font-medium">{student.name}</h4>
-                      <p className="text-sm text-muted-foreground mt-1">{student.email}</p>
+                  <div key={student.id} className="p-3 border rounded-lg">
+                    {/* 手機版布局 */}
+                    <div className="md:hidden">
+                      <div className="flex items-center justify-between gap-2 mb-1">
+                        <h4 className="font-medium truncate">{student.name}</h4>
+                        <div className="flex items-center gap-1 flex-shrink-0">
+                          <Badge 
+                            variant="outline" 
+                            className={student.line_bound 
+                              ? "bg-gradient-to-r from-green-50 to-green-100 text-green-700 border-green-200 text-xs" 
+                              : "bg-gray-50 text-gray-700 border-gray-200 text-xs"
+                            }
+                          >
+                            {student.line_bound ? "LINE 已綁定" : "未綁定"}
+                          </Badge>
+                          {student.recent_submission_rate !== undefined && (
+                            <Badge 
+                              variant="outline"
+                              className={student.recent_submission_rate >= 70 
+                                ? "bg-gradient-to-r from-orange-50 to-orange-100 text-orange-700 border-orange-200 text-xs" 
+                                : "bg-gradient-to-r from-red-50 to-red-100 text-red-700 border-red-200 text-xs"
+                              }
+                            >
+                              繳交率 {student.recent_submission_rate}%
+                            </Badge>
+                          )}
+                        </div>
+                      </div>
+                      <p className="text-sm text-muted-foreground">{student.email}</p>
                     </div>
-                    <div className="flex items-center gap-2 flex-shrink-0">
-                      <Badge 
-                        variant="outline" 
-                        className={student.line_bound 
-                          ? "bg-gradient-to-r from-green-50 to-green-100 text-green-700 border-green-200" 
-                          : "bg-gray-50 text-gray-700 border-gray-200"
-                        }
-                      >
-                        {student.line_bound ? "LINE 已綁定" : "未綁定"}
-                      </Badge>
-                      {student.recent_submission_rate !== undefined && (
+                    
+                    {/* 電腦版布局 */}
+                    <div className="hidden md:flex items-center justify-between gap-4">
+                      <div className="flex-1 min-w-0">
+                        <h4 className="font-medium">{student.name}</h4>
+                        <p className="text-sm text-muted-foreground mt-1">{student.email}</p>
+                      </div>
+                      <div className="flex items-center gap-2 flex-shrink-0">
                         <Badge 
-                          variant="outline"
-                          className={student.recent_submission_rate >= 70 
-                            ? "bg-gradient-to-r from-orange-50 to-orange-100 text-orange-700 border-orange-200" 
-                            : "bg-gradient-to-r from-red-50 to-red-100 text-red-700 border-red-200"
+                          variant="outline" 
+                          className={student.line_bound 
+                            ? "bg-gradient-to-r from-green-50 to-green-100 text-green-700 border-green-200" 
+                            : "bg-gray-50 text-gray-700 border-gray-200"
                           }
                         >
-                          繳交率 {student.recent_submission_rate}%
+                          {student.line_bound ? "LINE 已綁定" : "未綁定"}
                         </Badge>
-                      )}
+                        {student.recent_submission_rate !== undefined && (
+                          <Badge 
+                            variant="outline"
+                            className={student.recent_submission_rate >= 70 
+                              ? "bg-gradient-to-r from-orange-50 to-orange-100 text-orange-700 border-orange-200" 
+                              : "bg-gradient-to-r from-red-50 to-red-100 text-red-700 border-red-200"
+                            }
+                          >
+                            繳交率 {student.recent_submission_rate}%
+                          </Badge>
+                        )}
+                      </div>
                     </div>
                   </div>
                 ))}
