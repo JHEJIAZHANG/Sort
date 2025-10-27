@@ -531,16 +531,17 @@ export function TeacherCourseDetail({
 
         {activeTab === "students" && (
         <div className="space-y-4 mt-6">
-          {/* 搜尋框 */}
-          <Input
-            placeholder="搜尋學生姓名或信箱..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-          />
-          
-          {/* 篩選控制 - 下拉式多選 */}
+          {/* 搜尋框和篩選控制 */}
           <div className="flex gap-2">
-            <div className="relative flex-1" ref={filterRef}>
+            <Input
+              placeholder="搜尋學生姓名或信箱..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="flex-1"
+            />
+            
+            {/* 篩選控制 - 下拉式多選 */}
+            <div className="relative w-48" ref={filterRef}>
               <button
                 onClick={() => setIsFilterOpen(!isFilterOpen)}
                 className="w-full flex items-center justify-between px-3 py-2 text-sm border border-input rounded-md bg-background hover:bg-accent hover:text-accent-foreground transition-colors"
@@ -611,7 +612,7 @@ export function TeacherCourseDetail({
                           <CheckIcon className="h-4 w-4" />
                         )}
                       </span>
-                      Classroom 已加入
+                      已加入 Classroom
                     </div>
                     
                     <div
@@ -631,7 +632,7 @@ export function TeacherCourseDetail({
                           <CheckIcon className="h-4 w-4" />
                         )}
                       </span>
-                      Classroom 未加入
+                      未加入 Classroom
                     </div>
                     
                     <div
@@ -723,7 +724,7 @@ export function TeacherCourseDetail({
                             : "bg-gradient-to-r from-gray-50 to-gray-100 text-gray-700 border-0 text-xs"
                           }
                         >
-                          {student.line_bound ? "LINE 已綁定" : "未綁定"}
+                          {student.line_bound ? "已綁定 LINE" : "未綁定 LINE"}
                         </Badge>
                         <Badge 
                           variant="outline" 
@@ -732,7 +733,7 @@ export function TeacherCourseDetail({
                             : "bg-gradient-to-r from-gray-50 to-gray-100 text-gray-700 border-0 text-xs"
                           }
                         >
-                          {student.classroom_joined ? "已加入 Classroom" : "未加入"}
+                          {student.classroom_joined ? "已加入 Classroom" : "未加入 Classroom"}
                         </Badge>
                       </div>
                     </div>
@@ -805,7 +806,7 @@ export function TeacherCourseDetail({
               <SelectContent>
                 <SelectItem value="all">全部作業</SelectItem>
                 <SelectItem value="active">進行中</SelectItem>
-                <SelectItem value="overdue">已逾期</SelectItem>
+                <SelectItem value="overdue">已結束</SelectItem>
               </SelectContent>
             </Select>
           </div>
@@ -862,7 +863,7 @@ export function TeacherCourseDetail({
                             <AlertDialogHeader>
                               <AlertDialogTitle>提醒未繳交學生</AlertDialogTitle>
                               <AlertDialogDescription>
-                                將透過 LINE 推播和 Email 提醒尚未繳交「{assignment.title}」的學生。
+                                將透過 LINE 推播和 Email 提醒尚未繳交 「 {assignment.title} 」 的學生。
                               </AlertDialogDescription>
                             </AlertDialogHeader>
                             <AlertDialogFooter>
@@ -921,7 +922,7 @@ export function TeacherCourseDetail({
                         <AlertDialogHeader>
                           <AlertDialogTitle>解除群組綁定</AlertDialogTitle>
                           <AlertDialogDescription>
-                            確定要解除與「{group.name}」的綁定嗎？解除後將無法透過此群組接收課程通知。
+                            確定要解除與 「 {group.name} 」 的綁定嗎？解除後將無法透過此群組接收課程通知。
                           </AlertDialogDescription>
                         </AlertDialogHeader>
                         <AlertDialogFooter>
