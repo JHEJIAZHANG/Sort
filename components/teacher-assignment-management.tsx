@@ -190,9 +190,9 @@ export function TeacherAssignmentManagement({
               <CalendarIcon className="w-5 h-5" />
             </Button>
             {showMobileDatePicker && (
-              <div className="absolute top-full right-0 mt-2 z-10 bg-white border border-input rounded-md shadow-lg p-4 min-w-[280px]">
+              <div className="absolute top-full right-0 mt-2 z-10 bg-white border border-input rounded-md shadow-lg p-3 sm:p-4 w-[calc(100vw-3rem)] max-w-[320px] sm:min-w-[280px]">
                 <div className="flex items-center justify-between mb-2">
-                  <label className="text-sm font-medium">選擇日期：</label>
+                  <label className="text-xs sm:text-sm font-medium">選擇日期：</label>
                   <Button
                     variant="ghost"
                     size="sm"
@@ -200,7 +200,7 @@ export function TeacherAssignmentManagement({
                       setFilterDate("")
                       setShowMobileDatePicker(false)
                     }}
-                    className="text-xs h-7"
+                    className="text-xs h-6 sm:h-7 px-2"
                   >
                     清除
                   </Button>
@@ -209,7 +209,7 @@ export function TeacherAssignmentManagement({
                   type="date"
                   value={filterDate}
                   onChange={(e) => setFilterDate(e.target.value)}
-                  className="w-full [&::-webkit-calendar-picker-indicator]:ml-auto [&::-webkit-calendar-picker-indicator]:cursor-pointer"
+                  className="w-full text-sm sm:text-base [&::-webkit-calendar-picker-indicator]:ml-auto [&::-webkit-calendar-picker-indicator]:cursor-pointer"
                   style={{
                     colorScheme: 'light'
                   }}
@@ -217,7 +217,7 @@ export function TeacherAssignmentManagement({
                 <Button
                   size="sm"
                   onClick={() => setShowMobileDatePicker(false)}
-                  className="w-full mt-2"
+                  className="w-full mt-2 text-xs sm:text-sm h-8 sm:h-9"
                 >
                   確定
                 </Button>
@@ -246,9 +246,9 @@ export function TeacherAssignmentManagement({
               <CalendarIcon className="w-5 h-5" />
             </Button>
             {showDatePicker && (
-              <div className="absolute top-full right-0 mt-2 z-10 bg-white border border-input rounded-md shadow-lg p-4 min-w-[280px]">
+              <div className="absolute top-full right-0 mt-2 z-10 bg-white border border-input rounded-md shadow-lg p-3 sm:p-4 w-[calc(100vw-3rem)] max-w-[320px] sm:min-w-[280px]">
                 <div className="flex items-center justify-between mb-2">
-                  <label className="text-sm font-medium">選擇日期：</label>
+                  <label className="text-xs sm:text-sm font-medium">選擇日期：</label>
                   <Button
                     variant="ghost"
                     size="sm"
@@ -256,7 +256,7 @@ export function TeacherAssignmentManagement({
                       setFilterDate("")
                       setShowDatePicker(false)
                     }}
-                    className="text-xs h-7"
+                    className="text-xs h-6 sm:h-7 px-2"
                   >
                     清除
                   </Button>
@@ -265,7 +265,7 @@ export function TeacherAssignmentManagement({
                   type="date"
                   value={filterDate}
                   onChange={(e) => setFilterDate(e.target.value)}
-                  className="w-full [&::-webkit-calendar-picker-indicator]:ml-auto [&::-webkit-calendar-picker-indicator]:cursor-pointer"
+                  className="w-full text-sm sm:text-base [&::-webkit-calendar-picker-indicator]:ml-auto [&::-webkit-calendar-picker-indicator]:cursor-pointer"
                   style={{
                     colorScheme: 'light'
                   }}
@@ -273,7 +273,7 @@ export function TeacherAssignmentManagement({
                 <Button
                   size="sm"
                   onClick={() => setShowDatePicker(false)}
-                  className="w-full mt-2"
+                  className="w-full mt-2 text-xs sm:text-sm h-8 sm:h-9"
                 >
                   確定
                 </Button>
