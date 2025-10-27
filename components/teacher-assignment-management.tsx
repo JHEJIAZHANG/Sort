@@ -27,6 +27,7 @@ export function TeacherAssignmentManagement({
 
   // 篩選作業
   const filteredAssignments = useMemo(() => {
+    const now = new Date()
     return assignments.filter((assignment) => {
       const matchesSearch = searchQuery === "" ||
         assignment.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -34,27 +35,33 @@ export function TeacherAssignmentManagement({
 
       const matchesCourse = filterCourse === "all" || assignment.courseId === filterCourse
 
-      const matchesStatus = filterStatus === "all" || assignment.status === filterStatus
+      const dueDate = new Date(assignment.dueDate)
+      const isActive = dueDate >= now || assignment.status === "pending"
+      const isEnded = dueDate < now && assignment.status !== "pending"
+      
+      const matchesStatus = filterStatus === "all" || 
+        (filterStatus === "active" && isActive) ||
+        (filterStatus === "ended" && isEnded)
 
       return matchesSearch && matchesCourse && matchesStatus
     })
   }, [assignments, searchQuery, filterCourse, filterStatus])
 
-  // 按狀態分組（進行中 = pending + overdue，已結束 = completed）
-  const groupedAssignments = useMemo(() => {
+  // 計算各狀態的數量
+  const statusCounts = useMemo(() => {
     const now = new Date()
-    const groups = {
-      active: filteredAssignments.filter(a => {
+    return {
+      all: assignments.length,
+      active: assignments.filter(a => {
         const dueDate = new Date(a.dueDate)
         return dueDate >= now || a.status === "pending"
-      }),
-      ended: filteredAssignments.filter(a => {
+      }).length,
+      ended: assignments.filter(a => {
         const dueDate = new Date(a.dueDate)
         return dueDate < now && a.status !== "pending"
-      })
+      }).length
     }
-    return groups
-  }, [filteredAssignments])
+  }, [assignments])
 
   const getStatusIcon = (status: Assignment["status"]) => {
     switch (status) {
@@ -137,38 +144,34 @@ export function TeacherAssignmentManagement({
             ))}
           </SelectContent>
         </Select>
-        <Select value={filterStatus} onValueChange={setFilterStatus}>
-          <SelectTrigger className="w-full sm:w-48">
-            <SelectValue placeholder="篩選狀態" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">全部狀態</SelectItem>
-            <SelectItem value="active">進行中</SelectItem>
-            <SelectItem value="ended">已結束</SelectItem>
-          </SelectContent>
-        </Select>
       </div>
 
-      {/* 統計卡片 */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-        <Card className="p-4">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm text-muted-foreground">進行中</p>
-              <p className="text-2xl font-bold text-blue-600">{groupedAssignments.active.length}</p>
-            </div>
-            <ClockIcon className="w-8 h-8 text-blue-600" />
-          </div>
-        </Card>
-        <Card className="p-4">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm text-muted-foreground">已結束</p>
-              <p className="text-2xl font-bold text-gray-600">{groupedAssignments.ended.length}</p>
-            </div>
-            <CheckIcon className="w-8 h-8 text-gray-600" />
-          </div>
-        </Card>
+      {/* 狀態按鈕 */}
+      <div className="flex gap-2 overflow-x-auto pb-2">
+        <Button
+          variant={filterStatus === "all" ? "default" : "outline"}
+          size="sm"
+          onClick={() => setFilterStatus("all")}
+          className="whitespace-nowrap"
+        >
+          全部 ({statusCounts.all})
+        </Button>
+        <Button
+          variant={filterStatus === "active" ? "default" : "outline"}
+          size="sm"
+          onClick={() => setFilterStatus("active")}
+          className="whitespace-nowrap"
+        >
+          進行中 ({statusCounts.active})
+        </Button>
+        <Button
+          variant={filterStatus === "ended" ? "default" : "outline"}
+          size="sm"
+          onClick={() => setFilterStatus("ended")}
+          className="whitespace-nowrap"
+        >
+          已結束 ({statusCounts.ended})
+        </Button>
       </div>
 
       {/* 作業列表 */}
