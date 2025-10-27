@@ -434,7 +434,7 @@ export default function TeacherPage() {
         return (
           <div className="space-y-6">
             <div>
-              <h1 className="text-2xl font-bold text-foreground">學生管理</h1>
+              <h1 className="text-xl sm:text-2xl lg:text-3xl xl:text-4xl font-bold text-foreground">學生管理</h1>
               <p className="text-muted-foreground">管理學生名單和LINE綁定</p>
             </div>
             <TeacherStudentManagement />
@@ -444,7 +444,7 @@ export default function TeacherPage() {
         return (
           <div className="space-y-6">
             <div>
-              <h1 className="text-2xl font-bold text-foreground">週報統計</h1>
+              <h1 className="text-xl sm:text-2xl lg:text-3xl xl:text-4xl font-bold text-foreground">週報統計</h1>
               <p className="text-muted-foreground">查看繳交率和缺交統計</p>
             </div>
             {/* TODO: 週報統計組件 */}

@@ -121,7 +121,7 @@ export function TeacherAssignmentManagement({
       {/* 標題 */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-foreground">作業管理</h1>
+          <h1 className="text-xl sm:text-2xl lg:text-3xl xl:text-4xl font-bold text-foreground">作業管理</h1>
           <p className="text-muted-foreground hidden sm:block">管理所有課程的作業</p>
         </div>
         {/* 手機版搜尋圖示 */}
@@ -155,19 +155,21 @@ export function TeacherAssignmentManagement({
           onChange={(e) => setSearchQuery(e.target.value)}
           className="flex-1"
         />
-        <Select value={filterCourse} onValueChange={setFilterCourse}>
-          <SelectTrigger className="w-full sm:w-48">
-            <SelectValue placeholder="篩選課程" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">全部課程</SelectItem>
-            {courses.map((course) => (
-              <SelectItem key={course.id} value={course.id}>
-                {course.name}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
+        <div className="w-full sm:w-48">
+          <Select value={filterCourse} onValueChange={setFilterCourse}>
+            <SelectTrigger className="w-full border border-input">
+              <SelectValue placeholder="篩選課程" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">全部課程</SelectItem>
+              {courses.map((course) => (
+                <SelectItem key={course.id} value={course.id}>
+                  {course.name}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
       </div>
 
       {/* 手機版篩選控制 - 狀態按鈕在上，課程選擇在下 */}
@@ -202,7 +204,7 @@ export function TeacherAssignmentManagement({
         
         {/* 課程篩選 */}
         <Select value={filterCourse} onValueChange={setFilterCourse}>
-          <SelectTrigger className="w-full">
+          <SelectTrigger className="w-full border border-input">
             <SelectValue placeholder="篩選課程" />
           </SelectTrigger>
           <SelectContent>
