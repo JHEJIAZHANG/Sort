@@ -108,7 +108,6 @@ export function TeacherCourseDetail({
   const [studentFilters, setStudentFilters] = useState<Set<string>>(new Set(["line_bound", "line_unbound", "classroom_joined", "classroom_not_joined", "submission_good", "submission_poor"]))
   const [assignmentFilter, setAssignmentFilter] = useState<"all" | "active" | "overdue">("all")
   const [searchQuery, setSearchQuery] = useState("")
-  const [isFilterExpanded, setIsFilterExpanded] = useState(false)
   
   // 操作狀態
   const [remindingAssignment, setRemindingAssignment] = useState<string | null>(null)
@@ -518,139 +517,212 @@ export function TeacherCourseDetail({
             onChange={(e) => setSearchQuery(e.target.value)}
           />
           
-          {/* 篩選控制 - 勾選方式（預設收合） */}
-          <Card className="p-4">
-            <div 
-              className="flex items-center justify-between cursor-pointer"
-              onClick={() => setIsFilterExpanded(!isFilterExpanded)}
-            >
-              <h4 className="font-medium text-sm">篩選條件</h4>
-              <span className="text-muted-foreground text-sm">
-                {isFilterExpanded ? "▲" : "▼"}
-              </span>
-            </div>
-            
-            {isFilterExpanded && (
-              <div className="space-y-3 mt-3">
-                {/* LINE 綁定狀態 */}
-                <div>
-                  <p className="text-xs text-muted-foreground mb-2">LINE 綁定狀態</p>
-                  <div className="flex flex-col gap-2">
-                    <label className="flex items-center gap-2 cursor-pointer">
-                      <Checkbox 
-                        className="h-3.5 w-3.5"
-                        checked={studentFilters.has("line_bound")}
-                        onCheckedChange={(checked) => {
-                          const newFilters = new Set(studentFilters)
-                          if (checked) {
-                            newFilters.add("line_bound")
-                          } else {
-                            newFilters.delete("line_bound")
-                          }
-                          setStudentFilters(newFilters)
-                        }}
-                      />
-                      <span className="text-sm">已綁定 LINE</span>
-                    </label>
-                    <label className="flex items-center gap-2 cursor-pointer">
-                      <Checkbox 
-                        className="h-3.5 w-3.5"
-                        checked={studentFilters.has("line_unbound")}
-                        onCheckedChange={(checked) => {
-                          const newFilters = new Set(studentFilters)
-                          if (checked) {
-                            newFilters.add("line_unbound")
-                          } else {
-                            newFilters.delete("line_unbound")
-                          }
-                          setStudentFilters(newFilters)
-                        }}
-                      />
-                      <span className="text-sm">未綁定 LINE</span>
-                    </label>
+          {/* 篩選控制 - 卡片方式（可複選） */}
+          <div className="space-y-3">
+            {/* LINE 綁定狀態 */}
+            <div>
+              <p className="text-xs text-muted-foreground mb-2">LINE 綁定狀態</p>
+              <div className="grid grid-cols-2 gap-3">
+                <Card 
+                  className={`p-3 cursor-pointer transition-all ${
+                    studentFilters.has("line_bound")
+                      ? "border-2 border-green-500 shadow-md" 
+                      : "hover:shadow-md"
+                  }`}
+                  onClick={() => {
+                    const newFilters = new Set(studentFilters)
+                    if (studentFilters.has("line_bound")) {
+                      newFilters.delete("line_bound")
+                    } else {
+                      newFilters.add("line_bound")
+                    }
+                    setStudentFilters(newFilters)
+                  }}
+                >
+                  <div className="flex items-center space-x-2">
+                    <CheckIcon className={`w-4 h-4 transition-colors ${
+                      studentFilters.has("line_bound") ? "text-green-600" : "text-gray-400"
+                    }`} />
+                    <div>
+                      <p className={`text-sm transition-colors ${
+                        studentFilters.has("line_bound") ? "text-green-600 font-medium" : "text-muted-foreground"
+                      }`}>已綁定 LINE</p>
+                      <p className="text-lg font-bold text-gray-900">
+                        {students.filter(s => s.line_bound).length}
+                      </p>
+                    </div>
                   </div>
-                </div>
-                
-                {/* Classroom 加入狀態 */}
-                <div>
-                  <p className="text-xs text-muted-foreground mb-2">Classroom 加入狀態</p>
-                  <div className="flex flex-col gap-2">
-                    <label className="flex items-center gap-2 cursor-pointer">
-                      <Checkbox 
-                        className="h-3.5 w-3.5"
-                        checked={studentFilters.has("classroom_joined")}
-                        onCheckedChange={(checked) => {
-                          const newFilters = new Set(studentFilters)
-                          if (checked) {
-                            newFilters.add("classroom_joined")
-                          } else {
-                            newFilters.delete("classroom_joined")
-                          }
-                          setStudentFilters(newFilters)
-                        }}
-                      />
-                      <span className="text-sm">已加入 Classroom</span>
-                    </label>
-                    <label className="flex items-center gap-2 cursor-pointer">
-                      <Checkbox 
-                        className="h-3.5 w-3.5"
-                        checked={studentFilters.has("classroom_not_joined")}
-                        onCheckedChange={(checked) => {
-                          const newFilters = new Set(studentFilters)
-                          if (checked) {
-                            newFilters.add("classroom_not_joined")
-                          } else {
-                            newFilters.delete("classroom_not_joined")
-                          }
-                          setStudentFilters(newFilters)
-                        }}
-                      />
-                      <span className="text-sm">未加入 Classroom</span>
-                    </label>
+                </Card>
+
+                <Card 
+                  className={`p-3 cursor-pointer transition-all ${
+                    studentFilters.has("line_unbound")
+                      ? "border-2 border-gray-500 shadow-md" 
+                      : "hover:shadow-md"
+                  }`}
+                  onClick={() => {
+                    const newFilters = new Set(studentFilters)
+                    if (studentFilters.has("line_unbound")) {
+                      newFilters.delete("line_unbound")
+                    } else {
+                      newFilters.add("line_unbound")
+                    }
+                    setStudentFilters(newFilters)
+                  }}
+                >
+                  <div className="flex items-center space-x-2">
+                    <ExclamationIcon className={`w-4 h-4 transition-colors ${
+                      studentFilters.has("line_unbound") ? "text-gray-600" : "text-gray-400"
+                    }`} />
+                    <div>
+                      <p className={`text-sm transition-colors ${
+                        studentFilters.has("line_unbound") ? "text-gray-600 font-medium" : "text-muted-foreground"
+                      }`}>未綁定 LINE</p>
+                      <p className="text-lg font-bold text-gray-900">
+                        {students.filter(s => !s.line_bound).length}
+                      </p>
+                    </div>
                   </div>
-                </div>
-                
-                {/* 繳交率狀態 */}
-                <div>
-                  <p className="text-xs text-muted-foreground mb-2">繳交率狀態</p>
-                  <div className="flex flex-col gap-2">
-                    <label className="flex items-center gap-2 cursor-pointer">
-                      <Checkbox 
-                        className="h-3.5 w-3.5"
-                        checked={studentFilters.has("submission_good")}
-                        onCheckedChange={(checked) => {
-                          const newFilters = new Set(studentFilters)
-                          if (checked) {
-                            newFilters.add("submission_good")
-                          } else {
-                            newFilters.delete("submission_good")
-                          }
-                          setStudentFilters(newFilters)
-                        }}
-                      />
-                      <span className="text-sm">繳交率良好 (≥70%)</span>
-                    </label>
-                    <label className="flex items-center gap-2 cursor-pointer">
-                      <Checkbox 
-                        className="h-3.5 w-3.5"
-                        checked={studentFilters.has("submission_poor")}
-                        onCheckedChange={(checked) => {
-                          const newFilters = new Set(studentFilters)
-                          if (checked) {
-                            newFilters.add("submission_poor")
-                          } else {
-                            newFilters.delete("submission_poor")
-                          }
-                          setStudentFilters(newFilters)
-                        }}
-                      />
-                      <span className="text-sm">繳交率偏低 (&lt;70%)</span>
-                    </label>
-                  </div>
-                </div>
+                </Card>
               </div>
-            )}
-          </Card>
+            </div>
+
+            {/* Classroom 加入狀態 */}
+            <div>
+              <p className="text-xs text-muted-foreground mb-2">Classroom 加入狀態</p>
+              <div className="grid grid-cols-2 gap-3">
+                <Card 
+                  className={`p-3 cursor-pointer transition-all ${
+                    studentFilters.has("classroom_joined")
+                      ? "border-2 border-blue-500 shadow-md" 
+                      : "hover:shadow-md"
+                  }`}
+                  onClick={() => {
+                    const newFilters = new Set(studentFilters)
+                    if (studentFilters.has("classroom_joined")) {
+                      newFilters.delete("classroom_joined")
+                    } else {
+                      newFilters.add("classroom_joined")
+                    }
+                    setStudentFilters(newFilters)
+                  }}
+                >
+                  <div className="flex items-center space-x-2">
+                    <CheckIcon className={`w-4 h-4 transition-colors ${
+                      studentFilters.has("classroom_joined") ? "text-blue-600" : "text-gray-400"
+                    }`} />
+                    <div>
+                      <p className={`text-sm transition-colors ${
+                        studentFilters.has("classroom_joined") ? "text-blue-600 font-medium" : "text-muted-foreground"
+                      }`}>已加入 Classroom</p>
+                      <p className="text-lg font-bold text-gray-900">
+                        {students.filter(s => s.classroom_joined).length}
+                      </p>
+                    </div>
+                  </div>
+                </Card>
+
+                <Card 
+                  className={`p-3 cursor-pointer transition-all ${
+                    studentFilters.has("classroom_not_joined")
+                      ? "border-2 border-gray-500 shadow-md" 
+                      : "hover:shadow-md"
+                  }`}
+                  onClick={() => {
+                    const newFilters = new Set(studentFilters)
+                    if (studentFilters.has("classroom_not_joined")) {
+                      newFilters.delete("classroom_not_joined")
+                    } else {
+                      newFilters.add("classroom_not_joined")
+                    }
+                    setStudentFilters(newFilters)
+                  }}
+                >
+                  <div className="flex items-center space-x-2">
+                    <ExclamationIcon className={`w-4 h-4 transition-colors ${
+                      studentFilters.has("classroom_not_joined") ? "text-gray-600" : "text-gray-400"
+                    }`} />
+                    <div>
+                      <p className={`text-sm transition-colors ${
+                        studentFilters.has("classroom_not_joined") ? "text-gray-600 font-medium" : "text-muted-foreground"
+                      }`}>未加入 Classroom</p>
+                      <p className="text-lg font-bold text-gray-900">
+                        {students.filter(s => !s.classroom_joined).length}
+                      </p>
+                    </div>
+                  </div>
+                </Card>
+              </div>
+            </div>
+
+            {/* 繳交率狀態 */}
+            <div>
+              <p className="text-xs text-muted-foreground mb-2">繳交率狀態</p>
+              <div className="grid grid-cols-2 gap-3">
+                <Card 
+                  className={`p-3 cursor-pointer transition-all ${
+                    studentFilters.has("submission_good")
+                      ? "border-2 border-orange-500 shadow-md" 
+                      : "hover:shadow-md"
+                  }`}
+                  onClick={() => {
+                    const newFilters = new Set(studentFilters)
+                    if (studentFilters.has("submission_good")) {
+                      newFilters.delete("submission_good")
+                    } else {
+                      newFilters.add("submission_good")
+                    }
+                    setStudentFilters(newFilters)
+                  }}
+                >
+                  <div className="flex items-center space-x-2">
+                    <CheckIcon className={`w-4 h-4 transition-colors ${
+                      studentFilters.has("submission_good") ? "text-orange-600" : "text-gray-400"
+                    }`} />
+                    <div>
+                      <p className={`text-sm transition-colors ${
+                        studentFilters.has("submission_good") ? "text-orange-600 font-medium" : "text-muted-foreground"
+                      }`}>繳交率良好</p>
+                      <p className="text-lg font-bold text-gray-900">
+                        {students.filter(s => (s.recent_submission_rate || 0) >= 70).length}
+                      </p>
+                    </div>
+                  </div>
+                </Card>
+
+                <Card 
+                  className={`p-3 cursor-pointer transition-all ${
+                    studentFilters.has("submission_poor")
+                      ? "border-2 border-red-500 shadow-md" 
+                      : "hover:shadow-md"
+                  }`}
+                  onClick={() => {
+                    const newFilters = new Set(studentFilters)
+                    if (studentFilters.has("submission_poor")) {
+                      newFilters.delete("submission_poor")
+                    } else {
+                      newFilters.add("submission_poor")
+                    }
+                    setStudentFilters(newFilters)
+                  }}
+                >
+                  <div className="flex items-center space-x-2">
+                    <ExclamationIcon className={`w-4 h-4 transition-colors ${
+                      studentFilters.has("submission_poor") ? "text-red-600" : "text-gray-400"
+                    }`} />
+                    <div>
+                      <p className={`text-sm transition-colors ${
+                        studentFilters.has("submission_poor") ? "text-red-600 font-medium" : "text-muted-foreground"
+                      }`}>繳交率偏低</p>
+                      <p className="text-lg font-bold text-gray-900">
+                        {students.filter(s => (s.recent_submission_rate || 0) < 70).length}
+                      </p>
+                    </div>
+                  </div>
+                </Card>
+              </div>
+            </div>
+          </div>
 
           {/* 學生列表 */}
           <Card className="p-4">
