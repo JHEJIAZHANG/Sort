@@ -12,9 +12,79 @@ import { ChevronLeftIcon, ChevronRightIcon } from "lucide-react"
 import type { Assignment, Course } from "@/types/course"
 import { getTaiwanTime } from "@/lib/taiwan-time"
 
-// 簡化的日期選擇器組件（使用原生選擇器）
+// 滾輪選擇器組件
+function ScrollPicker({ 
+  value, 
+  options, 
+  onChange,
+  label 
+}: { 
+  value: number
+  options: { value: number; label: string }[]
+  onChange: (value: number) => void
+  label: string
+}) {
+  const scrollRef = useRef<HTMLDivElement>(null)
+  const [isDragging, setIsDragging] = useState(false)
+  
+  useEffect(() => {
+    if (scrollRef.current) {
+      const index = options.findIndex(opt => opt.value === value)
+      if (index !== -1) {
+        const itemHeight = 32
+        scrollRef.current.scrollTop = index * itemHeight - itemHeight
+      }
+    }
+  }, [value, options])
+  
+  const handleScroll = () => {
+    if (scrollRef.current && !isDragging) {
+      const itemHeight = 32
+      const scrollTop = scrollRef.current.scrollTop
+      const index = Math.round(scrollTop / itemHeight)
+      if (options[index]) {
+        onChange(options[index].value)
+      }
+    }
+  }
+  
+  return (
+    <div className="flex flex-col items-center">
+      <div className="text-xs text-muted-foreground mb-1">{label}</div>
+      <div 
+        ref={scrollRef}
+        onScroll={handleScroll}
+        onMouseDown={() => setIsDragging(true)}
+        onMouseUp={() => setIsDragging(false)}
+        onTouchStart={() => setIsDragging(true)}
+        onTouchEnd={() => setIsDragging(false)}
+        className="h-32 overflow-y-scroll snap-y snap-mandatory scrollbar-hide relative"
+        style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
+      >
+        <div className="h-12" />
+        {options.map((option) => (
+          <div
+            key={option.value}
+            className={`h-8 flex items-center justify-center snap-center cursor-pointer transition-all ${
+              option.value === value 
+                ? 'text-foreground font-semibold text-base' 
+                : 'text-muted-foreground text-sm'
+            }`}
+            onClick={() => onChange(option.value)}
+          >
+            {option.label}
+          </div>
+        ))}
+        <div className="h-12" />
+      </div>
+    </div>
+  )
+}
+
+// 簡化的日期選擇器組件（使用滾輪選擇器）
 function DatePickerCalendar({ selectedDate, onDateSelect }: { selectedDate?: Date; onDateSelect: (date: Date) => void }) {
   const [currentDate, setCurrentDate] = useState(selectedDate || getTaiwanTime())
+  const [showYearMonthPicker, setShowYearMonthPicker] = useState(false)
   
   const today = getTaiwanTime()
   const currentMonth = currentDate.getMonth()
@@ -30,6 +100,18 @@ function DatePickerCalendar({ selectedDate, onDateSelect }: { selectedDate?: Dat
   
   const monthNames = ["一月", "二月", "三月", "四月", "五月", "六月", "七月", "八月", "九月", "十月", "十一月", "十二月"]
   const dayNames = ["一", "二", "三", "四", "五", "六", "日"]
+  
+  // 生成年份選項（1900-2100）
+  const yearOptions = Array.from({ length: 201 }, (_, i) => ({
+    value: 1900 + i,
+    label: `${1900 + i}年`
+  }))
+  
+  // 生成月份選項
+  const monthOptions = monthNames.map((name, index) => ({
+    value: index,
+    label: name
+  }))
   
   const isToday = (day: number) => {
     return today.getDate() === day && today.getMonth() === currentMonth && today.getFullYear() === currentYear
@@ -70,36 +152,14 @@ function DatePickerCalendar({ selectedDate, onDateSelect }: { selectedDate?: Dat
           <ChevronLeftIcon className="h-4 w-4" />
         </Button>
         <div className="flex items-center gap-1">
-          <div className="relative">
-            <input
-              type="number"
-              value={currentYear}
-              onChange={(e) => {
-                const year = parseInt(e.target.value)
-                if (!isNaN(year) && year > 1900 && year < 2200) {
-                  setCurrentDate(new Date(year, currentMonth, 1))
-                }
-              }}
-              className="h-8 w-20 px-2 text-sm font-medium text-center border rounded hover:bg-accent focus:outline-none focus:ring-2 focus:ring-primary"
-              min="1900"
-              max="2200"
-            />
-          </div>
-          <span className="text-sm font-medium">年</span>
-          <select
-            value={currentMonth}
-            onChange={(e) => {
-              const month = parseInt(e.target.value)
-              setCurrentDate(new Date(currentYear, month, 1))
-            }}
-            className="h-8 px-2 text-sm font-medium border rounded hover:bg-accent focus:outline-none focus:ring-2 focus:ring-primary cursor-pointer"
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => setShowYearMonthPicker(!showYearMonthPicker)}
+            className="h-8 px-2 font-medium text-sm hover:bg-accent"
           >
-            {monthNames.map((month, index) => (
-              <option key={index} value={index}>
-                {month}
-              </option>
-            ))}
-          </select>
+            {currentYear}年 {monthNames[currentMonth]}
+          </Button>
         </div>
         <Button 
           variant="ghost" 
@@ -110,6 +170,34 @@ function DatePickerCalendar({ selectedDate, onDateSelect }: { selectedDate?: Dat
           <ChevronRightIcon className="h-4 w-4" />
         </Button>
       </div>
+      
+      {/* 年份月份滾輪選擇器 */}
+      {showYearMonthPicker && (
+        <div className="mb-3 p-4 border rounded-md bg-background">
+          <div className="flex gap-4 justify-center">
+            <ScrollPicker
+              value={currentYear}
+              options={yearOptions}
+              onChange={(year) => setCurrentDate(new Date(year, currentMonth, 1))}
+              label="年份"
+            />
+            <ScrollPicker
+              value={currentMonth}
+              options={monthOptions}
+              onChange={(month) => setCurrentDate(new Date(currentYear, month, 1))}
+              label="月份"
+            />
+          </div>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => setShowYearMonthPicker(false)}
+            className="w-full mt-3"
+          >
+            確定
+          </Button>
+        </div>
+      )}
       
       {/* 星期標題 */}
       <div className="grid grid-cols-7 gap-1 mb-2">
@@ -147,6 +235,12 @@ function DatePickerCalendar({ selectedDate, onDateSelect }: { selectedDate?: Dat
           </div>
         ))}
       </div>
+      
+      <style jsx>{`
+        .scrollbar-hide::-webkit-scrollbar {
+          display: none;
+        }
+      `}</style>
     </div>
   )
 }
