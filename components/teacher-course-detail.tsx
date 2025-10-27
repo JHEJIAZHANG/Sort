@@ -104,8 +104,8 @@ export function TeacherCourseDetail({
   const [boundGroups, setBoundGroups] = useState<BoundGroup[]>([])
   const [weeklyReports, setWeeklyReports] = useState<WeeklyReport[]>([])
   
-  // 篩選狀態
-  const [studentFilter, setStudentFilter] = useState<"all" | "unbound" | "missing">("all")
+  // 篩選狀態 - 改為多選
+  const [studentFilters, setStudentFilters] = useState<Set<string>>(new Set(["line_bound", "line_unbound", "classroom_joined", "classroom_not_joined", "submission_good", "submission_poor"]))
   const [assignmentFilter, setAssignmentFilter] = useState<"all" | "active" | "overdue">("all")
   const [searchQuery, setSearchQuery] = useState("")
   
@@ -265,11 +265,20 @@ export function TeacherCourseDetail({
       student.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
       student.email.toLowerCase().includes(searchQuery.toLowerCase())
     
-    const matchesFilter = studentFilter === "all" || 
-      (studentFilter === "unbound" && !student.line_bound) ||
-      (studentFilter === "missing" && (student.recent_submission_rate || 0) < 70)
+    // 檢查學生是否符合任一選中的篩選條件
+    const matchesLineFilter = 
+      (studentFilters.has("line_bound") && student.line_bound) ||
+      (studentFilters.has("line_unbound") && !student.line_bound)
     
-    return matchesSearch && matchesFilter
+    const matchesClassroomFilter = 
+      (studentFilters.has("classroom_joined") && student.classroom_joined) ||
+      (studentFilters.has("classroom_not_joined") && !student.classroom_joined)
+    
+    const matchesSubmissionFilter = 
+      (studentFilters.has("submission_good") && (student.recent_submission_rate || 0) >= 70) ||
+      (studentFilters.has("submission_poor") && (student.recent_submission_rate || 0) < 70)
+    
+    return matchesSearch && matchesLineFilter && matchesClassroomFilter && matchesSubmissionFilter
   })
 
   // 篩選和排序作業
@@ -501,25 +510,129 @@ export function TeacherCourseDetail({
 
         {activeTab === "students" && (
         <div className="space-y-4 mt-6">
-          {/* 篩選控制 */}
-          <div className="flex flex-col sm:flex-row gap-4">
-            <Input
-              placeholder="搜尋學生姓名或信箱..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="flex-1"
-            />
-            <Select value={studentFilter} onValueChange={(value: any) => setStudentFilter(value)}>
-              <SelectTrigger className="w-full sm:w-48">
-                <SelectValue placeholder="篩選條件" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">全部學生</SelectItem>
-                <SelectItem value="unbound">未綁定 LINE</SelectItem>
-                <SelectItem value="missing">繳交率偏低</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
+          {/* 搜尋框 */}
+          <Input
+            placeholder="搜尋學生姓名或信箱..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+          />
+          
+          {/* 篩選控制 - 勾選方式 */}
+          <Card className="p-4">
+            <h4 className="font-medium mb-3 text-sm">篩選條件</h4>
+            <div className="space-y-3">
+              {/* LINE 綁定狀態 */}
+              <div>
+                <p className="text-xs text-muted-foreground mb-2">LINE 綁定狀態</p>
+                <div className="flex flex-col gap-2">
+                  <label className="flex items-center gap-2 cursor-pointer">
+                    <Checkbox 
+                      checked={studentFilters.has("line_bound")}
+                      onCheckedChange={(checked) => {
+                        const newFilters = new Set(studentFilters)
+                        if (checked) {
+                          newFilters.add("line_bound")
+                        } else {
+                          newFilters.delete("line_bound")
+                        }
+                        setStudentFilters(newFilters)
+                      }}
+                    />
+                    <span className="text-sm">已綁定 LINE</span>
+                  </label>
+                  <label className="flex items-center gap-2 cursor-pointer">
+                    <Checkbox 
+                      checked={studentFilters.has("line_unbound")}
+                      onCheckedChange={(checked) => {
+                        const newFilters = new Set(studentFilters)
+                        if (checked) {
+                          newFilters.add("line_unbound")
+                        } else {
+                          newFilters.delete("line_unbound")
+                        }
+                        setStudentFilters(newFilters)
+                      }}
+                    />
+                    <span className="text-sm">未綁定 LINE</span>
+                  </label>
+                </div>
+              </div>
+              
+              {/* Classroom 加入狀態 */}
+              <div>
+                <p className="text-xs text-muted-foreground mb-2">Classroom 加入狀態</p>
+                <div className="flex flex-col gap-2">
+                  <label className="flex items-center gap-2 cursor-pointer">
+                    <Checkbox 
+                      checked={studentFilters.has("classroom_joined")}
+                      onCheckedChange={(checked) => {
+                        const newFilters = new Set(studentFilters)
+                        if (checked) {
+                          newFilters.add("classroom_joined")
+                        } else {
+                          newFilters.delete("classroom_joined")
+                        }
+                        setStudentFilters(newFilters)
+                      }}
+                    />
+                    <span className="text-sm">已加入 Classroom</span>
+                  </label>
+                  <label className="flex items-center gap-2 cursor-pointer">
+                    <Checkbox 
+                      checked={studentFilters.has("classroom_not_joined")}
+                      onCheckedChange={(checked) => {
+                        const newFilters = new Set(studentFilters)
+                        if (checked) {
+                          newFilters.add("classroom_not_joined")
+                        } else {
+                          newFilters.delete("classroom_not_joined")
+                        }
+                        setStudentFilters(newFilters)
+                      }}
+                    />
+                    <span className="text-sm">未加入 Classroom</span>
+                  </label>
+                </div>
+              </div>
+              
+              {/* 繳交率狀態 */}
+              <div>
+                <p className="text-xs text-muted-foreground mb-2">繳交率狀態</p>
+                <div className="flex flex-col gap-2">
+                  <label className="flex items-center gap-2 cursor-pointer">
+                    <Checkbox 
+                      checked={studentFilters.has("submission_good")}
+                      onCheckedChange={(checked) => {
+                        const newFilters = new Set(studentFilters)
+                        if (checked) {
+                          newFilters.add("submission_good")
+                        } else {
+                          newFilters.delete("submission_good")
+                        }
+                        setStudentFilters(newFilters)
+                      }}
+                    />
+                    <span className="text-sm">繳交率良好 (≥70%)</span>
+                  </label>
+                  <label className="flex items-center gap-2 cursor-pointer">
+                    <Checkbox 
+                      checked={studentFilters.has("submission_poor")}
+                      onCheckedChange={(checked) => {
+                        const newFilters = new Set(studentFilters)
+                        if (checked) {
+                          newFilters.add("submission_poor")
+                        } else {
+                          newFilters.delete("submission_poor")
+                        }
+                        setStudentFilters(newFilters)
+                      }}
+                    />
+                    <span className="text-sm">繳交率偏低 (<70%)</span>
+                  </label>
+                </div>
+              </div>
+            </div>
+          </Card>
 
           {/* 學生列表 */}
           <Card className="p-4">
@@ -532,41 +645,39 @@ export function TeacherCourseDetail({
                   <div key={student.id} className="p-3 border rounded-lg">
                     {/* 手機版布局 */}
                     <div className="md:hidden">
-                      <div className="flex items-center justify-between gap-2 mb-1">
-                        <h4 className="font-medium truncate">{student.name}</h4>
-                        <div className="flex items-center gap-1 flex-shrink-0">
+                      <h4 className="font-medium mb-1">{student.name}</h4>
+                      <p className="text-sm text-muted-foreground mb-2">{student.email}</p>
+                      <div className="flex items-center gap-1 flex-wrap">
+                        <Badge 
+                          variant="outline" 
+                          className={student.line_bound 
+                            ? "bg-gradient-to-r from-green-50 to-green-100 text-green-700 border-0 text-xs" 
+                            : "bg-gradient-to-r from-gray-50 to-gray-100 text-gray-700 border-0 text-xs"
+                          }
+                        >
+                          {student.line_bound ? "LINE 已綁定" : "未綁定"}
+                        </Badge>
+                        <Badge 
+                          variant="outline" 
+                          className={student.classroom_joined 
+                            ? "bg-gradient-to-r from-blue-50 to-blue-100 text-blue-700 border-0 text-xs" 
+                            : "bg-gradient-to-r from-gray-50 to-gray-100 text-gray-700 border-0 text-xs"
+                          }
+                        >
+                          {student.classroom_joined ? "已加入 Classroom" : "未加入"}
+                        </Badge>
+                        {student.recent_submission_rate !== undefined && (
                           <Badge 
-                            variant="outline" 
-                            className={student.line_bound 
-                              ? "bg-gradient-to-r from-green-50 to-green-100 text-green-700 border-0 text-xs" 
-                              : "bg-gradient-to-r from-gray-50 to-gray-100 text-gray-700 border-0 text-xs"
+                            variant="outline"
+                            className={student.recent_submission_rate >= 70 
+                              ? "bg-gradient-to-r from-orange-50 to-orange-100 text-orange-700 border-0 text-xs" 
+                              : "bg-gradient-to-r from-red-50 to-red-100 text-red-700 border-0 text-xs"
                             }
                           >
-                            {student.line_bound ? "LINE 已綁定" : "未綁定"}
+                            繳交率 {student.recent_submission_rate}%
                           </Badge>
-                          <Badge 
-                            variant="outline" 
-                            className={student.classroom_joined 
-                              ? "bg-gradient-to-r from-blue-50 to-blue-100 text-blue-700 border-0 text-xs" 
-                              : "bg-gradient-to-r from-gray-50 to-gray-100 text-gray-700 border-0 text-xs"
-                            }
-                          >
-                            {student.classroom_joined ? "已加入 Classroom" : "未加入"}
-                          </Badge>
-                          {student.recent_submission_rate !== undefined && (
-                            <Badge 
-                              variant="outline"
-                              className={student.recent_submission_rate >= 70 
-                                ? "bg-gradient-to-r from-orange-50 to-orange-100 text-orange-700 border-0 text-xs" 
-                                : "bg-gradient-to-r from-red-50 to-red-100 text-red-700 border-0 text-xs"
-                              }
-                            >
-                              繳交率 {student.recent_submission_rate}%
-                            </Badge>
-                          )}
-                        </div>
+                        )}
                       </div>
-                      <p className="text-sm text-muted-foreground">{student.email}</p>
                     </div>
                     
                     {/* 電腦版布局 */}
