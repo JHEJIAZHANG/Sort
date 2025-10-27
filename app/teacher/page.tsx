@@ -21,6 +21,7 @@ import { useTeacherCourses } from "@/hooks/use-teacher-courses"
 import type { Course } from "@/types/course"
 import { TeacherAssignmentManagement } from "@/components/teacher-assignment-management"
 import { TeacherAssignmentDetail } from "@/components/teacher-assignment-detail"
+import { TeacherProfileContent } from "@/components/teacher-profile-content"
 import { ApiService } from "@/services/apiService"
 
 export default function TeacherPage() {
@@ -443,6 +444,9 @@ export default function TeacherPage() {
             )}
           </div>
         )
+      
+      case "profile":
+        return <TeacherProfileContent user={user} onUserChange={setUser} lineUserId={lineUserId} />
 
       default:
         return null
