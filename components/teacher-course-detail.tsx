@@ -537,8 +537,8 @@ export function TeacherCourseDetail({
                           <Badge 
                             variant="outline" 
                             className={student.line_bound 
-                              ? "bg-gradient-to-r from-green-50 to-green-100 text-green-700 border-gray-200 text-xs" 
-                              : "bg-gray-50 text-gray-700 border-gray-200 text-xs"
+                              ? "bg-gradient-to-r from-green-50 to-green-100 text-green-700 border-0 text-xs" 
+                              : "bg-gradient-to-r from-gray-50 to-gray-100 text-gray-700 border-0 text-xs"
                             }
                           >
                             {student.line_bound ? "LINE 已綁定" : "未綁定"}
@@ -547,8 +547,8 @@ export function TeacherCourseDetail({
                             <Badge 
                               variant="outline"
                               className={student.recent_submission_rate >= 70 
-                                ? "bg-gradient-to-r from-orange-50 to-orange-100 text-orange-700 border-gray-200 text-xs" 
-                                : "bg-gradient-to-r from-red-50 to-red-100 text-red-700 border-gray-200 text-xs"
+                                ? "bg-gradient-to-r from-orange-50 to-orange-100 text-orange-700 border-0 text-xs" 
+                                : "bg-gradient-to-r from-red-50 to-red-100 text-red-700 border-0 text-xs"
                               }
                             >
                               繳交率 {student.recent_submission_rate}%
@@ -569,8 +569,8 @@ export function TeacherCourseDetail({
                         <Badge 
                           variant="outline" 
                           className={student.line_bound 
-                            ? "bg-gradient-to-r from-green-50 to-green-100 text-green-700 border-gray-200" 
-                            : "bg-gray-50 text-gray-700 border-gray-200"
+                            ? "bg-gradient-to-r from-green-50 to-green-100 text-green-700 border-0" 
+                            : "bg-gradient-to-r from-gray-50 to-gray-100 text-gray-700 border-0"
                           }
                         >
                           {student.line_bound ? "LINE 已綁定" : "未綁定"}
@@ -579,8 +579,8 @@ export function TeacherCourseDetail({
                           <Badge 
                             variant="outline"
                             className={student.recent_submission_rate >= 70 
-                              ? "bg-gradient-to-r from-orange-50 to-orange-100 text-orange-700 border-gray-200" 
-                              : "bg-gradient-to-r from-red-50 to-red-100 text-red-700 border-gray-200"
+                              ? "bg-gradient-to-r from-orange-50 to-orange-100 text-orange-700 border-0" 
+                              : "bg-gradient-to-r from-red-50 to-red-100 text-red-700 border-0"
                             }
                           >
                             繳交率 {student.recent_submission_rate}%
