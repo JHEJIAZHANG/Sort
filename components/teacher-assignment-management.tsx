@@ -209,7 +209,10 @@ export function TeacherAssignmentManagement({
                   type="date"
                   value={filterDate}
                   onChange={(e) => setFilterDate(e.target.value)}
-                  className="w-full"
+                  className="w-full [&::-webkit-calendar-picker-indicator]:ml-auto [&::-webkit-calendar-picker-indicator]:cursor-pointer"
+                  style={{
+                    colorScheme: 'light'
+                  }}
                 />
                 <Button
                   size="sm"
@@ -262,7 +265,10 @@ export function TeacherAssignmentManagement({
                   type="date"
                   value={filterDate}
                   onChange={(e) => setFilterDate(e.target.value)}
-                  className="w-full [&::-webkit-calendar-picker-indicator]:ml-auto"
+                  className="w-full [&::-webkit-calendar-picker-indicator]:ml-auto [&::-webkit-calendar-picker-indicator]:cursor-pointer"
+                  style={{
+                    colorScheme: 'light'
+                  }}
                 />
                 <Button
                   size="sm"
