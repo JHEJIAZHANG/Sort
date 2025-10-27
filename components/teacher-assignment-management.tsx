@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useMemo } from "react"
+import { useState, useMemo, useEffect, useRef } from "react"
 import { Card } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
@@ -25,6 +25,26 @@ export function TeacherAssignmentManagement({
   const [filterCourse, setFilterCourse] = useState<string>("all")
   const [filterStatus, setFilterStatus] = useState<string>("all")
   const [showMobileSearch, setShowMobileSearch] = useState(false)
+  const [filterDate, setFilterDate] = useState<string>("")
+  const [showDatePicker, setShowDatePicker] = useState(false)
+  const datePickerRef = useRef<HTMLDivElement>(null)
+
+  // 點擊外部關閉日期選擇器
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (datePickerRef.current && !datePickerRef.current.contains(event.target as Node)) {
+        setShowDatePicker(false)
+      }
+    }
+
+    if (showDatePicker) {
+      document.addEventListener("mousedown", handleClickOutside)
+    }
+
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside)
+    }
+  }, [showDatePicker])
 
   // 篩選作業
   const filteredAssignments = useMemo(() => {
@@ -44,9 +64,13 @@ export function TeacherAssignmentManagement({
         (filterStatus === "active" && isActive) ||
         (filterStatus === "ended" && isEnded)
 
-      return matchesSearch && matchesCourse && matchesStatus
+      // 日期篩選
+      const matchesDate = filterDate === "" || 
+        dueDate.toISOString().split('T')[0] === filterDate
+
+      return matchesSearch && matchesCourse && matchesStatus && matchesDate
     })
-  }, [assignments, searchQuery, filterCourse, filterStatus])
+  }, [assignments, searchQuery, filterCourse, filterStatus, filterDate])
 
   // 計算各狀態的數量
   const statusCounts = useMemo(() => {
@@ -148,24 +172,64 @@ export function TeacherAssignmentManagement({
 
       {/* 手機版搜尋框 */}
       {showMobileSearch && (
-        <div className="sm:hidden">
+        <div className="sm:hidden flex gap-2">
           <Input
             placeholder="搜尋作業標題或描述..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full"
+            className="flex-1"
+          />
+          <Input
+            type="date"
+            value={filterDate}
+            onChange={(e) => setFilterDate(e.target.value)}
+            className="w-36"
+            placeholder="選擇日期"
           />
         </div>
       )}
 
       {/* 篩選控制 - 電腦版 */}
       <div className="hidden sm:flex sm:flex-row gap-4">
-        <Input
-          placeholder="搜尋作業標題或描述..."
-          value={searchQuery}
-          onChange={(e) => setSearchQuery(e.target.value)}
-          className="flex-1"
-        />
+        <div className="flex-1 relative" ref={datePickerRef}>
+          <Input
+            placeholder="搜尋作業標題或描述..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            onFocus={() => setShowDatePicker(true)}
+            className="w-full"
+          />
+          {showDatePicker && (
+            <div className="absolute top-full left-0 mt-2 z-10 bg-white border border-input rounded-md shadow-lg p-4 min-w-[280px]">
+              <div className="flex items-center justify-between mb-2">
+                <label className="text-sm font-medium">篩選日期：</label>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => {
+                    setFilterDate("")
+                  }}
+                  className="text-xs h-7"
+                >
+                  清除
+                </Button>
+              </div>
+              <Input
+                type="date"
+                value={filterDate}
+                onChange={(e) => setFilterDate(e.target.value)}
+                className="w-full"
+              />
+              <Button
+                size="sm"
+                onClick={() => setShowDatePicker(false)}
+                className="w-full mt-2"
+              >
+                確定
+              </Button>
+            </div>
+          )}
+        </div>
         <div className="w-full sm:w-48">
           <Select value={filterCourse} onValueChange={setFilterCourse}>
             <SelectTrigger className="w-full border border-input">
