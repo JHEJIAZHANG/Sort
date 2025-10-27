@@ -350,37 +350,28 @@ export function TeacherAssignmentManagement({
     }
   }, [assignments])
 
-  const getStatusIcon = (status: Assignment["status"]) => {
-    switch (status) {
-      case "completed":
-        return CheckIcon
-      case "overdue":
-        return ExclamationIcon
-      default:
-        return ClockIcon
-    }
+  const getStatusIcon = (assignment: Assignment) => {
+    const now = new Date()
+    const dueDate = new Date(assignment.dueDate)
+    const isActive = dueDate >= now
+    
+    return isActive ? ClockIcon : CheckIcon
   }
 
-  const getStatusColor = (status: Assignment["status"]) => {
-    switch (status) {
-      case "completed":
-        return "text-green-600"
-      case "overdue":
-        return "text-red-600"
-      default:
-        return "text-orange-600"
-    }
+  const getStatusColor = (assignment: Assignment) => {
+    const now = new Date()
+    const dueDate = new Date(assignment.dueDate)
+    const isActive = dueDate >= now
+    
+    return isActive ? "text-orange-600" : "text-gray-600"
   }
 
-  const getStatusText = (status: Assignment["status"]) => {
-    switch (status) {
-      case "completed":
-        return "已完成"
-      case "overdue":
-        return "已逾期"
-      default:
-        return "進行中"
-    }
+  const getStatusText = (assignment: Assignment) => {
+    const now = new Date()
+    const dueDate = new Date(assignment.dueDate)
+    const isActive = dueDate >= now
+    
+    return isActive ? "進行中" : "已結束"
   }
 
   const getCourseById = (courseId: string) => {
@@ -626,7 +617,10 @@ export function TeacherAssignmentManagement({
         <div className="space-y-3">
           {filteredAssignments.map((assignment) => {
             const course = getCourseById(assignment.courseId)
-            const StatusIcon = getStatusIcon(assignment.status)
+            const StatusIcon = getStatusIcon(assignment)
+            const now = new Date()
+            const dueDate = new Date(assignment.dueDate)
+            const isActive = dueDate >= now
             
             return (
               <Card
@@ -637,10 +631,10 @@ export function TeacherAssignmentManagement({
                 <div className="flex items-start justify-between gap-4">
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-3 mb-2">
-                      <StatusIcon className={`w-5 h-5 ${getStatusColor(assignment.status)}`} />
+                      <StatusIcon className={`w-5 h-5 ${getStatusColor(assignment)}`} />
                       <h4 className="font-medium text-foreground truncate">{assignment.title}</h4>
-                      <Badge variant={assignment.status === "overdue" ? "destructive" : "default"}>
-                        {getStatusText(assignment.status)}
+                      <Badge variant={isActive ? "default" : "secondary"}>
+                        {getStatusText(assignment)}
                       </Badge>
                       {assignment.source === "google_classroom" && (
                         <span className="text-xs px-2 py-1 rounded-full bg-blue-100 text-blue-800">

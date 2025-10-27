@@ -577,9 +577,8 @@ export function TeacherCourseDetail({
                       >
                         <div className="flex items-center gap-3 mb-2">
                           <h4 className="font-medium">{assignment.title}</h4>
-                          <Badge variant={assignment.status === 'overdue' ? "destructive" : "default"}>
-                            {assignment.status === 'active' ? '進行中' : 
-                             assignment.status === 'overdue' ? '已逾期' : '已完成'}
+                          <Badge variant={assignment.status === 'active' ? "default" : "secondary"}>
+                            {assignment.status === 'active' ? '進行中' : '已結束'}
                           </Badge>
                         </div>
                         {/* 手機版：垂直排列test */}
