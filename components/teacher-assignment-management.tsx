@@ -127,11 +127,11 @@ export function TeacherAssignmentManagement({
         {/* 手機版搜尋圖示 */}
         <Button
           variant="ghost"
-          size="sm"
+          size="icon"
           onClick={() => setShowMobileSearch(!showMobileSearch)}
-          className="sm:hidden"
+          className="sm:hidden h-10 w-10"
         >
-          <SearchIcon className="w-5 h-5" />
+          <SearchIcon className="w-6 h-6" />
         </Button>
       </div>
 
@@ -245,69 +245,64 @@ export function TeacherAssignmentManagement({
       </div>
 
       {/* 作業列表 */}
-      <Card className="p-4">
-        <h3 className="text-lg font-semibold mb-4">
-          作業列表 ({filteredAssignments.length})
-        </h3>
-        {filteredAssignments.length > 0 ? (
-          <div className="space-y-3">
-            {filteredAssignments.map((assignment) => {
-              const course = getCourseById(assignment.courseId)
-              const StatusIcon = getStatusIcon(assignment.status)
-              
-              return (
-                <div
-                  key={assignment.id}
-                  className="p-4 border rounded-lg hover:bg-muted/50 transition-colors cursor-pointer"
-                  onClick={() => onAssignmentClick(assignment.id)}
-                >
-                  <div className="flex items-start justify-between gap-4">
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-3 mb-2">
-                        <StatusIcon className={`w-5 h-5 ${getStatusColor(assignment.status)}`} />
-                        <h4 className="font-medium text-foreground truncate">{assignment.title}</h4>
-                        <Badge variant={assignment.status === "overdue" ? "destructive" : "default"}>
-                          {getStatusText(assignment.status)}
-                        </Badge>
-                        {assignment.source === "google_classroom" && (
-                          <span className="text-xs px-2 py-1 rounded-full bg-blue-100 text-blue-800">
-                            Google Classroom
-                          </span>
-                        )}
-                      </div>
-                      
-                      {assignment.description && (
-                        <p className="text-sm text-muted-foreground mb-2 line-clamp-2">
-                          {assignment.description}
-                        </p>
+      {filteredAssignments.length > 0 ? (
+        <div className="space-y-3">
+          {filteredAssignments.map((assignment) => {
+            const course = getCourseById(assignment.courseId)
+            const StatusIcon = getStatusIcon(assignment.status)
+            
+            return (
+              <Card
+                key={assignment.id}
+                className="p-4 hover:bg-muted/50 transition-colors cursor-pointer"
+                onClick={() => onAssignmentClick(assignment.id)}
+              >
+                <div className="flex items-start justify-between gap-4">
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-3 mb-2">
+                      <StatusIcon className={`w-5 h-5 ${getStatusColor(assignment.status)}`} />
+                      <h4 className="font-medium text-foreground truncate">{assignment.title}</h4>
+                      <Badge variant={assignment.status === "overdue" ? "destructive" : "default"}>
+                        {getStatusText(assignment.status)}
+                      </Badge>
+                      {assignment.source === "google_classroom" && (
+                        <span className="text-xs px-2 py-1 rounded-full bg-blue-100 text-blue-800">
+                          Google Classroom
+                        </span>
                       )}
-                      
-                      <div className="flex flex-wrap items-center gap-4 text-sm text-muted-foreground">
-                        {course && (
-                          <div className="flex items-center gap-1">
-                            <ClipboardIcon className="w-4 h-4" />
-                            <span>{course.name}</span>
-                          </div>
-                        )}
+                    </div>
+                    
+                    {assignment.description && (
+                      <p className="text-sm text-muted-foreground mb-2 line-clamp-2">
+                        {assignment.description}
+                      </p>
+                    )}
+                    
+                    <div className="flex flex-wrap items-center gap-4 text-sm text-muted-foreground">
+                      {course && (
                         <div className="flex items-center gap-1">
-                          <CalendarIcon className="w-4 h-4" />
-                          <span>截止: {formatDate(assignment.dueDate)} {formatTime(assignment.dueDate)}</span>
+                          <ClipboardIcon className="w-4 h-4" />
+                          <span>{course.name}</span>
                         </div>
+                      )}
+                      <div className="flex items-center gap-1">
+                        <CalendarIcon className="w-4 h-4" />
+                        <span>截止: {formatDate(assignment.dueDate)} {formatTime(assignment.dueDate)}</span>
                       </div>
                     </div>
                   </div>
                 </div>
-              )
-            })}
-          </div>
-        ) : (
-          <EmptyStateSimple
-            title="沒有符合條件的作業"
-            description="請調整篩選條件或搜尋關鍵字"
-            showAction={false}
-          />
-        )}
-      </Card>
+              </Card>
+            )
+          })}
+        </div>
+      ) : (
+        <EmptyStateSimple
+          title="沒有符合條件的作業"
+          description="請調整篩選條件或搜尋關鍵字"
+          showAction={false}
+        />
+      )}
     </div>
   )
 }
