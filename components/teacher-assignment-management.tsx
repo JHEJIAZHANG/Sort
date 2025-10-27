@@ -37,8 +37,17 @@ function DatePickerCalendar({ selectedDate, onDateSelect }: { selectedDate?: Dat
   
   const isSelected = (day: number) => {
     if (!selectedDate) return false
-    return selectedDate.getDate() === day && selectedDate.getMonth() === currentMonth && selectedDate.getFullYear() === currentYear
+    const selDate = new Date(selectedDate)
+    return selDate.getDate() === day && selDate.getMonth() === currentMonth && selDate.getFullYear() === currentYear
   }
+  
+  // 當 selectedDate 改變時，更新 currentDate 到該月份
+  useEffect(() => {
+    if (selectedDate) {
+      const selDate = new Date(selectedDate)
+      setCurrentDate(new Date(selDate.getFullYear(), selDate.getMonth(), 1))
+    }
+  }, [selectedDate])
   
   const calendarDays = []
   for (let i = 0; i < adjustedStartDay; i++) {
@@ -91,7 +100,11 @@ function DatePickerCalendar({ selectedDate, onDateSelect }: { selectedDate?: Dat
               aspect-square flex items-center justify-center text-sm rounded-md p-1 relative min-h-[40px]
               ${day === null ? "" : "hover:bg-accent cursor-pointer transition-colors"}
             `}
-            onClick={day ? () => onDateSelect(new Date(currentYear, currentMonth, day)) : undefined}
+            onClick={day ? () => {
+              // 使用本地時間創建日期，避免時區問題
+              const selectedDate = new Date(currentYear, currentMonth, day, 12, 0, 0)
+              onDateSelect(selectedDate)
+            } : undefined}
           >
             {day && (
               <span className={`
@@ -289,37 +302,32 @@ export function TeacherAssignmentManagement({
               <CalendarIcon className="w-5 h-5" />
             </Button>
             {showMobileDatePicker && (
-              <>
-                {/* 遮罩層 */}
-                <div 
-                  className="fixed inset-0 z-10 bg-black/20" 
-                  onClick={() => setShowMobileDatePicker(false)}
-                />
-                {/* 日期選擇器卡片 */}
-                <div className="fixed bottom-0 left-0 right-0 z-20 bg-white border-t border-input rounded-t-xl shadow-lg p-4 max-h-[80vh] overflow-y-auto">
-                  <div className="flex items-center justify-between mb-3">
-                    <h3 className="font-medium text-base">選擇日期</h3>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => {
-                        setFilterDate("")
-                        setShowMobileDatePicker(false)
-                      }}
-                      className="text-xs h-7 px-2"
-                    >
-                      清除
-                    </Button>
-                  </div>
-                  <DatePickerCalendar
-                    selectedDate={filterDate ? new Date(filterDate) : undefined}
-                    onDateSelect={(date) => {
-                      setFilterDate(date.toISOString().split('T')[0])
+              <div className="absolute top-full right-0 mt-2 z-10 bg-white border border-input rounded-md shadow-lg p-4 w-[320px]">
+                <div className="flex items-center justify-between mb-3">
+                  <h3 className="font-medium text-sm">選擇日期</h3>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => {
+                      setFilterDate("")
                       setShowMobileDatePicker(false)
                     }}
-                  />
+                    className="text-xs h-7 px-2"
+                  >
+                    清除
+                  </Button>
                 </div>
-              </>
+                <DatePickerCalendar
+                  selectedDate={filterDate ? new Date(filterDate + 'T12:00:00') : undefined}
+                  onDateSelect={(date) => {
+                    const year = date.getFullYear()
+                    const month = String(date.getMonth() + 1).padStart(2, '0')
+                    const day = String(date.getDate()).padStart(2, '0')
+                    setFilterDate(`${year}-${month}-${day}`)
+                    setShowMobileDatePicker(false)
+                  }}
+                />
+              </div>
             )}
           </div>
         </div>
@@ -360,9 +368,12 @@ export function TeacherAssignmentManagement({
                   </Button>
                 </div>
                 <DatePickerCalendar
-                  selectedDate={filterDate ? new Date(filterDate) : undefined}
+                  selectedDate={filterDate ? new Date(filterDate + 'T12:00:00') : undefined}
                   onDateSelect={(date) => {
-                    setFilterDate(date.toISOString().split('T')[0])
+                    const year = date.getFullYear()
+                    const month = String(date.getMonth() + 1).padStart(2, '0')
+                    const day = String(date.getDate()).padStart(2, '0')
+                    setFilterDate(`${year}-${month}-${day}`)
                     setShowDatePicker(false)
                   }}
                 />
