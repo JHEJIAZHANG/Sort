@@ -129,8 +129,9 @@ export default function TeacherPage() {
           slot.location && slot.location.toLowerCase().includes(courseSearchQuery.toLowerCase())
         ))
 
+      // 修正：如果沒有 schedule 資料，在 "all" 模式下仍然顯示
       const matchesDay = courseFilterDay === "all" ||
-        (course.schedule && course.schedule.some(slot =>
+        (course.schedule && course.schedule.length > 0 && course.schedule.some(slot =>
           slot.dayOfWeek === parseInt(courseFilterDay)
         ))
 

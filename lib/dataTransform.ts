@@ -21,8 +21,6 @@ export function transformBackendCourse(backendCourse: any): Course {
     throw new Error('無效的課程資料')
   }
 
-  console.log('🔄 transformBackendCourse 輸入:', backendCourse)
-
   // 嘗試多種可能的 ID 欄位
   const rawId = backendCourse?.id ?? backendCourse?.pk ?? backendCourse?.uuid ?? backendCourse?.course_id ?? backendCourse?.classroom_id
   const fallbackId = (typeof crypto !== 'undefined' && (crypto as any).randomUUID) ? (crypto as any).randomUUID() : String(Date.now())
@@ -57,7 +55,6 @@ export function transformBackendCourse(backendCourse: any): Course {
     googleClassroomUrl: backendCourse.google_classroom_url || backendCourse.alternate_link || undefined
   }
 
-  console.log('✅ transformBackendCourse 輸出:', result)
   return result
 }
 

@@ -1102,13 +1102,13 @@ export class ApiService {
 
   // ==================== 教師專用 API ====================
   
-  // 教師課程列表（根據 API 文件：/api/courses/）
+  // 教師課程列表（使用與學生相同的端點以獲取完整資料，包含 schedules）
   static async getTeacherCourses(lineUserId: string) {
     this.setLineUserId(lineUserId)
     const effective = this.ensureLineUserId()
     const qs = `?${new URLSearchParams({ line_user_id: effective, _ts: String(Date.now()) }).toString()}`
-    console.log('🔍 getTeacherCourses: 呼叫 API /courses/' + qs)
-    const resp = await this.request<any>(`/courses/${qs}`, {}, 'other')
+    console.log('🔍 getTeacherCourses: 呼叫 API /web/courses/list/' + qs)
+    const resp = await this.request<any>(`/web/courses/list/${qs}`)
     console.log('🔍 getTeacherCourses: API 完整回應:', JSON.stringify(resp, null, 2))
     
     if (resp?.error) {
@@ -1116,24 +1116,17 @@ export class ApiService {
       return resp
     }
     
-    // 嘗試多種可能的資料路徑
-    let courses = []
-    const respData: any = resp?.data
-    if (respData?.courses) {
-      courses = respData.courses
-      console.log('✅ getTeacherCourses: 從 data.courses 取得課程')
-    } else if (Array.isArray(respData)) {
-      courses = respData
-      console.log('✅ getTeacherCourses: data 本身是陣列')
-    } else if ((resp as any)?.courses) {
-      courses = (resp as any).courses
-      console.log('✅ getTeacherCourses: 從 courses 取得課程')
-    } else {
-      console.warn('⚠️ getTeacherCourses: 找不到課程資料，回應結構:', Object.keys(resp || {}))
-    }
-    
+    // 使用與學生端相同的資料路徑
+    const courses = resp?.data?.data?.courses ?? []
     console.log('🔍 getTeacherCourses: 最終課程數量:', courses.length)
-    return { data: courses }
+    
+    // 只返回 Google Classroom 課程（教師專用）
+    const classroomCourses = courses.filter((c: any) => 
+      c.is_google_classroom || c.source === 'google_classroom' || c.classroom_id
+    )
+    console.log('🔍 getTeacherCourses: Google Classroom 課程數量:', classroomCourses.length)
+    
+    return { data: classroomCourses }
   }
 
   // 教師作業列表（根據 API 文件：/api/teacher/assignments/）

@@ -58,27 +58,8 @@ export function useTeacherCourses(lineUserId: string) {
         const coursesData = coursesRes.data || []
         const assignmentsData = assignmentsRes.data || []
 
-        console.log('📦 原始課程資料:', JSON.stringify(coursesData, null, 2))
-        console.log('📦 原始作業資料:', JSON.stringify(assignmentsData, null, 2))
-        console.log('📦 課程資料類型:', typeof coursesData, 'isArray:', Array.isArray(coursesData))
-        
-        if (Array.isArray(coursesData) && coursesData.length > 0) {
-          console.log('📦 第一個課程的欄位:', Object.keys(coursesData[0]))
-          console.log('📦 第一個課程的完整資料:', JSON.stringify(coursesData[0], null, 2))
-        }
-
         const transformedCourses = Array.isArray(coursesData) 
-          ? coursesData.map((course, index) => {
-              console.log(`🔄 轉換課程 ${index}:`, course)
-              try {
-                const transformed = transformBackendCourse(course)
-                console.log(`✅ 轉換後的課程 ${index}:`, transformed)
-                return transformed
-              } catch (err) {
-                console.error(`❌ 轉換課程 ${index} 失敗:`, err)
-                throw err
-              }
-            })
+          ? coursesData.map(transformBackendCourse) 
           : []
         const transformedAssignments = Array.isArray(assignmentsData) 
           ? assignmentsData.map(transformBackendAssignment) 
@@ -86,9 +67,7 @@ export function useTeacherCourses(lineUserId: string) {
 
         console.log('✅ 教師資料載入成功:')
         console.log('  - 課程數量:', transformedCourses.length)
-        console.log('  - 轉換後的課程:', transformedCourses)
         console.log('  - 作業數量:', transformedAssignments.length)
-        console.log('================================================')
 
         setCourses(transformedCourses)
         setAssignments(transformedAssignments)
