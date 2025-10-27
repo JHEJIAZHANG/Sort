@@ -627,7 +627,7 @@ export function TeacherCourseDetail({
                         setStudentFilters(newFilters)
                       }}
                     />
-                    <span className="text-sm">繳交率偏低 (<70%)</span>
+                    <span className="text-sm">繳交率偏低 (&lt;70%)</span>
                   </label>
                 </div>
               </div>
