@@ -1,6 +1,6 @@
 "use client"
 
-import { HomeIcon, BookIcon, ClipboardIcon, DocumentIcon, UserIcon, BriefcaseIcon, TargetIcon } from "./icons"
+import { HomeIcon, BookIcon, ClipboardIcon, UserIcon } from "./icons"
 import { cn } from "@/lib/utils"
 import { useState, useEffect } from "react"
 
@@ -33,8 +33,6 @@ export function TeacherSidebarNavigation({ activeTab, onTabChange }: TeacherSide
     { id: "dashboard", label: "首頁", icon: HomeIcon },
     { id: "courses", label: "我的課程", icon: BookIcon },
     { id: "assignments", label: "作業管理", icon: ClipboardIcon },
-    { id: "students", label: "學生管理", icon: BriefcaseIcon },
-    { id: "reports", label: "週報統計", icon: TargetIcon },
     { id: "profile", label: "個人設定", icon: UserIcon },
   ]
 

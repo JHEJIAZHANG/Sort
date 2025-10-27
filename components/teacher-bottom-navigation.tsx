@@ -1,6 +1,6 @@
 "use client"
 
-import { HomeIcon, BookIcon, ClipboardIcon, BriefcaseIcon, TargetIcon, UserIcon } from "./icons"
+import { HomeIcon, BookIcon, ClipboardIcon, UserIcon } from "./icons"
 import { cn } from "@/lib/utils"
 
 interface TeacherBottomNavigationProps {
@@ -13,8 +13,6 @@ export function TeacherBottomNavigation({ activeTab, onTabChange }: TeacherBotto
     { id: "dashboard", label: "首頁", icon: HomeIcon },
     { id: "courses", label: "課程", icon: BookIcon },
     { id: "assignments", label: "作業", icon: ClipboardIcon },
-    { id: "students", label: "學生", icon: BriefcaseIcon },
-    { id: "reports", label: "統計", icon: TargetIcon },
     { id: "profile", label: "我的", icon: UserIcon },
   ]
 

@@ -19,7 +19,6 @@ import { useLineAuth } from "@/hooks/use-line-auth"
 import { useUserAuth } from "@/hooks/use-user-auth"
 import { useCourses } from "@/hooks/use-courses"
 import type { Course } from "@/types/course"
-import { TeacherStudentManagement } from "@/components/teacher-student-management"
 import { TeacherAssignmentManagement } from "@/components/teacher-assignment-management"
 import { TeacherAssignmentDetail } from "@/components/teacher-assignment-detail"
 import { ApiService } from "@/services/apiService"
@@ -464,53 +463,7 @@ export default function TeacherPage() {
             )}
           </div>
         )
-      case "students":
-        return (
-          <div className="space-y-6 pb-24 pb-safe">
-            {/* 標題 - 手機版 */}
-            <div className="sm:hidden">
-              <div>
-                <h1 className="text-2xl font-bold text-foreground">學生管理</h1>
-                <p className="text-muted-foreground">管理學生名單和LINE綁定</p>
-              </div>
-            </div>
-            {/* 標題 - 電腦版 */}
-            <div className="hidden sm:block mb-6 lg:mb-12 animate-slide-down">
-              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 sm:gap-4 mobile-spacing">
-                <div className="min-w-0 flex-1">
-                  <h1 className="text-xl sm:text-2xl lg:text-3xl xl:text-4xl font-bold text-foreground leading-tight">學生管理</h1>
-                  <p className="text-sm sm:text-base lg:text-lg text-muted-foreground mt-2 lg:mt-3">管理學生名單和LINE綁定</p>
-                </div>
-              </div>
-            </div>
-            <TeacherStudentManagement />
-          </div>
-        )
-      case "reports":
-        return (
-          <div className="space-y-6 pb-24 pb-safe">
-            {/* 標題 - 手機版 */}
-            <div className="sm:hidden">
-              <div>
-                <h1 className="text-2xl font-bold text-foreground">週報統計</h1>
-                <p className="text-muted-foreground">查看繳交率和缺交統計</p>
-              </div>
-            </div>
-            {/* 標題 - 電腦版 */}
-            <div className="hidden sm:block mb-6 lg:mb-12 animate-slide-down">
-              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 sm:gap-4 mobile-spacing">
-                <div className="min-w-0 flex-1">
-                  <h1 className="text-xl sm:text-2xl lg:text-3xl xl:text-4xl font-bold text-foreground leading-tight">週報統計</h1>
-                  <p className="text-sm sm:text-base lg:text-lg text-muted-foreground mt-2 lg:mt-3">查看繳交率和缺交統計</p>
-                </div>
-              </div>
-            </div>
-            {/* TODO: 週報統計組件 */}
-            <div className="text-center py-12">
-              <p className="text-muted-foreground">週報統計功能開發中...</p>
-            </div>
-          </div>
-        )
+
       default:
         return null
     }
