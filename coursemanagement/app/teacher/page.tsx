@@ -74,14 +74,25 @@ export default function TeacherPage() {
 
 
   useEffect(() => {
+    // 1) 優先使用 LINE 登入取得的 userId
     if (isLineLoggedIn && lineUser?.userId) {
       setLineUserId(lineUser.userId)
       ApiService.setLineUserId(lineUser.userId)
-    } else {
-      const id = ApiService.bootstrapLineUserId()
-      setLineUserId(id)
+      return
     }
-  }, [isLineLoggedIn, lineUser])
+
+    // 2) 後備：從 URL 參數讀取 line_user_id（如 OAuth 回跳或外部導入）
+    const idFromUrl = searchParams.get('line_user_id') || ''
+    if (idFromUrl) {
+      setLineUserId(idFromUrl)
+      ApiService.setLineUserId(idFromUrl)
+      return
+    }
+
+    // 3) 最後後備：從 ApiService 快取（可能為空字串，不再自動生成）
+    const id = ApiService.bootstrapLineUserId()
+    setLineUserId(id)
+  }, [isLineLoggedIn, lineUser, searchParams])
 
   // 從後端獲取用戶資料
   useEffect(() => {
