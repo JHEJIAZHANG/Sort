@@ -20,6 +20,8 @@ export function useTeacherCourses(lineUserId: string) {
 
   // 載入教師的課程和作業資料
   const fetchAllData = useCallback(async () => {
+    console.log('🔍 fetchAllData 被調用，lineUserId:', lineUserId)
+    
     if (!lineUserId) {
       console.log('❌ 沒有 lineUserId，跳過載入')
       return
@@ -33,16 +35,20 @@ export function useTeacherCourses(lineUserId: string) {
 
     console.log('========== useTeacherCourses: 開始載入教師資料 ==========')
     console.log('lineUserId:', lineUserId)
+    console.log('⏳ 準備調用 ApiService.getTeacherCourses 和 ApiService.getTeacherAssignments')
+    
     const run = (async () => {
       try {
         setLoading(true)
         setError(null)
 
-        // 使用教師專用 API
-        const [coursesRes, assignmentsRes] = await Promise.all([
-          ApiService.getTeacherCourses(lineUserId),
-          ApiService.getTeacherAssignments(lineUserId)
-        ])
+        console.log('📞 調用 ApiService.getTeacherCourses...')
+        const coursesRes = await ApiService.getTeacherCourses(lineUserId)
+        console.log('📦 getTeacherCourses 返回:', coursesRes)
+        
+        console.log('📞 調用 ApiService.getTeacherAssignments...')
+        const assignmentsRes = await ApiService.getTeacherAssignments(lineUserId)
+        console.log('📦 getTeacherAssignments 返回:', assignmentsRes)
 
         if (coursesRes.error) { 
           console.error('❌ 載入教師課程失敗:', coursesRes.error)
@@ -57,26 +63,50 @@ export function useTeacherCourses(lineUserId: string) {
 
         const coursesData = coursesRes.data || []
         const assignmentsData = assignmentsRes.data || []
+        
+        console.log('📊 原始數據:')
+        console.log('  - coursesData 類型:', typeof coursesData, '是陣列?', Array.isArray(coursesData))
+        console.log('  - coursesData 長度:', Array.isArray(coursesData) ? coursesData.length : 'N/A')
+        console.log('  - assignmentsData 類型:', typeof assignmentsData, '是陣列?', Array.isArray(assignmentsData))
+        console.log('  - assignmentsData 長度:', Array.isArray(assignmentsData) ? assignmentsData.length : 'N/A')
 
+        console.log('🔄 開始轉換數據...')
         const transformedCourses = Array.isArray(coursesData) 
-          ? coursesData.map(transformBackendCourse) 
+          ? coursesData.map((c, i) => {
+              console.log(`  轉換課程 ${i + 1}:`, c)
+              return transformBackendCourse(c)
+            }) 
           : []
         const transformedAssignments = Array.isArray(assignmentsData) 
-          ? assignmentsData.map(transformBackendAssignment) 
+          ? assignmentsData.map((a, i) => {
+              console.log(`  轉換作業 ${i + 1}:`, a)
+              return transformBackendAssignment(a)
+            }) 
           : []
 
         console.log('✅ 教師資料載入成功:')
         console.log('  - 課程數量:', transformedCourses.length)
         console.log('  - 作業數量:', transformedAssignments.length)
+        
+        if (transformedCourses.length > 0) {
+          console.log('  - 第一個課程:', transformedCourses[0])
+        }
+        if (transformedAssignments.length > 0) {
+          console.log('  - 第一個作業:', transformedAssignments[0])
+        }
 
+        console.log('💾 設置 state...')
         setCourses(transformedCourses)
         setAssignments(transformedAssignments)
+        console.log('✅ State 已設置')
       } catch (err) {
         console.error('❌ 載入教師資料時發生錯誤:', err)
+        console.error('❌ 錯誤堆疊:', err)
         setError(err instanceof Error ? err.message : '載入資料失敗')
       } finally {
         setLoading(false)
         fetchPromiseRef.current = null
+        console.log('========== useTeacherCourses: 結束 ==========')
       }
     })()
 

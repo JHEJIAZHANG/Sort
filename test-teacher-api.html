@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>測試教師 API</title>
+    <style>
+        body {
+            font-family: monospace;
+            padding: 20px;
+            background: #1e1e1e;
+            color: #d4d4d4;
+        }
+        .section {
+            margin: 20px 0;
+            padding: 15px;
+            background: #252526;
+            border-radius: 5px;
+        }
+        button {
+            padding: 10px 20px;
+            margin: 5px;
+            background: #0e639c;
+            color: white;
+            border: none;
+            border-radius: 3px;
+            cursor: pointer;
+        }
+        button:hover {
+            background: #1177bb;
+        }
+        pre {
+            background: #1e1e1e;
+            padding: 10px;
+            border-radius: 3px;
+            overflow-x: auto;
+        }
+        .success { color: #4ec9b0; }
+        .error { color: #f48771; }
+        .info { color: #569cd6; }
+    </style>
+</head>
+<body>
+    <h1>🧪 教師 API 測試工具</h1>
+    
+    <div class="section">
+        <h2>設定</h2>
+        <label>LINE User ID: </label>
+        <input type="text" id="lineUserId" value="Uc8858c883da4bd4aecf9271aaa019a45" style="width: 400px; padding: 5px;">
+    </div>
+
+    <div class="section">
+        <h2>測試 API</h2>
+        <button onclick="testTeacherCourses()">測試教師課程 API</button>
+        <button onclick="testTeacherAssignments()">測試教師作業 API</button>
+        <button onclick="testBothAPIs()">測試兩個 API</button>
+    </div>
+
+    <div class="section">
+        <h2>結果</h2>
+        <div id="results"></div>
+    </div>
+
+    <script>
+        function log(message, type = 'info') {
+            const results = document.getElementById('results');
+            const className = type === 'error' ? 'error' : type === 'success' ? 'success' : 'info';
+            results.innerHTML += `<div class="${className}">${message}</div>`;
+        }
+
+        function logJSON(label, data) {
+            const results = document.getElementById('results');
+            results.innerHTML += `<div class="info">${label}:</div><pre>${JSON.stringify(data, null, 2)}</pre>`;
+        }
+
+        function clearResults() {
+            document.getElementById('results').innerHTML = '';
+        }
+
+        async function testTeacherCourses() {
+            clearResults();
+            const lineUserId = document.getElementById('lineUserId').value;
+            
+            log('========== 測試教師課程 API ==========', 'info');
+            log(`LINE User ID: ${lineUserId}`, 'info');
+            
+            const url = `/api/courses/?line_user_id=${lineUserId}&_ts=${Date.now()}`;
+            log(`請求 URL: ${url}`, 'info');
+            
+            try {
+                log('⏳ 發送請求...', 'info');
+                const response = await fetch(url, {
+                    method: 'GET',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'ngrok-skip-browser-warning': 'true'
+                    },
+                    credentials: 'include'
+                });
+                
+                log(`✅ 狀態碼: ${response.status}`, response.ok ? 'success' : 'error');
+                
+                const data = await response.json();
+                logJSON('回應數據', data);
+                
+                if (data.courses) {
+                    log(`✅ 課程數量: ${data.courses.length}`, 'success');
+                    if (data.courses.length > 0) {
+                        logJSON('第一個課程', data.courses[0]);
+                    }
+                } else {
+                    log('❌ 沒有找到 courses 欄位', 'error');
+                }
+                
+            } catch (error) {
+                log(`❌ 錯誤: ${error.message}`, 'error');
+                console.error(error);
+            }
+        }
+
+        async function testTeacherAssignments() {
+            clearResults();
+            const lineUserId = document.getElementById('lineUserId').value;
+            
+            log('========== 測試教師作業 API ==========', 'info');
+            log(`LINE User ID: ${lineUserId}`, 'info');
+            
+            const url = `/api/teacher/assignments/?line_user_id=${lineUserId}&_ts=${Date.now()}`;
+            log(`請求 URL: ${url}`, 'info');
+            
+            try {
+                log('⏳ 發送請求...', 'info');
+                const response = await fetch(url, {
+                    method: 'GET',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'ngrok-skip-browser-warning': 'true'
+                    },
+                    credentials: 'include'
+                });
+                
+                log(`✅ 狀態碼: ${response.status}`, response.ok ? 'success' : 'error');
+                
+                const data = await response.json();
+                logJSON('回應數據', data);
+                
+                if (data.data && data.data.all_assignments) {
+                    log(`✅ 作業數量: ${data.data.all_assignments.length}`, 'success');
+                    if (data.data.all_assignments.length > 0) {
+                        logJSON('第一個作業', data.data.all_assignments[0]);
+                    }
+                } else {
+                    log('❌ 沒有找到 data.all_assignments 欄位', 'error');
+                }
+                
+            } catch (error) {
+                log(`❌ 錯誤: ${error.message}`, 'error');
+                console.error(error);
+            }
+        }
+
+        async function testBothAPIs() {
+            await testTeacherCourses();
+            log('\n\n', 'info');
+            await testTeacherAssignments();
+        }
+    </script>
+</body>
+</html>
