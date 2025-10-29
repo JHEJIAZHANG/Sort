@@ -1222,7 +1222,7 @@ export class ApiService {
         course_id: courseId,
         group_id: groupId
       })
-    })
+    }, 'other')
   }
 
   static async getCourseWeeklyReport(courseId: string, weekStart?: string) {
@@ -1238,7 +1238,7 @@ export class ApiService {
       params.set('week_start', weekStart)
     }
     const qs = `?${params.toString()}`
-    return this.request(`/teacher/courses/${courseId}/weekly-report/${qs}`)
+    return this.request(`/teacher/courses/${courseId}/weekly-report/${qs}`, {}, 'other')
   }
 
   static async sendWeeklyReport(courseId: string, reportData: any) {
@@ -1252,7 +1252,7 @@ export class ApiService {
         course_id: courseId,
         ...reportData
       })
-    })
+    }, 'other')
   }
 
 

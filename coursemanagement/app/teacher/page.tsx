@@ -89,7 +89,15 @@ export default function TeacherPage() {
       return
     }
 
-    // 3) 最後後備：從 ApiService 快取（可能為空字串，不再自動生成）
+    // 3) 開發環境後備：使用 NEXT_PUBLIC_DEV_LINE_USER_ID（若設定）
+    const devId = process.env.NEXT_PUBLIC_DEV_LINE_USER_ID || ''
+    if (devId) {
+      setLineUserId(devId)
+      ApiService.setLineUserId(devId)
+      return
+    }
+
+    // 4) 最後後備：從 ApiService 快取（可能為空字串，不再自動生成）
     const id = ApiService.bootstrapLineUserId()
     setLineUserId(id)
   }, [isLineLoggedIn, lineUser, searchParams])
