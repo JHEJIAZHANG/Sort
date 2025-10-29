@@ -1107,8 +1107,8 @@ export class ApiService {
     this.setLineUserId(lineUserId)
     const effective = this.ensureLineUserId()
     const qs = `?${new URLSearchParams({ line_user_id: effective, _ts: String(Date.now()) }).toString()}`
-    console.log('🔍 getTeacherCourses: 呼叫 API /web/courses/list/' + qs)
-    const resp = await this.request<any>(`/web/courses/list/${qs}`)
+    console.log('🔍 getTeacherCourses: 呼叫 API /api/courses/' + qs)
+    const resp = await this.request<any>(`/courses/${qs}`, {}, 'other')
     console.log('🔍 getTeacherCourses: API 完整回應:', JSON.stringify(resp, null, 2))
     
     if (resp?.error) {
@@ -1116,8 +1116,8 @@ export class ApiService {
       return resp
     }
     
-    // 使用與學生端相同的資料路徑
-    const courses = resp?.data?.data?.courses ?? []
+    // 後端教師端回傳位於根層級 data.courses
+    const courses = resp?.data?.courses ?? []
     console.log('🔍 getTeacherCourses: 返回整合課程數量:', courses.length)
     
     // 返回所有整合課程（包含本地與 Classroom 鏡像），由前端自行篩選
@@ -1138,15 +1138,15 @@ export class ApiService {
     })
     if (params?.course_id) queryParams.set('course_id', params.course_id)
     if (params?.status) queryParams.set('status', params.status)
-    // v2 Web 端點使用 upcomingWithinDays（camelCase）
-    if (params?.upcoming_within_days) queryParams.set('upcomingWithinDays', String(params.upcoming_within_days))
+    // 教師端後端使用 upcoming_within_days（snake_case）
+    if (params?.upcoming_within_days) queryParams.set('upcoming_within_days', String(params.upcoming_within_days))
     
     const qs = `?${queryParams.toString()}`
-    // 使用 Web 整合端點，返回本地 + Classroom 作業
-    const resp = await this.request<any>(`/web/assignments/list/${qs}`, {}, 'other')
+    // 使用教師端端點，返回整理後的作業摘要
+    const resp = await this.request<any>(`/teacher/assignments/${qs}`, {}, 'other')
     if (resp?.error) return resp
-    // 後端返回資料位於 data.data.assignments
-    const assignments = resp?.data?.data?.assignments ?? []
+    // 後端返回資料位於 data.all_assignments（已展平）
+    const assignments = resp?.data?.data?.all_assignments ?? []
     return { data: assignments }
   }
   
@@ -1164,7 +1164,7 @@ export class ApiService {
       this.bootstrapLineUserId()
     }
     const qs = `?${new URLSearchParams({ line_user_id: this.lineUserId, course_id: courseId, _ts: String(Date.now()) }).toString()}`
-    return this.request(`/teacher/courses/${courseId}/students/${qs}`)
+    return this.request(`/course/students/${qs}`, {}, 'other')
   }
 
   static async getCourseAssignments(courseId: string) {
@@ -1172,7 +1172,10 @@ export class ApiService {
       this.bootstrapLineUserId()
     }
     const qs = `?${new URLSearchParams({ line_user_id: this.lineUserId, course_id: courseId, _ts: String(Date.now()) }).toString()}`
-    return this.request(`/teacher/courses/${courseId}/assignments/${qs}`)
+    const resp = await this.request<any>(`/homeworks/${qs}`, {}, 'other')
+    if (resp?.error) return resp
+    const homeworks = resp?.data?.all_homeworks ?? []
+    return { data: homeworks }
   }
 
   static async sendAssignmentReminder(assignmentId: string, studentIds?: string[]) {
