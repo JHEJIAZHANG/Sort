@@ -84,7 +84,7 @@ export function TeacherGoogleClassroomOnboarding({ isOpen, onComplete, onSkip }:
       }
 
       console.log('========== 教師課程預覽 API 調試 ==========')
-      const previewResponse = await ApiService.previewSyncAll()
+      const previewResponse = await ApiService.teacherPreviewImport()
       console.log('完整 API 回應:', JSON.stringify(previewResponse, null, 2))
 
       if (previewResponse.error) {
@@ -282,10 +282,10 @@ export function TeacherGoogleClassroomOnboarding({ isOpen, onComplete, onSkip }:
       console.log('課程時間表:', JSON.stringify(courseSchedules, null, 2))
 
       // 步驟 1: 匯入課程
-      console.log('步驟 1: 呼叫 confirmImport API (v2)...')
-      const importResponse = await ApiService.confirmImport({
-        courses: selectedCourseIds,
-        schedules: courseSchedules
+      console.log('步驟 1: 呼叫 teacherConfirmImport API...')
+      const importResponse = await ApiService.teacherConfirmImport({
+        selected_courses: selectedCourseIds,
+        course_schedules: courseSchedules
       })
 
       console.log('匯入 API 回應:', JSON.stringify(importResponse, null, 2))
@@ -298,8 +298,11 @@ export function TeacherGoogleClassroomOnboarding({ isOpen, onComplete, onSkip }:
       console.log('✅ 課程匯入成功')
 
       // 步驟 2: 同步教師作業
-      console.log('步驟 2: 呼叫 syncAssignments API (v2)...')
-      const assignmentResponse = await ApiService.syncAssignments(selectedCourseIds)
+      console.log('步驟 2: 呼叫 teacherSyncAssignments API...')
+      const assignmentResponse = await ApiService.teacherSyncAssignments({
+        mode: 'selected',
+        course_ids: selectedCourseIds
+      })
 
       console.log('作業同步 API 回應:', JSON.stringify(assignmentResponse, null, 2))
 

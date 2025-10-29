@@ -29,11 +29,6 @@ export const initializeLiff = async (): Promise<boolean> => {
   liffInitPromise = (async () => {
     try {
       if (!LIFF_CONFIG.liffId) {
-        // 在開發模式下允許沒有 LIFF ID 也能繼續，避免阻塞本地調試
-        if (LIFF_CONFIG.isDevelopment) {
-          console.warn('LIFF ID 未設定（開發模式，跳過初始化）')
-          return true
-        }
         console.error('LIFF ID 未設定')
         return false
       }
