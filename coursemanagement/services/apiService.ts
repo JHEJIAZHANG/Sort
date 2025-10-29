@@ -1102,41 +1102,69 @@ export class ApiService {
 
   // ==================== 教師專用 API ====================
   
-  // 教師課程列表（使用與學生相同的端點以獲取完整資料，包含 schedules）
+  // 教師課程列表（使用 /api/courses/ 端點獲取教師課程）
   static async getTeacherCourses(lineUserId: string) {
+    console.log('========== getTeacherCourses 開始 ==========')
+    console.log('📥 輸入參數 lineUserId:', lineUserId)
+    
     this.setLineUserId(lineUserId)
     const effective = this.ensureLineUserId()
+    console.log('✅ 有效的 lineUserId:', effective)
+    
     const qs = `?${new URLSearchParams({ line_user_id: effective, _ts: String(Date.now()) }).toString()}`
-    console.log('🔍 getTeacherCourses: 呼叫 API /web/courses/list/' + qs)
-    const resp = await this.request<any>(`/web/courses/list/${qs}`)
-    console.log('🔍 getTeacherCourses: API 完整回應:', JSON.stringify(resp, null, 2))
+    console.log('🔗 完整 API URL: /api/courses/' + qs)
+    
+    // 使用 'other' apiPrefix 來調用 /api/courses/ 端點
+    console.log('⏳ 開始發送請求...')
+    const resp = await this.request<any>(`/courses/${qs}`, {}, 'other')
+    
+    console.log('📦 API 原始回應:')
+    console.log('  - resp.data:', resp?.data)
+    console.log('  - resp.error:', resp?.error)
+    console.log('  - 完整回應:', JSON.stringify(resp, null, 2))
     
     if (resp?.error) {
       console.error('❌ getTeacherCourses: API 錯誤:', resp.error)
+      console.error('❌ 錯誤詳情:', resp)
       return resp
     }
     
-    // 使用與學生端相同的資料路徑
-    const courses = resp?.data?.data?.courses ?? []
-    console.log('🔍 getTeacherCourses: 最終課程數量:', courses.length)
+    // 後端返回格式：{ courses: [...], total_courses: N }
+    console.log('🔍 解析回應數據:')
+    console.log('  - resp.data 類型:', typeof resp?.data)
+    console.log('  - resp.data.courses 存在?', !!resp?.data?.courses)
+    console.log('  - resp.data.courses 類型:', typeof resp?.data?.courses)
+    console.log('  - resp.data.courses 是陣列?', Array.isArray(resp?.data?.courses))
     
-    // 只返回 Google Classroom 課程（教師專用）
-    const classroomCourses = courses.filter((c: any) => 
-      c.is_google_classroom || c.source === 'google_classroom' || c.classroom_id
-    )
-    console.log('🔍 getTeacherCourses: Google Classroom 課程數量:', classroomCourses.length)
+    const courses = resp?.data?.courses ?? []
+    console.log('✅ 最終課程數量:', courses.length)
     
-    return { data: classroomCourses }
+    if (courses.length > 0) {
+      console.log('📋 第一個課程範例:', JSON.stringify(courses[0], null, 2))
+    } else {
+      console.warn('⚠️ 課程列表為空')
+      console.warn('⚠️ 完整 resp.data:', resp?.data)
+    }
+    
+    console.log('========== getTeacherCourses 結束 ==========')
+    return { data: courses }
   }
 
-  // 教師作業列表（根據 API 文件：/api/teacher/assignments/）
+  // 教師作業列表（使用 /api/teacher/assignments/ 端點）
   static async getTeacherAssignments(lineUserId: string, params?: {
     course_id?: string
     status?: string
     upcoming_within_days?: number
   }) {
+    console.log('========== getTeacherAssignments 開始 ==========')
+    console.log('📥 輸入參數:')
+    console.log('  - lineUserId:', lineUserId)
+    console.log('  - params:', params)
+    
     this.setLineUserId(lineUserId)
     const effective = this.ensureLineUserId()
+    console.log('✅ 有效的 lineUserId:', effective)
+    
     const queryParams = new URLSearchParams({ 
       line_user_id: effective, 
       _ts: String(Date.now()) 
@@ -1146,9 +1174,42 @@ export class ApiService {
     if (params?.upcoming_within_days) queryParams.set('upcoming_within_days', String(params.upcoming_within_days))
     
     const qs = `?${queryParams.toString()}`
+    console.log('🔗 完整 API URL: /api/teacher/assignments/' + qs)
+    
+    // 使用 'other' apiPrefix 來調用 /api/teacher/assignments/ 端點
+    console.log('⏳ 開始發送請求...')
     const resp = await this.request<any>(`/teacher/assignments/${qs}`, {}, 'other')
-    if (resp?.error) return resp
-    const assignments = resp?.data?.assignments ?? []
+    
+    console.log('📦 API 原始回應:')
+    console.log('  - resp.data:', resp?.data)
+    console.log('  - resp.error:', resp?.error)
+    console.log('  - 完整回應:', JSON.stringify(resp, null, 2))
+    
+    if (resp?.error) {
+      console.error('❌ getTeacherAssignments: API 錯誤:', resp.error)
+      console.error('❌ 錯誤詳情:', resp)
+      return resp
+    }
+    
+    // 後端返回格式：{ data: { all_assignments: [...] } }
+    console.log('🔍 解析回應數據:')
+    console.log('  - resp.data 類型:', typeof resp?.data)
+    console.log('  - resp.data.data 存在?', !!resp?.data?.data)
+    console.log('  - resp.data.data.all_assignments 存在?', !!resp?.data?.data?.all_assignments)
+    console.log('  - resp.data.data.all_assignments 類型:', typeof resp?.data?.data?.all_assignments)
+    console.log('  - resp.data.data.all_assignments 是陣列?', Array.isArray(resp?.data?.data?.all_assignments))
+    
+    const assignments = resp?.data?.data?.all_assignments ?? []
+    console.log('✅ 最終作業數量:', assignments.length)
+    
+    if (assignments.length > 0) {
+      console.log('📋 第一個作業範例:', JSON.stringify(assignments[0], null, 2))
+    } else {
+      console.warn('⚠️ 作業列表為空')
+      console.warn('⚠️ 完整 resp.data:', resp?.data)
+    }
+    
+    console.log('========== getTeacherAssignments 結束 ==========')
     return { data: assignments }
   }
   
