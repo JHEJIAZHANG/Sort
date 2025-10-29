@@ -32,10 +32,19 @@ export function transformBackendCourse(backendCourse: any): Course {
   const courseName = backendCourse.name || backendCourse.title || ''
   
   // 判斷是否為 Google Classroom 課程
-  const isGoogleClassroom = backendCourse.is_google_classroom || 
-                           backendCourse.source === 'google_classroom' ||
-                           !!backendCourse.classroom_id ||
-                           !!backendCourse.google_classroom_url
+  const isGoogleClassroom = 
+    backendCourse.is_google_classroom ||
+    backendCourse.source === 'google_classroom' ||
+    !!backendCourse.classroom_id ||
+    !!backendCourse.google_classroom_url ||
+    // 兼容教師端 /api/courses/（Google Classroom 原生欄位）
+    !!backendCourse.alternate_link ||
+    !!backendCourse.alternateLink ||
+    !!backendCourse.calendarId ||
+    !!backendCourse.enrollmentCode ||
+    !!backendCourse.ownerId ||
+    !!backendCourse.teacherFolder ||
+    !!backendCourse.gradebookSettings
 
   const result: Course = {
     id,
@@ -77,9 +86,7 @@ export function transformFrontendCourse(frontendCourse: Course, lineUserId: stri
 
 // 後端 Homework 轉換為前端 Assignment
 export function transformBackendAssignment(backendAssignment: any): Assignment {
-  // 支援不同後端欄位：course 或 course_info
-  const courseField = backendAssignment.course ?? backendAssignment.course_info
-  const course = extractCourseIdAndName(courseField)
+  const course = extractCourseIdAndName(backendAssignment.course)
 
   // 確保 status 永遠有有效值，處理所有可能的無效情況
   let status: "pending" | "completed" | "overdue" = "pending"
@@ -94,38 +101,17 @@ export function transformBackendAssignment(backendAssignment: any): Assignment {
   }
   // 其他所有情況（null, undefined, "", 其他字符串）都使用默認值 "pending"
 
-  // 解析截止時間，優先使用 ISO 欄位
-  let dueDate: Date
-  if (backendAssignment.due_datetime) {
-    dueDate = new Date(backendAssignment.due_datetime)
-  } else if (backendAssignment.due_date) {
-    const s = String(backendAssignment.due_date)
-    const isoLike = s.includes(' ') ? s.replace(' ', 'T') : s
-    const parsed = new Date(isoLike)
-    if (!isNaN(parsed.getTime())) {
-      dueDate = parsed
-    } else {
-      // 手動解析 YYYY-MM-DD HH:MM
-      const [datePart, timePart] = s.split(' ')
-      const [y, m, d] = (datePart || '').split('-').map(n => parseInt(n, 10))
-      const [hh, mm] = (timePart || '').split(':').map(n => parseInt(n, 10))
-      dueDate = new Date(y || new Date().getFullYear(), (m || 1) - 1, d || 1, hh || 23, mm || 59)
-    }
-  } else {
-    dueDate = new Date()
-  }
-
   return {
     id: String(backendAssignment.id),
     title: backendAssignment.title || backendAssignment.name || '',
     description: backendAssignment.description || '',
-    dueDate,
+    dueDate: backendAssignment.due_date ? new Date(backendAssignment.due_date) : new Date(),
     courseId: course.id,
     courseName: backendAssignment.course_name || course.name || '',
     status: status,
     priority: 'medium',
-    createdAt: new Date(backendAssignment.created_at || backendAssignment.creation_time || Date.now()),
-    updatedAt: new Date(backendAssignment.updated_at || backendAssignment.update_time || Date.now()),
+    createdAt: new Date(backendAssignment.created_at),
+    updatedAt: new Date(backendAssignment.updated_at),
     googleClassroomId: backendAssignment.google_coursework_id || undefined,
     googleClassroomUrl: backendAssignment.google_classroom_url || undefined,
     source: backendAssignment.google_coursework_id ? 'google_classroom' : 'manual',
