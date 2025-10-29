@@ -1118,15 +1118,10 @@ export class ApiService {
     
     // 使用與學生端相同的資料路徑
     const courses = resp?.data?.data?.courses ?? []
-    console.log('🔍 getTeacherCourses: 最終課程數量:', courses.length)
+    console.log('🔍 getTeacherCourses: 返回整合課程數量:', courses.length)
     
-    // 只返回 Google Classroom 課程（教師專用）
-    const classroomCourses = courses.filter((c: any) => 
-      c.is_google_classroom || c.source === 'google_classroom' || c.classroom_id
-    )
-    console.log('🔍 getTeacherCourses: Google Classroom 課程數量:', classroomCourses.length)
-    
-    return { data: classroomCourses }
+    // 返回所有整合課程（包含本地與 Classroom 鏡像），由前端自行篩選
+    return { data: courses }
   }
 
   // 教師作業列表（根據 API 文件：/api/teacher/assignments/）
@@ -1146,10 +1141,11 @@ export class ApiService {
     if (params?.upcoming_within_days) queryParams.set('upcoming_within_days', String(params.upcoming_within_days))
     
     const qs = `?${queryParams.toString()}`
-    const resp = await this.request<any>(`/teacher/assignments/${qs}`, {}, 'other')
+    // 使用 Web 整合端點，返回本地 + Classroom 作業
+    const resp = await this.request<any>(`/web/assignments/list/${qs}`, {}, 'other')
     if (resp?.error) return resp
-    // 後端返回資料位於 data.data.all_assignments
-    const assignments = resp?.data?.data?.all_assignments ?? []
+    // 後端返回資料位於 data.data.assignments
+    const assignments = resp?.data?.data?.assignments ?? []
     return { data: assignments }
   }
   

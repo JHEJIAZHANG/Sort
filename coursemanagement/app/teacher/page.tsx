@@ -127,7 +127,8 @@ export default function TeacherPage() {
   } = useTeacherCourses(lineUserId)
 
   const classroomCourses = useMemo(() => {
-    return courses.filter((c) => c.source === "google_classroom")
+    // 教師端顯示所有課程（包含本地與 Classroom 鏡像）
+    return courses
   }, [courses])
 
   const filteredCourses = useMemo(() => {
