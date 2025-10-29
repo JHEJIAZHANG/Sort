@@ -1138,7 +1138,8 @@ export class ApiService {
     })
     if (params?.course_id) queryParams.set('course_id', params.course_id)
     if (params?.status) queryParams.set('status', params.status)
-    if (params?.upcoming_within_days) queryParams.set('upcoming_within_days', String(params.upcoming_within_days))
+    // v2 Web 端點使用 upcomingWithinDays（camelCase）
+    if (params?.upcoming_within_days) queryParams.set('upcomingWithinDays', String(params.upcoming_within_days))
     
     const qs = `?${queryParams.toString()}`
     // 使用 Web 整合端點，返回本地 + Classroom 作業
