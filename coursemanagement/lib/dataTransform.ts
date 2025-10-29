@@ -21,51 +21,45 @@ export function transformBackendCourse(backendCourse: any): Course {
     throw new Error('無效的課程資料')
   }
 
-  // 嘗試多種可能的 ID 欄位（教師API返回的是 Google Classroom ID）
-  const rawId = backendCourse?.id ?? backendCourse?.pk ?? backendCourse?.uuid ?? backendCourse?.course_id ?? backendCourse?.classroom_id
-  const fallbackId = (typeof crypto !== 'undefined' && (crypto as any).randomUUID) ? (crypto as any).randomUUID() : String(Date.now())
-  const id = rawId != null ? String(rawId) : fallbackId
+  console.log('🔄 transformBackendCourse 輸入:', backendCourse)
 
-  // 處理創建時間（教師API返回的是 creationTime）
-  const created = backendCourse?.created_at ? new Date(backendCourse.created_at) : 
-                  backendCourse?.creationTime ? new Date(backendCourse.creationTime) : 
+  // 教師API返回的格式：{ id, name, section, schedules, ... }
+  const id = String(backendCourse.id || backendCourse.gc_course_id || backendCourse.classroom_id || Date.now())
+  const name = backendCourse.name || backendCourse.title || '未命名課程'
+  
+  // 處理創建時間
+  const created = backendCourse.creationTime ? new Date(backendCourse.creationTime) :
+                  backendCourse.created_at ? new Date(backendCourse.created_at) : 
                   new Date()
 
-  // 課程名稱：優先使用 name，其次 title
-  const courseName = backendCourse.name || backendCourse.title || ''
-  
-  // 判斷是否為 Google Classroom 課程
-  // 教師API返回的課程都是 Google Classroom 課程
-  const isGoogleClassroom = backendCourse.is_google_classroom || 
-                           backendCourse.source === 'google_classroom' ||
-                           !!backendCourse.classroom_id ||
-                           !!backendCourse.google_classroom_url ||
-                           !!backendCourse.enrollmentCode ||
-                           !!backendCourse.ownerId
-
-  // 處理課程時間表（教師API返回的是 schedules 陣列）
-  const schedules = backendCourse.schedules?.map((schedule: any) => ({
+  // 處理課程時間表
+  const schedules = (backendCourse.schedules || []).map((schedule: any) => ({
     dayOfWeek: schedule.day_of_week,
     startTime: schedule.start_time,
     endTime: schedule.end_time,
-    location: schedule.location
-  })) || []
+    location: schedule.location || ''
+  }))
+
+  // 判斷來源
+  const source = backendCourse.is_local || backendCourse.is_google_classroom || backendCourse.enrollmentCode 
+    ? 'google_classroom' 
+    : 'manual'
 
   const result: Course = {
     id,
-    name: courseName,
-    courseCode: backendCourse.section || backendCourse.course_code || '',
-    instructor: backendCourse.instructor || backendCourse.ownerId || '',
-    classroom: backendCourse.classroom || backendCourse.room || backendCourse.location || '',
+    name,
+    courseCode: backendCourse.section || '',
+    instructor: backendCourse.ownerId || backendCourse.instructor || '',
+    classroom: backendCourse.classroom || backendCourse.location || '',
     studentCount: backendCourse.student_count || 0,
     schedule: schedules,
     color: backendCourse.color || '#3B82F6',
     createdAt: created,
-    source: (isGoogleClassroom ? 'google_classroom' : 'manual') as 'google_classroom' | 'manual',
-    googleClassroomUrl: backendCourse.google_classroom_url || backendCourse.alternate_link || 
-                       (backendCourse.id ? `https://classroom.google.com/c/${backendCourse.id}` : undefined)
+    source: source as 'google_classroom' | 'manual',
+    googleClassroomUrl: backendCourse.google_classroom_url || undefined
   }
 
+  console.log('✅ transformBackendCourse 輸出:', result)
   return result
 }
 
@@ -88,53 +82,46 @@ export function transformFrontendCourse(frontendCourse: Course, lineUserId: stri
 
 // 後端 Homework 轉換為前端 Assignment
 export function transformBackendAssignment(backendAssignment: any): Assignment {
-  // 處理課程資訊（教師API返回的是 course_info 物件）
-  let courseId = ''
-  let courseName = ''
-  
-  if (backendAssignment.course_info) {
-    courseId = String(backendAssignment.course_info.id || '')
-    courseName = backendAssignment.course_info.name || ''
-  } else if (backendAssignment.course) {
-    const course = extractCourseIdAndName(backendAssignment.course)
-    courseId = course.id
-    courseName = backendAssignment.course_name || course.name || ''
-  }
+  console.log('🔄 transformBackendAssignment 輸入:', backendAssignment)
 
-  // 確保 status 永遠有有效值，處理所有可能的無效情況
-  // 教師API返回的是 state (PUBLISHED, DRAFT, DELETED)
+  // 教師API返回的格式：{ id, title, course_info: { id, name }, due_date, state, ... }
+  const courseInfo = backendAssignment.course_info || {}
+  const courseId = String(courseInfo.id || backendAssignment.course_id || backendAssignment.course || '')
+  const courseName = courseInfo.name || backendAssignment.course_name || ''
+
+  // 處理狀態：state (PUBLISHED, DRAFT) → status (pending, completed, overdue)
   let status: "pending" | "completed" | "overdue" = "pending"
-  const backendStatus = backendAssignment.status || backendAssignment.state
+  const backendStatus = backendAssignment.state || backendAssignment.status
   
-  if (backendStatus === "completed" || backendStatus === "COMPLETED") {
+  if (backendStatus === "COMPLETED" || backendStatus === "completed") {
     status = "completed"
-  } else if (backendStatus === "overdue" || backendStatus === "OVERDUE") {
+  } else if (backendStatus === "OVERDUE" || backendStatus === "overdue") {
     status = "overdue"
-  } else if (backendStatus === "pending" || backendStatus === "PENDING" || backendStatus === "PUBLISHED") {
-    status = "pending"
+  } else {
+    status = "pending"  // PUBLISHED, DRAFT, DELETED 都視為 pending
   }
-  // 其他所有情況（null, undefined, "", DRAFT, DELETED）都使用默認值 "pending"
 
-  // 處理到期日期（教師API返回的是 due_date 字串或 due_datetime）
+  // 處理到期日期
   let dueDate = new Date()
-  if (backendAssignment.due_date) {
-    dueDate = new Date(backendAssignment.due_date)
-  } else if (backendAssignment.due_datetime) {
+  if (backendAssignment.due_datetime) {
     dueDate = new Date(backendAssignment.due_datetime)
+  } else if (backendAssignment.due_date) {
+    // due_date 可能是 "2025-10-15 23:59" 格式
+    dueDate = new Date(backendAssignment.due_date.replace(' ', 'T'))
   }
 
   // 處理創建和更新時間
-  const createdAt = backendAssignment.created_at ? new Date(backendAssignment.created_at) :
-                    backendAssignment.creation_time ? new Date(backendAssignment.creation_time) :
+  const createdAt = backendAssignment.creation_time ? new Date(backendAssignment.creation_time) :
+                    backendAssignment.created_at ? new Date(backendAssignment.created_at) :
                     new Date()
   
-  const updatedAt = backendAssignment.updated_at ? new Date(backendAssignment.updated_at) :
-                    backendAssignment.update_time ? new Date(backendAssignment.update_time) :
+  const updatedAt = backendAssignment.update_time ? new Date(backendAssignment.update_time) :
+                    backendAssignment.updated_at ? new Date(backendAssignment.updated_at) :
                     new Date()
 
-  return {
+  const result: Assignment = {
     id: String(backendAssignment.id),
-    title: backendAssignment.title || backendAssignment.name || '',
+    title: backendAssignment.title || '未命名作業',
     description: backendAssignment.description || '',
     dueDate: dueDate,
     courseId: courseId,
@@ -143,13 +130,15 @@ export function transformBackendAssignment(backendAssignment: any): Assignment {
     priority: 'medium',
     createdAt: createdAt,
     updatedAt: updatedAt,
-    googleClassroomId: backendAssignment.google_coursework_id || backendAssignment.id || undefined,
+    googleClassroomId: backendAssignment.id || undefined,
     googleClassroomUrl: backendAssignment.google_classroom_url || undefined,
-    source: backendAssignment.google_coursework_id || backendAssignment.google_classroom_url ? 'google_classroom' : 'manual',
-    // 添加提醒時間相關欄位
+    source: 'google_classroom',
     customReminderTiming: backendAssignment.custom_reminder_timing || 'default',
     notificationTime: backendAssignment.notification_time ? new Date(backendAssignment.notification_time) : undefined
   }
+
+  console.log('✅ transformBackendAssignment 輸出:', result)
+  return result
 }
 
 // 前端 Assignment 轉換為後端格式
