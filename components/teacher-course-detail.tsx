@@ -124,7 +124,7 @@ export function TeacherCourseDetail({
   const [deleting, setDeleting] = useState(false)
   const [isEditing, setIsEditing] = useState(false)
 
-  const { getCourseById, getAssignmentsByCourse } = useTeacherCourses(lineUserId, 'teacher')
+  const { getCourseById, getAssignmentsByCourse } = useTeacherCourses(lineUserId)
   const course = getCourseById(courseId)
   const courseAssignments = getAssignmentsByCourse(courseId)
 
@@ -132,7 +132,6 @@ export function TeacherCourseDetail({
   const loadCourseStats = async () => {
     try {
       setLoading(true)
-      ApiService.setUserRole('teacher')
       ApiService.setLineUserId(lineUserId)
 
       const [detailResp, studentsResp, assignmentsResp, groupsResp, weeklyResp] = await Promise.all([
