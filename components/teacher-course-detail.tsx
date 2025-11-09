@@ -11,7 +11,8 @@ import { Checkbox } from "@/components/ui/checkbox"
 import { EmptyStateSimple } from "@/components/empty-state"
 import { CheckIcon, ExclamationIcon, ClockIcon, UserIcon, BookIcon, CalendarIcon, DocumentIcon, BellIcon } from "@/components/icons"
 import { Users, MessageCircle, ChevronDown } from "lucide-react"
-import { useCourses } from "@/hooks/use-courses"
+import { useTeacherCourses } from "@/hooks/use-teacher-courses"
+import { transformFrontendCourse } from "@/lib/dataTransform"
 import { ApiService } from "@/services/apiService"
 import { CourseForm } from "@/components/course-form"
 import {
@@ -123,7 +124,7 @@ export function TeacherCourseDetail({
   const [deleting, setDeleting] = useState(false)
   const [isEditing, setIsEditing] = useState(false)
 
-  const { getCourseById, updateCourse, deleteCourse, getAssignmentsByCourse } = useCourses(lineUserId)
+  const { getCourseById, getAssignmentsByCourse } = useTeacherCourses(lineUserId, 'teacher')
   const course = getCourseById(courseId)
   const courseAssignments = getAssignmentsByCourse(courseId)
 
@@ -131,66 +132,98 @@ export function TeacherCourseDetail({
   const loadCourseStats = async () => {
     try {
       setLoading(true)
-      // TODO: 實際 API 呼叫
-      // const response = await ApiService.getTeacherCourseDetail({ courseId, lineUserId })
-      
-      // 模擬資料
-      const mockStats: CourseStats = {
-        id: courseId,
-        name: course?.name || "課程名稱",
-        code: course?.courseCode || "COURSE001",
-        students_count: 25,
-        bound_groups_count: 2,
-        instructor: course?.instructor,
-        classroom: course?.classroom,
-        schedule: course?.schedule
-      }
-      
-      const mockStudents: StudentWithBinding[] = [
-        { id: "1", name: "張小明", email: "ming@example.com", line_bound: true, classroom_joined: true, recent_submission_rate: 85 },
-        { id: "2", name: "李小華", email: "hua@example.com", line_bound: false, classroom_joined: false, recent_submission_rate: 60 },
-        { id: "3", name: "王小美", email: "mei@example.com", line_bound: true, classroom_joined: true, recent_submission_rate: 95 },
-      ]
-      
-      // 使用真實的作業資料，轉換為 AssignmentWithMetrics 格式
-      const realAssignments: AssignmentWithMetrics[] = courseAssignments.map(assignment => {
+      ApiService.setLineUserId(lineUserId)
+
+      const [detailResp, studentsResp, assignmentsResp, groupsResp, weeklyResp] = await Promise.all([
+        ApiService.getTeacherCourseDetail(courseId),
+        ApiService.getCourseStudents(courseId),
+        ApiService.getCourseAssignments(courseId),
+        ApiService.getCourseLineGroups(courseId),
+        ApiService.getCourseWeeklyReport(courseId)
+      ])
+
+      const detail = (detailResp as any)?.data?.data || (detailResp as any)?.data || {}
+      const studentsRaw = (studentsResp as any)?.data?.students || (studentsResp as any)?.data?.data?.students || (studentsResp as any)?.data || []
+      const groupsRaw = (groupsResp as any)?.data?.groups || (groupsResp as any)?.data?.data?.groups || (groupsResp as any)?.data || []
+      const assignmentsRaw = (assignmentsResp as any)?.data?.assignments || (assignmentsResp as any)?.data?.data?.assignments || (assignmentsResp as any)?.data || []
+      const weeklyRaw = (weeklyResp as any)?.data?.report || (weeklyResp as any)?.data?.data?.report || (weeklyResp as any)?.data || null
+
+      const resolvedStudents: StudentWithBinding[] = Array.isArray(studentsRaw) ? studentsRaw.map((s: any) => ({
+        id: String(s.id ?? s.student_id ?? s.email ?? Math.random()),
+        name: String(s.name ?? s.display_name ?? s.username ?? '未知'),
+        email: String(s.email ?? s.mail ?? ''),
+        line_bound: Boolean(s.line_bound ?? s.is_line_bound ?? s.line_linked ?? false),
+        classroom_joined: Boolean(s.classroom_joined ?? s.joined_classroom ?? false),
+        recent_submission_rate: typeof s.recent_submission_rate === 'number' ? s.recent_submission_rate : undefined
+      })) : []
+
+      const resolvedAssignments: AssignmentWithMetrics[] = Array.isArray(assignmentsRaw) ? assignmentsRaw.map((a: any) => {
+        const due = a.due_date || a.dueDate || a.deadline
+        const dueDateObj = due ? new Date(due) : null
+        const now = new Date()
+        const status: 'active' | 'overdue' | 'completed' = a.status === 'completed'
+          ? 'completed'
+          : (dueDateObj && dueDateObj < now ? 'overdue' : 'active')
+        return {
+          id: String(a.id ?? a.assignment_id ?? Math.random()),
+          title: String(a.title ?? '未命名作業'),
+          description: a.description ?? '',
+          due_date: dueDateObj ? dueDateObj.toISOString().split('T')[0] : '',
+          submitted_count: Number(a.submitted_count ?? a.submissions_count ?? 0),
+          total_count: Number(a.total_count ?? a.total_students ?? (resolvedStudents.length || 0)),
+          submission_rate: Number(a.submission_rate ?? ((a.submitted_count && a.total_count) ? Math.round((a.submitted_count / a.total_count) * 100) : 0)),
+          status
+        }
+      }) : courseAssignments.map(assignment => {
         const now = new Date()
         const dueDate = new Date(assignment.dueDate)
         const isOverdue = dueDate < now
         const isPending = assignment.status === "pending"
-        
         return {
           id: assignment.id,
           title: assignment.title,
           description: assignment.description || "",
           due_date: assignment.dueDate.toISOString().split('T')[0],
-          submitted_count: Math.floor(Math.random() * 25), // TODO: 從 API 獲取真實資料
-          total_count: 25, // TODO: 從 API 獲取真實資料
-          submission_rate: Math.floor(Math.random() * 100), // TODO: 從 API 獲取真實資料
+          submitted_count: 0,
+          total_count: resolvedStudents.length || 0,
+          submission_rate: 0,
           status: isOverdue && !isPending ? "overdue" : isPending ? "active" : "completed"
         }
       })
-      
-      const mockGroups: BoundGroup[] = [
-        { id: "1", name: "資管系一年級", member_count: 15, bound_at: "2024-09-01" },
-        { id: "2", name: "資管系二年級", member_count: 10, bound_at: "2024-09-15" }
-      ]
-      
-      const mockReports: WeeklyReport[] = [
+
+      const resolvedStats: CourseStats = {
+        id: courseId,
+        name: course?.name || detail?.name || detail?.title || "課程名稱",
+        code: course?.courseCode || detail?.code || detail?.course_code || "",
+        students_count: Number(detail?.students_count ?? resolvedStudents.length),
+        bound_groups_count: Number(detail?.bound_groups_count ?? (Array.isArray(groupsRaw) ? groupsRaw.length : 0)),
+        instructor: course?.instructor || detail?.instructor,
+        classroom: course?.classroom || detail?.classroom,
+        schedule: course?.schedule || detail?.schedule || []
+      }
+
+      const resolvedGroups: BoundGroup[] = Array.isArray(groupsRaw) ? groupsRaw.map((g: any) => ({
+        id: String(g.id ?? g.group_id ?? Math.random()),
+        name: String(g.name ?? g.group_name ?? '未知群組'),
+        member_count: Number(g.member_count ?? g.members ?? 0),
+        bound_at: String(g.bound_at ?? g.created_at ?? '')
+      })) : []
+
+      const resolvedWeekly: WeeklyReport[] = weeklyRaw ? [
         {
-          week: "2024-W42",
-          submission_rate: 75,
-          missing_students: ["李小華", "陳小強"],
-          total_assignments: 2,
-          completed_assignments: 1
+          week: String(weeklyRaw.week ?? weeklyRaw.week_start ?? ''),
+          submission_rate: Number(weeklyRaw.submission_rate ?? 0),
+          missing_students: Array.isArray(weeklyRaw.missing_students) ? weeklyRaw.missing_students.map(String) : [],
+          total_assignments: Number(weeklyRaw.total_assignments ?? 0),
+          completed_assignments: Number(weeklyRaw.completed_assignments ?? 0)
         }
-      ]
-      
-      setCourseStats(mockStats)
-      setStudents(mockStudents)
-      setAssignments(realAssignments)
-      setBoundGroups(mockGroups)
-      setWeeklyReports(mockReports)
+      ] : []
+
+      setCourseStats(resolvedStats)
+      setStudents(resolvedStudents)
+      setAssignments(resolvedAssignments)
+      setBoundGroups(resolvedGroups)
+      setWeeklyReports(resolvedWeekly)
     } catch (error) {
       console.error('載入課程詳情失敗:', error)
     } finally {
@@ -374,14 +407,12 @@ export function TeacherCourseDetail({
 
   const handleCourseUpdate = async (updatedCourse: any) => {
     try {
-      await updateCourse(courseId, updatedCourse)
-      // 通知父組件刷新數據（這會觸發 useCourses 重新載入）
-      if (onUpdated) {
-        onUpdated()
-      }
-      // 等待一小段時間讓 course 對象更新
+      ApiService.setLineUserId(lineUserId)
+      const backendData = transformFrontendCourse(updatedCourse, lineUserId)
+      const resp = await ApiService.updateCourse(courseId, backendData)
+      if ((resp as any)?.error) throw new Error((resp as any).error)
+      if (onUpdated) onUpdated()
       await new Promise(resolve => setTimeout(resolve, 100))
-      // 重新載入課程統計資料
       await loadCourseStats()
       setIsEditing(false)
     } catch (error) {
@@ -1270,7 +1301,9 @@ export function TeacherCourseDetail({
                 onClick={async () => {
                   try {
                     setDeleting(true)
-                    await deleteCourse(courseId)
+                    ApiService.setLineUserId(lineUserId)
+                    const resp = await ApiService.deleteCourse(courseId)
+                    if ((resp as any)?.error) throw new Error((resp as any).error)
                     setShowDeleteDialog(false)
                     try { (document.activeElement as HTMLElement | null)?.blur?.() } catch { }
                     setTimeout(() => { if (onDeleted) onDeleted() }, 80)
