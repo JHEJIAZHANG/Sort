@@ -132,6 +132,7 @@ export function TeacherCourseDetail({
   const loadCourseStats = async () => {
     try {
       setLoading(true)
+      ApiService.setUserRole('teacher')
       ApiService.setLineUserId(lineUserId)
 
       const [detailResp, studentsResp, assignmentsResp, groupsResp, weeklyResp] = await Promise.all([
@@ -318,7 +319,7 @@ export function TeacherCourseDetail({
   const handleSendWeeklyReport = async (week: string) => {
     try {
       setSendingReport(true)
-      const resp = await ApiService.sendWeeklyReport(courseId, { week })
+      const resp = await ApiService.sendWeeklyReport(courseId, { week_start: week })
       if (resp?.error) {
         throw new Error(resp.error)
       }
@@ -326,6 +327,40 @@ export function TeacherCourseDetail({
     } catch (error) {
       console.error('發送週報失敗:', error)
       alert('發送週報失敗，請稍後重試')
+    } finally {
+      setSendingReport(false)
+    }
+  }
+
+  // 針對單一群組發送週報
+  const handleSendWeeklyReportToGroup = async (groupId: string) => {
+    try {
+      setSendingReport(true)
+      const week = weeklyReports[0]?.week || ''
+      const resp = await ApiService.sendWeeklyReport(courseId, { group_id: groupId, week_start: week })
+      if ((resp as any)?.error) throw new Error((resp as any).error)
+      alert('已發送該群組的週報通知')
+    } catch (error) {
+      console.error('單群組發送週報失敗:', error)
+      alert('發送失敗，請稍後重試')
+    } finally {
+      setSendingReport(false)
+    }
+  }
+
+  // 對所有綁定群組群發週報
+  const handleSendWeeklyReportAll = async () => {
+    try {
+      setSendingReport(true)
+      const week = weeklyReports[0]?.week || ''
+      for (const group of boundGroups) {
+        const resp = await ApiService.sendWeeklyReport(courseId, { group_id: group.id, week_start: week })
+        if ((resp as any)?.error) throw new Error((resp as any).error)
+      }
+      alert('已對所有綁定群組發送週報')
+    } catch (error) {
+      console.error('群發週報失敗:', error)
+      alert('群發失敗，請稍後重試')
     } finally {
       setSendingReport(false)
     }
@@ -578,6 +613,39 @@ export function TeacherCourseDetail({
               </div>
             </Card>
           </div>
+
+          {/* 週報概覽卡片 */}
+          {weeklyReports.length > 0 && (
+            <Card className="p-4">
+              <div className="flex items-start justify-between gap-4">
+                <div>
+                  <h3 className="text-lg font-semibold">本週週報</h3>
+                  <div className="mt-2 text-sm text-muted-foreground space-y-1">
+                    <div>週期: {weeklyReports[0].week}</div>
+                    <div>繳交率: {weeklyReports[0].submission_rate}%</div>
+                    <div>總作業數: {weeklyReports[0].total_assignments}</div>
+                    <div>已完成作業: {weeklyReports[0].completed_assignments}</div>
+                    {weeklyReports[0].missing_students.length > 0 && (
+                      <div>未繳學生: {weeklyReports[0].missing_students.join(', ')}</div>
+                    )}
+                  </div>
+                </div>
+                <div className="flex flex-col gap-2">
+                  <Button 
+                    variant="default" 
+                    size="sm"
+                    disabled={sendingReport || boundGroups.length === 0}
+                    onClick={handleSendWeeklyReportAll}
+                  >
+                    {sendingReport ? '發送中...' : '群發週報到所有群組'}
+                  </Button>
+                  {boundGroups.length === 0 && (
+                    <p className="text-xs text-muted-foreground">尚無綁定群組，無法推播週報</p>
+                  )}
+                </div>
+              </div>
+            </Card>
+          )}
 
           {/* 課程資訊已移至上方 */}
         </div>
@@ -1221,6 +1289,15 @@ export function TeacherCourseDetail({
                         <span className="whitespace-nowrap">綁定時間: {group.bound_at}</span>
                       </div>
                     </div>
+                    <div className="flex items-center gap-2 flex-shrink-0">
+                      <Button 
+                        variant="outline" 
+                        size="sm"
+                        disabled={sendingReport}
+                        onClick={() => handleSendWeeklyReportToGroup(group.id)}
+                      >
+                        {sendingReport ? '發送中...' : '發送週報'}
+                      </Button>
                     <AlertDialog>
                       <AlertDialogTrigger asChild>
                         <Button 
@@ -1247,6 +1324,7 @@ export function TeacherCourseDetail({
                         </AlertDialogFooter>
                       </AlertDialogContent>
                     </AlertDialog>
+                    </div>
                   </div>
                 ))}
               </div>
