@@ -166,12 +166,27 @@ export function TeacherCourseDetail({
         return '未知'
       }
 
+      // 判定是否已加入 Google Classroom：
+      // 1) 後端若明確給了 classroom_joined / joined_classroom，使用該值
+      // 2) 若資料形態明顯來自 Google Classroom（有 userId / emailAddress / name 物件），視為課程名單成員 => 已加入
+      // 3) 若存在 courseRole（包含 student 字樣）或 enrollmentTime，也視為已加入
+      const resolveClassroomJoined = (s: any): boolean => {
+        const explicit = (s?.classroom_joined ?? s?.joined_classroom)
+        if (typeof explicit === 'boolean') return explicit
+        const fromGC = Boolean(s?.userId || s?.emailAddress || (s?.name && typeof s?.name === 'object'))
+        if (fromGC) return true
+        const role = s?.courseRole || s?.role
+        if (typeof role === 'string' && role.toLowerCase().includes('student')) return true
+        if (s?.enrollmentTime || s?.enrolled_at) return true
+        return false
+      }
+
       const resolvedStudents: StudentWithBinding[] = Array.isArray(studentsRaw) ? studentsRaw.map((s: any) => ({
         id: String(s.id ?? s.student_id ?? s.userId ?? s.email ?? Math.random()),
         name: resolveStudentName(s),
         email: String(s.email ?? s.mail ?? s.emailAddress ?? ''),
         line_bound: Boolean(s.line_bound ?? s.is_line_bound ?? s.line_linked ?? false),
-        classroom_joined: Boolean(s.classroom_joined ?? s.joined_classroom ?? false),
+        classroom_joined: resolveClassroomJoined(s),
         recent_submission_rate: typeof s.recent_submission_rate === 'number' ? s.recent_submission_rate : undefined
       })) : []
 
