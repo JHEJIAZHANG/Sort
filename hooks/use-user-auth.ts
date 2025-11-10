@@ -2,7 +2,6 @@
 
 import { useState, useEffect } from 'react'
 import { useLineAuth } from './use-line-auth'
-import { ApiService } from '@/services/apiService'
 import { UserService, UserProfile } from '@/services/userService'
 
 export interface UserAuthState {
@@ -15,25 +14,10 @@ export interface UserAuthState {
 
 export interface UserAuthOptions {
   skipAutoCheck?: boolean
-  skipInit?: boolean
 }
 
 export function useUserAuth(options?: UserAuthOptions) {
-  // 在本機開發情境下，若 URL 或已存在的 line_user_id 可用，則跳過 LIFF 初始化
-  const shouldSkipInit = (() => {
-    if (typeof options?.skipInit === 'boolean') return options.skipInit
-    if (process.env.NODE_ENV === 'production') return false
-    try {
-      if (typeof window !== 'undefined') {
-        const idFromUrl = new URLSearchParams(window.location.search).get('line_user_id')
-        if (idFromUrl && idFromUrl.trim()) return true
-      }
-    } catch {}
-    const storedId = ApiService.getLineUserId() || ApiService.bootstrapLineUserId()
-    return !!storedId
-  })()
-
-  const { isLoggedIn, user: userProfile, isLoading: lineLoading } = useLineAuth({ skipInit: shouldSkipInit })
+  const { isLoggedIn, user: userProfile, isLoading: lineLoading } = useLineAuth()
   const [authState, setAuthState] = useState<UserAuthState>({
     isAuthenticated: false,
     user: null,

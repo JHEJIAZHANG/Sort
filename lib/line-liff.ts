@@ -25,19 +25,6 @@ export const initializeLiff = async (): Promise<boolean> => {
   if (liffInitDone) return true
   if (liffInitPromise) return liffInitPromise
 
-  // 開發繞道：若 URL 有 line_user_id，視為已初始化，跳過 LIFF
-  try {
-    if (LIFF_CONFIG.isDevelopment && typeof window !== 'undefined') {
-      const overrideId = new URLSearchParams(window.location.search).get('line_user_id')
-      if (overrideId && overrideId.trim()) {
-        liffInitDone = true
-        return true
-      }
-    }
-  } catch {
-    // 解析失敗不影響後續流程
-  }
-
   // 啟動一次初始化流程並快取 Promise
   liffInitPromise = (async () => {
     try {
@@ -90,13 +77,6 @@ export const isInLineApp = (): boolean => {
 // 檢查用戶是否已登入
 export const isLoggedIn = (): boolean => {
   try {
-    // 開發繞道：若 URL 有 line_user_id，視為未登入（避免 liff.init 缺失拋錯）
-    if (LIFF_CONFIG.isDevelopment && typeof window !== 'undefined') {
-      const overrideId = new URLSearchParams(window.location.search).get('line_user_id')
-      if (overrideId && overrideId.trim()) {
-        return false
-      }
-    }
     return liff.isLoggedIn()
   } catch (error) {
     console.error('檢查 LINE 登入狀態失敗:', error)
