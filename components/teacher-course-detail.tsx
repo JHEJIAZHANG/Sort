@@ -144,7 +144,14 @@ export function TeacherCourseDetail({
 
       const detail = (detailResp as any)?.data?.data || (detailResp as any)?.data || {}
       const studentsRaw = (studentsResp as any)?.data?.students || (studentsResp as any)?.data?.data?.students || (studentsResp as any)?.data || []
-      const groupsRaw = (groupsResp as any)?.data?.groups || (groupsResp as any)?.data?.data?.groups || (groupsResp as any)?.data || []
+      // 修正群組回應解析：後端常回傳 { success, data: [...] }
+      const groupsRaw = (
+        (groupsResp as any)?.data?.groups ||
+        (groupsResp as any)?.data?.data?.groups ||
+        (groupsResp as any)?.data?.data ||
+        (groupsResp as any)?.data ||
+        []
+      )
       const assignmentsRaw = (assignmentsResp as any)?.data?.assignments || (assignmentsResp as any)?.data?.data?.assignments || (assignmentsResp as any)?.data || []
       const weeklyRaw = (weeklyResp as any)?.data?.report || (weeklyResp as any)?.data?.data?.report || (weeklyResp as any)?.data || null
 
