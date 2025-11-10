@@ -237,10 +237,10 @@ export function TeacherCourseDetail({
       }
 
       const resolvedGroups: BoundGroup[] = Array.isArray(groupsRaw) ? groupsRaw.map((g: any) => ({
-        id: String(g.id ?? g.group_id ?? Math.random()),
-        name: String(g.name ?? g.group_name ?? '未知群組'),
+        id: String(g.groupId ?? g.id ?? g.group_id ?? Math.random()),
+        name: String(g.name ?? g.group_name ?? g.groupId ?? '未知群組'),
         member_count: Number(g.member_count ?? g.members ?? 0),
-        bound_at: String(g.bound_at ?? g.created_at ?? '')
+        bound_at: String(g.boundAt ?? g.bound_at ?? g.created_at ?? '')
       })) : []
 
       const resolvedWeekly: WeeklyReport[] = weeklyRaw ? [
@@ -370,7 +370,7 @@ export function TeacherCourseDetail({
     try {
       setSendingReport(true)
       const week = weeklyReports[0]?.week || ''
-      const resp = await ApiService.sendWeeklyReport(courseId, { group_id: groupId, week_start: week })
+      const resp = await ApiService.sendWeeklyReport(courseId, { groupId: groupId, week_start: week })
       if ((resp as any)?.error) throw new Error((resp as any).error)
       alert('已發送該群組的週報通知')
     } catch (error) {
@@ -387,7 +387,7 @@ export function TeacherCourseDetail({
       setSendingReport(true)
       const week = weeklyReports[0]?.week || ''
       for (const group of boundGroups) {
-        const resp = await ApiService.sendWeeklyReport(courseId, { group_id: group.id, week_start: week })
+        const resp = await ApiService.sendWeeklyReport(courseId, { groupId: group.id, week_start: week })
         if ((resp as any)?.error) throw new Error((resp as any).error)
       }
       alert('已對所有綁定群組發送週報')

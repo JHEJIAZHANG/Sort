@@ -74,12 +74,36 @@ export default function TeacherPage() {
 
 
   useEffect(() => {
+    // 若已透過 LIFF 登入，使用真實的 LINE User ID
     if (isLineLoggedIn && lineUser?.userId) {
       setLineUserId(lineUser.userId)
       ApiService.setLineUserId(lineUser.userId)
-    } else {
-      const id = ApiService.bootstrapLineUserId()
+      return
+    }
+
+    // Fallback：從 URL 或 localStorage 取得 line_user_id（方便在未設定 LIFF 的開發環境下使用）
+    try {
+      const queryId = searchParams.get('line_user_id') || ''
+      const lsId = typeof window !== 'undefined' ? (localStorage.getItem('line_user_id') || '') : ''
+      const effectiveId = (queryId || lsId).trim()
+      if (effectiveId) {
+        setLineUserId(effectiveId)
+        ApiService.setLineUserId(effectiveId)
+        // 若從 URL 取得，順便存到 localStorage，方便後續使用
+        if (queryId && typeof window !== 'undefined') {
+          localStorage.setItem('line_user_id', effectiveId)
+        }
+        return
+      }
+    } catch (e) {
+      console.warn('無法從 URL 或 localStorage 取得 line_user_id', e)
+    }
+
+    // 最後的保底：維持既有邏輯（可能為空字串）
+    const id = ApiService.bootstrapLineUserId()
+    if (id && id.trim()) {
       setLineUserId(id)
+      ApiService.setLineUserId(id)
     }
   }, [isLineLoggedIn, lineUser])
 

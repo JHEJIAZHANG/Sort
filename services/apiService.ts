@@ -1264,12 +1264,11 @@ export class ApiService {
     if (!this.lineUserId) {
       this.bootstrapLineUserId()
     }
-    return this.request('/teacher/courses/bind-line-group/', {
+    return this.request(`/teacher/courses/${courseId}/line-groups/bind/`, {
       method: 'POST',
       body: JSON.stringify({
         line_user_id: this.lineUserId,
-        course_id: courseId,
-        group_id: groupId
+        groupId: groupId
       })
     })
   }
@@ -1278,12 +1277,11 @@ export class ApiService {
     if (!this.lineUserId) {
       this.bootstrapLineUserId()
     }
-    return this.request('/teacher/courses/unbind-line-group/', {
-      method: 'DELETE',
+    return this.request(`/teacher/courses/${courseId}/line-groups/unbind/`, {
+      method: 'POST',
       body: JSON.stringify({
         line_user_id: this.lineUserId,
-        course_id: courseId,
-        group_id: groupId
+        groupId: groupId
       })
     })
   }
@@ -1308,11 +1306,11 @@ export class ApiService {
     if (!this.lineUserId) {
       this.bootstrapLineUserId()
     }
-    return this.request('/teacher/courses/send-weekly-report/', {
+    return this.request(`/teacher/courses/${courseId}/send-weekly-report/`, {
       method: 'POST',
       body: JSON.stringify({
         line_user_id: this.lineUserId,
-        course_id: courseId,
+        // groupId 與其他週報參數由呼叫方傳入（例如 week_start）。
         ...reportData
       })
     })
