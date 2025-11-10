@@ -220,7 +220,8 @@ export function TeacherCourseDetail({
           submitted_count: 0,
           total_count: resolvedStudents.length || 0,
           submission_rate: 0,
-          status: isOverdue && !isPending ? "overdue" : isPending ? "active" : "completed"
+          // 截止已過且未完成 => overdue；未逾期且未完成 => active；其餘 => completed
+          status: assignment.status === "completed" ? "completed" : (isOverdue ? "overdue" : "active")
         }
       })
 
