@@ -148,6 +148,15 @@ export function TeacherCourseDetail({
       const assignmentsRaw = (assignmentsResp as any)?.data?.assignments || (assignmentsResp as any)?.data?.data?.assignments || (assignmentsResp as any)?.data || []
       const weeklyRaw = (weeklyResp as any)?.data?.report || (weeklyResp as any)?.data?.data?.report || (weeklyResp as any)?.data || null
 
+      if (process.env.NODE_ENV !== 'production') {
+        console.info('[TeacherCourseDetail] groups query', {
+          courseId,
+          lineUserId,
+          rawCount: Array.isArray(groupsRaw) ? groupsRaw.length : 0,
+          rawSample: Array.isArray(groupsRaw) ? groupsRaw.slice(0, 2) : groupsRaw
+        })
+      }
+
       // 解析學生姓名，處理後端可能回傳物件格式（例如 { fullName, givenName, familyName }）
       const resolveStudentName = (s: any): string => {
         const raw = s?.name ?? s?.display_name ?? s?.username ?? s?.profile?.name ?? s?.fullName
@@ -1306,6 +1315,16 @@ export function TeacherCourseDetail({
 
         {activeTab === "groups" && (
         <div className="space-y-4 mt-6">
+          {typeof window !== 'undefined' && (new URLSearchParams(window.location.search).get('debug') === '1') && (
+            <Card className="p-4">
+              <h3 className="text-sm font-semibold mb-2">Debug（僅開發用）</h3>
+              <div className="text-xs text-muted-foreground space-y-1">
+                <div>line_user_id: <span className="font-mono text-foreground">{lineUserId}</span></div>
+                <div>course_id: <span className="font-mono text-foreground">{courseId}</span></div>
+                <div>綁定群組數（解析後）: <span className="font-mono text-foreground">{boundGroups.length}</span></div>
+              </div>
+            </Card>
+          )}
           <Card className="p-4">
             <h3 className="text-lg font-semibold mb-4">
               綁定群組 ({boundGroups.length})
