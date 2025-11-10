@@ -148,10 +148,28 @@ export function TeacherCourseDetail({
       const assignmentsRaw = (assignmentsResp as any)?.data?.assignments || (assignmentsResp as any)?.data?.data?.assignments || (assignmentsResp as any)?.data || []
       const weeklyRaw = (weeklyResp as any)?.data?.report || (weeklyResp as any)?.data?.data?.report || (weeklyResp as any)?.data || null
 
+      // 解析學生姓名，處理後端可能回傳物件格式（例如 { fullName, givenName, familyName }）
+      const resolveStudentName = (s: any): string => {
+        const raw = s?.name ?? s?.display_name ?? s?.username ?? s?.profile?.name ?? s?.fullName
+        if (raw && typeof raw === 'object') {
+          const full = (raw as any).fullName || (raw as any).name
+          if (typeof full === 'string' && full.trim()) return full.trim()
+          const family = (raw as any).familyName || (raw as any).family_name
+          const given = (raw as any).givenName || (raw as any).given_name
+          const combined = `${family || ''}${given || ''}`.trim()
+          if (combined) return combined
+        }
+        const str = String(raw || '').trim()
+        if (str) return str
+        const email = s?.email || s?.mail || s?.emailAddress || ''
+        if (typeof email === 'string' && email.includes('@')) return email.split('@')[0]
+        return '未知'
+      }
+
       const resolvedStudents: StudentWithBinding[] = Array.isArray(studentsRaw) ? studentsRaw.map((s: any) => ({
-        id: String(s.id ?? s.student_id ?? s.email ?? Math.random()),
-        name: String(s.name ?? s.display_name ?? s.username ?? '未知'),
-        email: String(s.email ?? s.mail ?? ''),
+        id: String(s.id ?? s.student_id ?? s.userId ?? s.email ?? Math.random()),
+        name: resolveStudentName(s),
+        email: String(s.email ?? s.mail ?? s.emailAddress ?? ''),
         line_bound: Boolean(s.line_bound ?? s.is_line_bound ?? s.line_linked ?? false),
         classroom_joined: Boolean(s.classroom_joined ?? s.joined_classroom ?? false),
         recent_submission_rate: typeof s.recent_submission_rate === 'number' ? s.recent_submission_rate : undefined
