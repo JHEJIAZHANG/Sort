@@ -1,4 +1,9 @@
 import { Course, Assignment, Note, Exam } from '@/types/course'
+import { 
+  createGoogleClassroomCourseUrl,
+  createGoogleClassroomAssignmentUrl,
+  normalizeGoogleClassroomUrl
+} from '@/lib/googleClassroom'
 
 // 安全解析後端回傳的 course 欄位（可能是 UUID 字串或物件）
 function extractCourseIdAndName(courseField: any): { id: string; name: string } {
@@ -45,6 +50,17 @@ export function transformBackendCourse(backendCourse: any): Course {
     ? 'google_classroom' 
     : 'manual'
 
+  // 計算/修正 Google Classroom 連結
+  let googleClassroomUrl: string | undefined = undefined
+  if (backendCourse.google_classroom_url) {
+    googleClassroomUrl = normalizeGoogleClassroomUrl(backendCourse.google_classroom_url)
+  } else {
+    const gcId = String(backendCourse.gc_course_id || backendCourse.classroom_id || backendCourse.id || '')
+    if (gcId) {
+      googleClassroomUrl = createGoogleClassroomCourseUrl(gcId)
+    }
+  }
+
   const result: Course = {
     id,
     name,
@@ -56,7 +72,7 @@ export function transformBackendCourse(backendCourse: any): Course {
     color: backendCourse.color || '#3B82F6',
     createdAt: created,
     source: source as 'google_classroom' | 'manual',
-    googleClassroomUrl: backendCourse.google_classroom_url || undefined
+    googleClassroomUrl
   }
 
   console.log('✅ transformBackendCourse 輸出:', result)
@@ -119,6 +135,14 @@ export function transformBackendAssignment(backendAssignment: any): Assignment {
                     backendAssignment.updated_at ? new Date(backendAssignment.updated_at) :
                     new Date()
 
+  // 計算/修正 Google Classroom 作業連結
+  let googleClassroomUrl: string | undefined = undefined
+  if (backendAssignment.google_classroom_url) {
+    googleClassroomUrl = normalizeGoogleClassroomUrl(backendAssignment.google_classroom_url)
+  } else if (courseId && backendAssignment.id) {
+    googleClassroomUrl = createGoogleClassroomAssignmentUrl(String(courseId), String(backendAssignment.id))
+  }
+
   const result: Assignment = {
     id: String(backendAssignment.id),
     title: backendAssignment.title || '未命名作業',
@@ -131,7 +155,7 @@ export function transformBackendAssignment(backendAssignment: any): Assignment {
     createdAt: createdAt,
     updatedAt: updatedAt,
     googleClassroomId: backendAssignment.id || undefined,
-    googleClassroomUrl: backendAssignment.google_classroom_url || undefined,
+    googleClassroomUrl,
     source: 'google_classroom',
     customReminderTiming: backendAssignment.custom_reminder_timing || 'default',
     notificationTime: backendAssignment.notification_time ? new Date(backendAssignment.notification_time) : undefined

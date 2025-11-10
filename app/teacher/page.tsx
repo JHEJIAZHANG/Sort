@@ -27,16 +27,18 @@ import { ApiService } from "@/services/apiService"
 export default function TeacherPage() {
   const searchParams = useSearchParams()
   const router = useRouter()
+  const devBypass = !!searchParams.get('line_user_id')
 
   // 權限檢查 - 確保用戶已註冊且為老師
-  const { isAuthenticated, needsRegistration, isLoading: authLoading } = useUserAuth()
+  // 開發繞道：若 URL 提供 line_user_id，避免在本機自動檢查註冊狀態
+  const { isAuthenticated, needsRegistration, isLoading: authLoading } = useUserAuth({ skipAutoCheck: devBypass, skipInit: devBypass })
 
   // 從 URL 參數獲取初始標籤頁，如果沒有則默認為 "dashboard"
   const initialTab = searchParams.get('tab') || "dashboard"
   const [activeTab, setActiveTab] = useState(initialTab)
 
   // 使用 LINE 認證獲取真實的 user ID
-  const { user: lineUser, isLoggedIn: isLineLoggedIn } = useLineAuth()
+  const { user: lineUser, isLoggedIn: isLineLoggedIn } = useLineAuth({ skipInit: devBypass })
   const [lineUserId, setLineUserId] = useState<string>("")
   const [user, setUser] = useState<{
     id: string
@@ -74,14 +76,24 @@ export default function TeacherPage() {
 
 
   useEffect(() => {
+    // 明確設定教師角色，後端可由請求標頭判斷權限
+    ApiService.setUserRole('teacher')
+
     if (isLineLoggedIn && lineUser?.userId) {
       setLineUserId(lineUser.userId)
       ApiService.setLineUserId(lineUser.userId)
     } else {
-      const id = ApiService.bootstrapLineUserId()
-      setLineUserId(id)
+      // 本機繞道：支援以 URL 參數提供 line_user_id
+      const fromUrl = searchParams.get('line_user_id')
+      if (fromUrl && fromUrl.trim()) {
+        setLineUserId(fromUrl)
+        ApiService.setLineUserId(fromUrl)
+      } else {
+        const id = ApiService.bootstrapLineUserId()
+        setLineUserId(id)
+      }
     }
-  }, [isLineLoggedIn, lineUser])
+  }, [isLineLoggedIn, lineUser, searchParams])
 
   // 從後端獲取用戶資料
   useEffect(() => {
@@ -146,13 +158,13 @@ export default function TeacherPage() {
       return
     }
 
-    if (needsRegistration) {
+    if (!devBypass && needsRegistration) {
       console.log('❌ 用戶未註冊，自動重定向到註冊頁面')
       router.replace('/registration')
     } else if (isAuthenticated) {
       console.log('✅ 用戶已認證，允許訪問教師頁面')
     }
-  }, [authLoading, needsRegistration, isAuthenticated, router])
+  }, [authLoading, needsRegistration, isAuthenticated, router, devBypass])
 
   // 同步 URL 參數到 activeTab 狀態
   useEffect(() => {
