@@ -264,19 +264,33 @@ export class ApiService {
     const payload = { line_user_id: effectiveUserId, course_id: courseId }
 
     // 路由分流：
-    // - 本地 UUID -> /api/v2/web/courses/delete/
-    // - 非 UUID（Google Classroom ID）-> /api/delete-course/
+    // - 本地 UUID -> /api/v2/web/courses/delete/ (只刪除本地)
+    // - 非 UUID（Google Classroom ID）-> /api/v2/web/courses/delete/ (只刪除本地，不影響 Google Classroom)
+    // 注意：Google Classroom 課程需要先轉換為本地 UUID 才能刪除
     if (isUuid) {
       return this.request('/web/courses/delete/', {
         method: 'DELETE',
         body: JSON.stringify(payload)
       }, 'v2')
     } else {
-      console.warn('[ApiService.deleteCourse] 非 UUID，走 Google Classroom 刪除路徑:', courseId)
-      return this.request('/delete-course/', {
-        method: 'DELETE',
-        body: JSON.stringify(payload)
-      }, 'other')
+      console.warn('[ApiService.deleteCourse] 非 UUID，嘗試使用本地刪除端點（只移除同步）:', courseId)
+      // 對於 Google Classroom 課程，我們需要先獲取對應的本地 UUID
+      // 這裡需要先查詢課程詳情來獲取本地 UUID
+      try {
+        const courseDetail = await this.getTeacherCourseDetail(courseId);
+        if (courseDetail?.data?.local_course_id) {
+          // 使用本地 UUID 進行刪除（只刪除本地同步資料）
+          return this.request('/web/courses/delete/', {
+            method: 'DELETE',
+            body: JSON.stringify({ line_user_id: effectiveUserId, course_id: courseDetail.data.local_course_id })
+          }, 'v2')
+        } else {
+          throw new Error('無法找到對應的本地課程 UUID，請確認課程已正確同步')
+        }
+      } catch (error) {
+        console.error('[ApiService.deleteCourse] 獲取課程詳情失敗:', error)
+        throw new Error('無法刪除 Google Classroom 課程：獲取本地課程資訊失敗')
+      }
     }
   }
 
