@@ -1481,10 +1481,17 @@ export function TeacherCourseDetail({
                   try {
                     setDeleting(true)
                     ApiService.setLineUserId(lineUserId)
-                    // 目標 ID：
-                    // - 若已解析出本地 UUID，優先使用
-                    // - 否則直接使用傳入的 courseId（可能是 Google Classroom ID）
-                    const targetId = (localCourseId && uuidRegex.test(localCourseId)) ? localCourseId : courseId
+
+                    // 嚴格要求必須使用本地 UUID 來執行刪除
+                    const targetId = localCourseId
+                    if (!targetId || !uuidRegex.test(targetId)) {
+                      console.error('Deletion failed: localCourseId is not a valid UUID.', { localCourseId })
+                      alert('刪除失敗：找不到有效的本地課程 ID。')
+                      setDeleting(false)
+                      return
+                    }
+
+                    console.log(`Attempting to delete course with local UUID: ${targetId}`)
                     const resp = await ApiService.deleteCourse(targetId)
                     if ((resp as any)?.error) throw new Error((resp as any).error)
                     setShowDeleteDialog(false)

@@ -257,41 +257,23 @@ export class ApiService {
     // 確保 Header 會帶上有效的 Line User ID
     const effectiveUserId = this.ensureLineUserId()
 
-    // UUID 檢測：本地課程使用 UUID，Google Classroom 課程使用數字/字串 ID
+    // UUID 檢測：本地課程使用 UUID
     const strictUuidRegex = /^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-5][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$/
     const isUuid = strictUuidRegex.test(String(courseId))
 
+    // 強制要求 courseId 必須是 UUID 格式，以避免意外刪除 Google Classroom 課程
+    if (!isUuid) {
+      console.error('deleteCourse requires a UUID (local course ID). Provided ID is not a UUID:', courseId)
+      throw new Error('刪除課程需要本地端 UUID。')
+    }
+
     const payload = { line_user_id: effectiveUserId, course_id: courseId }
 
-    // 路由分流：
-    // - 本地 UUID -> /api/v2/web/courses/delete/ (只刪除本地)
-    // - 非 UUID（Google Classroom ID）-> /api/v2/web/courses/delete/ (只刪除本地，不影響 Google Classroom)
-    // 注意：Google Classroom 課程需要先轉換為本地 UUID 才能刪除
-    if (isUuid) {
-      return this.request('/web/courses/delete/', {
-        method: 'DELETE',
-        body: JSON.stringify(payload)
-      }, 'v2')
-    } else {
-      console.warn('[ApiService.deleteCourse] 非 UUID，嘗試使用本地刪除端點（只移除同步）:', courseId)
-      // 對於 Google Classroom 課程，我們需要先獲取對應的本地 UUID
-      // 這裡需要先查詢課程詳情來獲取本地 UUID
-      try {
-        const courseDetail = await this.getTeacherCourseDetail(courseId);
-        if (courseDetail?.data?.local_course_id) {
-          // 使用本地 UUID 進行刪除（只刪除本地同步資料）
-          return this.request('/web/courses/delete/', {
-            method: 'DELETE',
-            body: JSON.stringify({ line_user_id: effectiveUserId, course_id: courseDetail.data.local_course_id })
-          }, 'v2')
-        } else {
-          throw new Error('無法找到對應的本地課程 UUID，請確認課程已正確同步')
-        }
-      } catch (error) {
-        console.error('[ApiService.deleteCourse] 獲取課程詳情失敗:', error)
-        throw new Error('無法刪除 Google Classroom 課程：獲取本地課程資訊失敗')
-      }
-    }
+    // 只使用 v2 端點刪除本地 CourseV2，這不會影響 Google Classroom
+    return this.request('/web/courses/delete/', {
+      method: 'DELETE',
+      body: JSON.stringify(payload)
+    }, 'v2')
   }
 
   // 作業相關 API
