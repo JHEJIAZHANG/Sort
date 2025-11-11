@@ -257,18 +257,27 @@ export class ApiService {
     // 確保 Header 會帶上有效的 Line User ID
     const effectiveUserId = this.ensureLineUserId()
 
-    // 提醒：後端期望 course_id 為本地 UUID
-    const uuidRegex = /^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-5][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$/
-    const isUuid = uuidRegex.test(String(courseId))
-    if (!isUuid) {
-      console.warn('[ApiService.deleteCourse] 非 UUID 的 courseId，可能是 Google Classroom ID：', courseId)
-    }
+    // UUID 檢測：本地課程使用 UUID，Google Classroom 課程使用數字/字串 ID
+    const strictUuidRegex = /^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-5][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$/
+    const isUuid = strictUuidRegex.test(String(courseId))
 
     const payload = { line_user_id: effectiveUserId, course_id: courseId }
-    return this.request('/web/courses/delete/', {
-      method: 'DELETE',
-      body: JSON.stringify(payload)
-    })
+
+    // 路由分流：
+    // - 本地 UUID -> /api/v2/web/courses/delete/
+    // - 非 UUID（Google Classroom ID）-> /api/delete-course/
+    if (isUuid) {
+      return this.request('/web/courses/delete/', {
+        method: 'DELETE',
+        body: JSON.stringify(payload)
+      }, 'v2')
+    } else {
+      console.warn('[ApiService.deleteCourse] 非 UUID，走 Google Classroom 刪除路徑:', courseId)
+      return this.request('/delete-course/', {
+        method: 'DELETE',
+        body: JSON.stringify(payload)
+      }, 'other')
+    }
   }
 
   // 作業相關 API

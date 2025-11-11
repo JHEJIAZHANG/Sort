@@ -1481,13 +1481,10 @@ export function TeacherCourseDetail({
                   try {
                     setDeleting(true)
                     ApiService.setLineUserId(lineUserId)
-                    // 刪除時優先使用解析出的本地 UUID；若沒有，且傳入 id 本身就是 UUID 再用傳入值
-                    const targetId = localCourseId && uuidRegex.test(localCourseId)
-                      ? localCourseId
-                      : (uuidRegex.test(courseId) ? courseId : null)
-                    if (!targetId) {
-                      throw new Error('刪除課程失敗：找不到本地課程 ID（UUID）。請稍後重試或重新載入課程詳情。')
-                    }
+                    // 目標 ID：
+                    // - 若已解析出本地 UUID，優先使用
+                    // - 否則直接使用傳入的 courseId（可能是 Google Classroom ID）
+                    const targetId = (localCourseId && uuidRegex.test(localCourseId)) ? localCourseId : courseId
                     const resp = await ApiService.deleteCourse(targetId)
                     if ((resp as any)?.error) throw new Error((resp as any).error)
                     setShowDeleteDialog(false)
