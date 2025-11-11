@@ -123,6 +123,9 @@ export function TeacherCourseDetail({
   const [showDeleteDialog, setShowDeleteDialog] = useState(false)
   const [deleting, setDeleting] = useState(false)
   const [isEditing, setIsEditing] = useState(false)
+  // 針對刪除操作，嘗試解析並保存本地課程 UUID（後端要求）
+  const [localCourseId, setLocalCourseId] = useState<string | null>(null)
+  const uuidRegex = /^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$/
 
   const { getCourseById, getAssignmentsByCourse } = useTeacherCourses(lineUserId)
   const course = getCourseById(courseId)
@@ -274,6 +277,31 @@ export function TeacherCourseDetail({
       setAssignments(resolvedAssignments)
       setBoundGroups(resolvedGroups)
       setWeeklyReports(resolvedWeekly)
+
+      // 嘗試從 detail 中解析本地 UUID 以供刪除使用
+      try {
+        // 先用傳入的 courseId 作為候選（如果本身是 UUID）
+        const candidates: Array<any> = [courseId]
+        // 再從 detail 嘗試常見欄位：id / course_id / uuid / local_id / db_id / web_course_id
+        candidates.push(detail?.id, detail?.course_id, detail?.uuid, detail?.local_id, detail?.db_id, detail?.web_course_id)
+        // 過濾出字串、非空值
+        const strCandidates = candidates
+          .map(c => (c != null ? String(c) : ''))
+          .filter(s => s.length > 0)
+        // 找出第一個符合 UUID 格式的值
+        const resolvedUuid = strCandidates.find(s => uuidRegex.test(s)) || null
+        setLocalCourseId(resolvedUuid || null)
+        if (process.env.NODE_ENV !== 'production') {
+          console.info('[TeacherCourseDetail] 解析本地課程 UUID', {
+            courseId,
+            detailId: String(detail?.id || ''),
+            candidates: strCandidates,
+            resolvedUuid
+          })
+        }
+      } catch (e) {
+        console.warn('解析本地課程 UUID 失敗:', e)
+      }
     } catch (error) {
       console.error('載入課程詳情失敗:', error)
     } finally {
@@ -1439,7 +1467,14 @@ export function TeacherCourseDetail({
                   try {
                     setDeleting(true)
                     ApiService.setLineUserId(lineUserId)
-                    const resp = await ApiService.deleteCourse(courseId)
+                    // 刪除時優先使用解析出的本地 UUID；若沒有，且傳入 id 本身就是 UUID 再用傳入值
+                    const targetId = localCourseId && uuidRegex.test(localCourseId)
+                      ? localCourseId
+                      : (uuidRegex.test(courseId) ? courseId : null)
+                    if (!targetId) {
+                      throw new Error('刪除課程失敗：找不到本地課程 ID（UUID）。請稍後重試或重新載入課程詳情。')
+                    }
+                    const resp = await ApiService.deleteCourse(targetId)
                     if ((resp as any)?.error) throw new Error((resp as any).error)
                     setShowDeleteDialog(false)
                     try { (document.activeElement as HTMLElement | null)?.blur?.() } catch { }
