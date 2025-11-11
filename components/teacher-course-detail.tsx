@@ -123,7 +123,7 @@ export function TeacherCourseDetail({
   const [showDeleteDialog, setShowDeleteDialog] = useState(false)
   const [deleting, setDeleting] = useState(false)
   const [isEditing, setIsEditing] = useState(false)
-  // 針對刪除操作，嘗試解析並保存本地課程 UUID（後端要求）
+  // against delete operation, try to parse and save local course UUID (backend requires)
   const [localCourseId, setLocalCourseId] = useState<string | null>(null)
   const uuidRegex = /^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$/
 
