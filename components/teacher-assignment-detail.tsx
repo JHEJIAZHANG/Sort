@@ -185,10 +185,24 @@ export function TeacherAssignmentDetail({
       }
 
       const resp = await ApiService.sendAssignmentReminder(assignment.courseId, assignment.id, targetIds)
-      if (resp?.error) {
-        throw new Error(resp.error)
+      console.log('[Reminder] sendAssignmentReminder(all) response:', resp)
+      const data = (resp as any)?.data
+
+      // 若後端以 200 回傳但內含失敗訊息，給出部分失敗提示
+      const emailErrorText = typeof data?.error === 'string' ? data.error : (typeof data?.email_error === 'string' ? data.email_error : '')
+      const emailFailed = Boolean(data?.email_error) || (emailErrorText && /email/i.test(emailErrorText))
+      const partialFailed = emailFailed || (typeof data?.failed === 'number' && data.failed > 0)
+      const explicitFailure = resp?.error || data?.success === false
+
+      if (explicitFailure) {
+        throw new Error((resp as any)?.error || emailErrorText || '提醒失敗')
       }
-      alert("已發送提醒給所有未繳交的學生")
+
+      if (partialFailed) {
+        alert('提醒已執行，但部分通知失敗（含 Email）；詳情請查看主控台')
+      } else {
+        alert("已發送提醒給所有未繳交的學生")
+      }
     } catch (error) {
       console.error("提醒未繳交學生失敗:", error)
       alert("提醒失敗，請稍後重試")
@@ -206,10 +220,21 @@ export function TeacherAssignmentDetail({
         return
       }
       const resp = await ApiService.sendAssignmentReminder(assignment.courseId, assignment.id, ids)
-      if (resp?.error) {
-        throw new Error(resp.error)
+      console.log('[Reminder] sendAssignmentReminder(selected) response:', resp)
+      const data = (resp as any)?.data
+      const emailErrorText = typeof data?.error === 'string' ? data.error : (typeof data?.email_error === 'string' ? data.email_error : '')
+      const emailFailed = Boolean(data?.email_error) || (emailErrorText && /email/i.test(emailErrorText))
+      const explicitFailure = resp?.error || data?.success === false
+
+      if (explicitFailure) {
+        throw new Error((resp as any)?.error || emailErrorText || '提醒失敗')
       }
-      alert("已發送提醒給選定學生")
+
+      if (emailFailed) {
+        alert('提醒已執行，但 Email 發送失敗（詳細錯誤已記錄於主控台）')
+      } else {
+        alert("已發送提醒給選定學生")
+      }
     } catch (error) {
       console.error("提醒失敗:", error)
       alert("提醒失敗，請稍後重試")
