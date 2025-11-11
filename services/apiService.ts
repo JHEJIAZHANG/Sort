@@ -1245,7 +1245,7 @@ export class ApiService {
     return this.request(`/teacher/courses/${courseId}/assignments/${qs}`)
   }
 
-  static async sendAssignmentReminder(assignmentId: string, studentIds?: string[]) {
+  static async sendAssignmentReminder(courseId: string, assignmentId: string, studentIds?: string[]) {
     if (!this.lineUserId) {
       this.bootstrapLineUserId()
     }
@@ -1253,7 +1253,8 @@ export class ApiService {
       method: 'POST',
       body: JSON.stringify({
         line_user_id: this.lineUserId,
-        assignment_id: assignmentId,
+        course_id: String(courseId),
+        coursework_id: String(assignmentId),
         student_ids: studentIds
       })
     })

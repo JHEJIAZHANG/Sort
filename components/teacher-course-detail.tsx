@@ -349,7 +349,7 @@ export function TeacherCourseDetail({
   const handleRemindUnsubmitted = async (assignmentId: string) => {
     try {
       setRemindingAssignment(assignmentId)
-      const resp = await ApiService.sendAssignmentReminder(assignmentId)
+      const resp = await ApiService.sendAssignmentReminder(courseId, assignmentId)
       if (resp?.error) {
         throw new Error(resp.error)
       }

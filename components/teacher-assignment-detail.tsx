@@ -153,7 +153,7 @@ export function TeacherAssignmentDetail({
   const handleRemindAll = async () => {
     try {
       setReminding(true)
-      const resp = await ApiService.sendAssignmentReminder(assignment.id)
+      const resp = await ApiService.sendAssignmentReminder(assignment.courseId, assignment.id)
       if (resp?.error) {
         throw new Error(resp.error)
       }
@@ -319,7 +319,7 @@ export function TeacherAssignmentDetail({
         />
 
         {loading ? (
-          <div className="py-8 flex justify-center"><CircularProgress /></div>
+          <div className="py-8 flex justify-center"><CircularProgress percentage={0} /></div>
         ) : error ? (
           <EmptyStateSimple title="載入失敗" description={error} showAction={false} />
         ) : filteredStudents.length > 0 ? (
