@@ -122,6 +122,8 @@ export function TeacherCourseDetail({
   const [sendingReport, setSendingReport] = useState(false)
   const [showDeleteDialog, setShowDeleteDialog] = useState(false)
   const [deleting, setDeleting] = useState(false)
+  const [showUnlinkDialog, setShowUnlinkDialog] = useState(false)
+  const [unlinking, setUnlinking] = useState(false)
   const [isEditing, setIsEditing] = useState(false)
   // against delete operation, try to parse and save local course UUID (backend requires)
   const [localCourseId, setLocalCourseId] = useState<string | null>(null)
@@ -423,7 +425,7 @@ export function TeacherCourseDetail({
     }
   }
 
-  // 針對單一群組發送週報
+  // against single group send weekly report
   const handleSendWeeklyReportToGroup = async (groupId: string) => {
     try {
       setSendingReport(true)
@@ -1450,27 +1452,24 @@ export function TeacherCourseDetail({
             <Button
               variant="outline"
               className="flex-1 text-destructive hover:text-destructive bg-transparent"
+              onClick={() => {
+                if (course?.source === 'google_classroom') {
+                  setShowUnlinkDialog(true)
+                } else {
+                  setShowDeleteDialog(true)
+                }
+              }}
             >
-              刪除課程
+              {course?.source === 'google_classroom' ? '解除同步' : '刪除課程'}
             </Button>
           </AlertDialogTrigger>
           <AlertDialogContent>
             <AlertDialogHeader>
               <AlertDialogTitle>確認刪除課程</AlertDialogTitle>
               <AlertDialogDescription>
-                {course?.source === "google_classroom" ? (
-                  <>
-                    您確定要刪除「{course?.name || courseStats.name}」這門課程嗎？
-                    <br />
-                    <span className="text-amber-600 font-medium">注意：此課程來自 Google Classroom 同步，刪除後將無法自動重新同步。</span>
-                    <br />
-                    此操作將同時刪除該課程的所有作業、筆記和考試，且無法復原。
-                  </>
-                ) : (
-                  <>
-                    您確定要刪除「{course?.name || courseStats.name}」這門課程嗎？此操作將同時刪除該課程的所有作業、筆記和考試，且無法復原。
-                  </>
-                )}
+                <>
+                  您確定要刪除「{course?.name || courseStats.name}」這門課程嗎？此操作將同時刪除該課程的所有作業、筆記和考試，且無法復原。
+                </>
               </AlertDialogDescription>
             </AlertDialogHeader>
             <AlertDialogFooter>
@@ -1481,17 +1480,7 @@ export function TeacherCourseDetail({
                   try {
                     setDeleting(true)
                     ApiService.setLineUserId(lineUserId)
-
-                    // 嚴格要求必須使用本地 UUID 來執行刪除
-                    const targetId = localCourseId
-                    if (!targetId || !uuidRegex.test(targetId)) {
-                      console.error('Deletion failed: localCourseId is not a valid UUID.', { localCourseId })
-                      alert('刪除失敗：找不到有效的本地課程 ID。')
-                      setDeleting(false)
-                      return
-                    }
-
-                    console.log(`Attempting to delete course with local UUID: ${targetId}`)
+                    const targetId = (localCourseId && uuidRegex.test(localCourseId)) ? localCourseId : courseId
                     const resp = await ApiService.deleteCourse(targetId)
                     if ((resp as any)?.error) throw new Error((resp as any).error)
                     setShowDeleteDialog(false)
@@ -1508,6 +1497,46 @@ export function TeacherCourseDetail({
                 className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
               >
                 {deleting ? '刪除中...' : '確認刪除'}
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
+
+        <AlertDialog open={showUnlinkDialog} onOpenChange={setShowUnlinkDialog}>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>確認解除同步</AlertDialogTitle>
+              <AlertDialogDescription>
+                您確定要解除同步「{course?.name || courseStats.name}」這門課程嗎？
+                <br />
+                <span className="text-amber-600 font-medium">注意：此課程來自 Google Classroom。解除同步後，此課程將從您的列表中移除，但不會影響 Google Classroom 上的原始課程。您可以隨時從 Google Classroom 重新同步。</span>
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel>取消</AlertDialogCancel>
+              <AlertDialogAction
+                disabled={unlinking}
+                onClick={async () => {
+                  try {
+                    setUnlinking(true)
+                    ApiService.setLineUserId(lineUserId)
+                    const targetId = (localCourseId && uuidRegex.test(localCourseId)) ? localCourseId : courseId
+                    const resp = await ApiService.unlinkCourse(targetId)
+                    if ((resp as any)?.error) throw new Error((resp as any).error)
+                    setShowUnlinkDialog(false)
+                    try { (document.activeElement as HTMLElement | null)?.blur?.() } catch { }
+                    setTimeout(() => { if (onDeleted) onDeleted() }, 80)
+                  } catch (error) {
+                    const errorMessage = error instanceof Error ? error.message : '解除同步時發生未知錯誤'
+                    alert(errorMessage)
+                    setShowUnlinkDialog(false)
+                  } finally {
+                    setUnlinking(false)
+                  }
+                }}
+                className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              >
+                {unlinking ? '解除同步中...' : '確認解除'}
               </AlertDialogAction>
             </AlertDialogFooter>
           </AlertDialogContent>
