@@ -278,30 +278,17 @@ export function TeacherCourseDetail({
       setBoundGroups(resolvedGroups)
       setWeeklyReports(resolvedWeekly)
 
-      // 嘗試從 detail 中解析本地 UUID 以供刪除使用
-      try {
-        // 先用傳入的 courseId 作為候選（如果本身是 UUID）
-        const candidates: Array<any> = [courseId]
-        // 再從 detail 嘗試常見欄位：id / course_id / uuid / local_id / db_id / web_course_id
-        candidates.push(detail?.id, detail?.course_id, detail?.uuid, detail?.local_id, detail?.db_id, detail?.web_course_id)
-        // 過濾出字串、非空值
-        const strCandidates = candidates
-          .map(c => (c != null ? String(c) : ''))
-          .filter(s => s.length > 0)
-        // 找出第一個符合 UUID 格式的值
-        const resolvedUuid = strCandidates.find(s => uuidRegex.test(s)) || null
-        setLocalCourseId(resolvedUuid || null)
-        if (process.env.NODE_ENV !== 'production') {
-          console.info('[TeacherCourseDetail] 解析本地課程 UUID', {
-            courseId,
-            detailId: String(detail?.id || ''),
-            candidates: strCandidates,
-            resolvedUuid
-          })
-        }
-      } catch (e) {
-        console.warn('解析本地課程 UUID 失敗:', e)
-      }
+      // 嘗試從各種可能欄位解析本地課程 UUID
+      const candidates = [
+        detail?.id,
+        detail?.course_id,
+        detail?.course?.id,
+        detail?.data?.id,
+        course?.id,
+        courseId
+      ].filter(Boolean).map(String)
+      const matched = candidates.find((c) => uuidRegex.test(c)) || null
+      setLocalCourseId(matched)
     } catch (error) {
       console.error('載入課程詳情失敗:', error)
     } finally {

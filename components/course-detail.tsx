@@ -436,6 +436,15 @@ export function CourseDetail({ courseId, lineUserId, showBackButton = true, onOp
                 onClick={async () => {
                   try {
                     setDeleting(true)
+                    // 僅允許使用本地課程 UUID 進行刪除
+                    const uuidRegex = /^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$/
+                    const isUuid = uuidRegex.test(String(courseId))
+                    if (!isUuid) {
+                      const msg = course.source === 'google_classroom'
+                        ? '此課程來自 Google Classroom，同步資料不含本地課程 UUID，無法直接刪除。請至教師匯入/同步頁面移除，或在教師課程詳情使用刪除。'
+                        : '目前無法識別本地課程 ID（UUID），請稍後再試或重新整理頁面。'
+                      throw new Error(msg)
+                    }
                     await deleteCourse(courseId)
                     // 先關閉子層 AlertDialog，再關閉父層 Dialog，避免焦點殘留觸發 aria-hidden 警告
                     setShowDeleteDialog(false)

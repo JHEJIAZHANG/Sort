@@ -254,10 +254,17 @@ export class ApiService {
   }
 
   static async deleteCourse(courseId: string) {
-    if (!this.lineUserId) {
-      this.bootstrapLineUserId()
+    // 確保 Header 會帶上有效的 Line User ID
+    const effectiveUserId = this.ensureLineUserId()
+
+    // 提醒：後端期望 course_id 為本地 UUID
+    const uuidRegex = /^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-5][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$/
+    const isUuid = uuidRegex.test(String(courseId))
+    if (!isUuid) {
+      console.warn('[ApiService.deleteCourse] 非 UUID 的 courseId，可能是 Google Classroom ID：', courseId)
     }
-    const payload = { line_user_id: this.lineUserId, course_id: courseId }
+
+    const payload = { line_user_id: effectiveUserId, course_id: courseId }
     return this.request('/web/courses/delete/', {
       method: 'DELETE',
       body: JSON.stringify(payload)
