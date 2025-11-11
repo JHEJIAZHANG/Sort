@@ -19,9 +19,9 @@ const nextConfig = {
     
     return [
       // 代理 API，確保尾斜線保留
-      // 教師端兼容修正：將誤走 /api/v2/teacher/* 轉到 /api/teacher/*
-      { source: '/api/v2/teacher/:path*/', destination: `${apiBaseUrl}/api/teacher/:path*/` },
-      { source: '/api/v2/teacher/:path*', destination: `${apiBaseUrl}/api/teacher/:path*/` },
+      // 教師端路由：維持 /api/v2/teacher/* 直通至後端 /api/v2/teacher/*
+      { source: '/api/v2/teacher/:path*/', destination: `${apiBaseUrl}/api/v2/teacher/:path*/` },
+      { source: '/api/v2/teacher/:path*', destination: `${apiBaseUrl}/api/v2/teacher/:path*/` },
       { source: '/_api/v2/:path*/', destination: `${apiBaseUrl}/api/v2/:path*/` },
       { source: '/_api/v2/:path*', destination: `${apiBaseUrl}/api/v2/:path*/` },
       // 備援：舊路徑
