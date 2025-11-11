@@ -122,8 +122,6 @@ export function TeacherCourseDetail({
   const [sendingReport, setSendingReport] = useState(false)
   const [showDeleteDialog, setShowDeleteDialog] = useState(false)
   const [deleting, setDeleting] = useState(false)
-  const [showUnlinkDialog, setShowUnlinkDialog] = useState(false)
-  const [unlinking, setUnlinking] = useState(false)
   const [isEditing, setIsEditing] = useState(false)
   // against delete operation, try to parse and save local course UUID (backend requires)
   const [localCourseId, setLocalCourseId] = useState<string | null>(null)
@@ -425,7 +423,7 @@ export function TeacherCourseDetail({
     }
   }
 
-  // against single group send weekly report
+  // 針對單一群組發送週報
   const handleSendWeeklyReportToGroup = async (groupId: string) => {
     try {
       setSendingReport(true)
@@ -1452,24 +1450,27 @@ export function TeacherCourseDetail({
             <Button
               variant="outline"
               className="flex-1 text-destructive hover:text-destructive bg-transparent"
-              onClick={() => {
-                if (course?.source === 'google_classroom') {
-                  setShowUnlinkDialog(true)
-                } else {
-                  setShowDeleteDialog(true)
-                }
-              }}
             >
-              {course?.source === 'google_classroom' ? '解除同步' : '刪除課程'}
+              解除同步
             </Button>
           </AlertDialogTrigger>
           <AlertDialogContent>
             <AlertDialogHeader>
-              <AlertDialogTitle>確認刪除課程</AlertDialogTitle>
+              <AlertDialogTitle>確認解除同步</AlertDialogTitle>
               <AlertDialogDescription>
-                <>
-                  您確定要刪除「{course?.name || courseStats.name}」這門課程嗎？此操作將同時刪除該課程的所有作業、筆記和考試，且無法復原。
-                </>
+                {course?.source === "google_classroom" ? (
+                  <>
+                    您確定要解除「{course?.name || courseStats.name}」的同步嗎？
+                    <br />
+                    此操作只會移除本地系統中的課程鏡像與相關資料，不會刪除 Google Classroom 上的課程或作業。
+                    <br />
+                    之後若需要重新同步，請至「匯入/同步」頁面選擇該課程重新匯入。
+                  </>
+                ) : (
+                  <>
+                    您確定要刪除「{course?.name || courseStats.name}」這門本地課程嗎？此操作將刪除該課程的所有本地資料，且無法復原。
+                  </>
+                )}
               </AlertDialogDescription>
             </AlertDialogHeader>
             <AlertDialogFooter>
@@ -1480,14 +1481,19 @@ export function TeacherCourseDetail({
                   try {
                     setDeleting(true)
                     ApiService.setLineUserId(lineUserId)
-                    const targetId = (localCourseId && uuidRegex.test(localCourseId)) ? localCourseId : courseId
-                    const resp = await ApiService.deleteCourse(targetId)
+                    // 僅允許使用本地課程 UUID 進行解除同步（刪除本地鏡像）
+                    if (!localCourseId || !uuidRegex.test(localCourseId)) {
+                      alert('未取得本地課程 UUID，無法解除同步。請確認該課程已匯入到本地，或至「匯入/同步」頁面進行操作。')
+                      setDeleting(false)
+                      return
+                    }
+                    const resp = await ApiService.deleteCourse(localCourseId)
                     if ((resp as any)?.error) throw new Error((resp as any).error)
                     setShowDeleteDialog(false)
                     try { (document.activeElement as HTMLElement | null)?.blur?.() } catch { }
                     setTimeout(() => { if (onDeleted) onDeleted() }, 80)
                   } catch (error) {
-                    const errorMessage = error instanceof Error ? error.message : '刪除課程時發生未知錯誤'
+                    const errorMessage = error instanceof Error ? error.message : '解除同步時發生未知錯誤'
                     alert(errorMessage)
                     setShowDeleteDialog(false)
                   } finally {
@@ -1496,47 +1502,7 @@ export function TeacherCourseDetail({
                 }}
                 className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
               >
-                {deleting ? '刪除中...' : '確認刪除'}
-              </AlertDialogAction>
-            </AlertDialogFooter>
-          </AlertDialogContent>
-        </AlertDialog>
-
-        <AlertDialog open={showUnlinkDialog} onOpenChange={setShowUnlinkDialog}>
-          <AlertDialogContent>
-            <AlertDialogHeader>
-              <AlertDialogTitle>確認解除同步</AlertDialogTitle>
-              <AlertDialogDescription>
-                您確定要解除同步「{course?.name || courseStats.name}」這門課程嗎？
-                <br />
-                <span className="text-amber-600 font-medium">注意：此課程來自 Google Classroom。解除同步後，此課程將從您的列表中移除，但不會影響 Google Classroom 上的原始課程。您可以隨時從 Google Classroom 重新同步。</span>
-              </AlertDialogDescription>
-            </AlertDialogHeader>
-            <AlertDialogFooter>
-              <AlertDialogCancel>取消</AlertDialogCancel>
-              <AlertDialogAction
-                disabled={unlinking}
-                onClick={async () => {
-                  try {
-                    setUnlinking(true)
-                    ApiService.setLineUserId(lineUserId)
-                    const targetId = (localCourseId && uuidRegex.test(localCourseId)) ? localCourseId : courseId
-                    const resp = await ApiService.unlinkCourse(targetId)
-                    if ((resp as any)?.error) throw new Error((resp as any).error)
-                    setShowUnlinkDialog(false)
-                    try { (document.activeElement as HTMLElement | null)?.blur?.() } catch { }
-                    setTimeout(() => { if (onDeleted) onDeleted() }, 80)
-                  } catch (error) {
-                    const errorMessage = error instanceof Error ? error.message : '解除同步時發生未知錯誤'
-                    alert(errorMessage)
-                    setShowUnlinkDialog(false)
-                  } finally {
-                    setUnlinking(false)
-                  }
-                }}
-                className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-              >
-                {unlinking ? '解除同步中...' : '確認解除'}
+                {deleting ? '處理中...' : '確認解除'}
               </AlertDialogAction>
             </AlertDialogFooter>
           </AlertDialogContent>
