@@ -1451,24 +1451,24 @@ export function TeacherCourseDetail({
               variant="outline"
               className="flex-1 text-destructive hover:text-destructive bg-transparent"
             >
-              解除同步
+              刪除課程
             </Button>
           </AlertDialogTrigger>
           <AlertDialogContent>
             <AlertDialogHeader>
-              <AlertDialogTitle>確認解除同步</AlertDialogTitle>
+              <AlertDialogTitle>確認刪除課程</AlertDialogTitle>
               <AlertDialogDescription>
                 {course?.source === "google_classroom" ? (
                   <>
-                    您確定要解除「{course?.name || courseStats.name}」的同步嗎？
+                    您確定要刪除「{course?.name || courseStats.name}」這門課程嗎？
                     <br />
-                    此操作只會移除本地系統中的課程鏡像與相關資料，不會刪除 Google Classroom 上的課程或作業。
+                    <span className="text-amber-600 font-medium">注意：此課程來自 Google Classroom 同步，刪除後將無法自動重新同步。</span>
                     <br />
-                    之後若需要重新同步，請至「匯入/同步」頁面選擇該課程重新匯入。
+                    此操作將同時刪除該課程的所有作業、筆記和考試，且無法復原。
                   </>
                 ) : (
                   <>
-                    您確定要刪除「{course?.name || courseStats.name}」這門本地課程嗎？此操作將刪除該課程的所有本地資料，且無法復原。
+                    您確定要刪除「{course?.name || courseStats.name}」這門課程嗎？此操作將同時刪除該課程的所有作業、筆記和考試，且無法復原。
                   </>
                 )}
               </AlertDialogDescription>
@@ -1481,19 +1481,17 @@ export function TeacherCourseDetail({
                   try {
                     setDeleting(true)
                     ApiService.setLineUserId(lineUserId)
-                    // 僅允許使用本地課程 UUID 進行解除同步（刪除本地鏡像）
-                    if (!localCourseId || !uuidRegex.test(localCourseId)) {
-                      alert('未取得本地課程 UUID，無法解除同步。請確認該課程已匯入到本地，或至「匯入/同步」頁面進行操作。')
-                      setDeleting(false)
-                      return
-                    }
-                    const resp = await ApiService.deleteCourse(localCourseId)
+                    // 目標 ID：
+                    // - 若已解析出本地 UUID，優先使用
+                    // - 否則直接使用傳入的 courseId（可能是 Google Classroom ID）
+                    const targetId = (localCourseId && uuidRegex.test(localCourseId)) ? localCourseId : courseId
+                    const resp = await ApiService.deleteCourse(targetId)
                     if ((resp as any)?.error) throw new Error((resp as any).error)
                     setShowDeleteDialog(false)
                     try { (document.activeElement as HTMLElement | null)?.blur?.() } catch { }
                     setTimeout(() => { if (onDeleted) onDeleted() }, 80)
                   } catch (error) {
-                    const errorMessage = error instanceof Error ? error.message : '解除同步時發生未知錯誤'
+                    const errorMessage = error instanceof Error ? error.message : '刪除課程時發生未知錯誤'
                     alert(errorMessage)
                     setShowDeleteDialog(false)
                   } finally {
@@ -1502,7 +1500,7 @@ export function TeacherCourseDetail({
                 }}
                 className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
               >
-                {deleting ? '處理中...' : '確認解除'}
+                {deleting ? '刪除中...' : '確認刪除'}
               </AlertDialogAction>
             </AlertDialogFooter>
           </AlertDialogContent>
