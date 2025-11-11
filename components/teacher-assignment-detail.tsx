@@ -11,6 +11,7 @@ import { ExternalLink } from "lucide-react"
 import type { Assignment, Course } from "@/types/course"
 import { CircularProgress } from "@/components/circular-progress"
 import { ApiService } from "@/services/apiService"
+import { Checkbox } from "@/components/ui/checkbox"
 import {
   AlertDialog,
   AlertDialogAction,
@@ -48,6 +49,7 @@ export function TeacherAssignmentDetail({
   const [searchQuery, setSearchQuery] = useState("")
   const [reminding, setReminding] = useState(false)
   const [statusFilter, setStatusFilter] = useState<"all" | "submitted" | "missing">("all")
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set())
 
   // 狀態：載入與資料
   const [loading, setLoading] = useState(true)
@@ -101,6 +103,20 @@ export function TeacherAssignmentDetail({
     return () => { isMounted = false }
   }, [assignment.id, assignment.courseId])
 
+  // 切換過濾時清空選取，避免誤選
+  useEffect(() => {
+    setSelectedIds(new Set())
+  }, [statusFilter])
+
+  const toggleSelect = (id: string, checked: boolean) => {
+    setSelectedIds(prev => {
+      const next = new Set(prev)
+      if (checked) next.add(id)
+      else next.delete(id)
+      return next
+    })
+  }
+
   const filteredStudents = useMemo(() => {
     // 我們目前僅有「未繳交學生」的名單；切換到「已繳交」時顯示空結果
     const source = statusFilter === "submitted" ? [] : students
@@ -153,13 +169,49 @@ export function TeacherAssignmentDetail({
   const handleRemindAll = async () => {
     try {
       setReminding(true)
-      const resp = await ApiService.sendAssignmentReminder(assignment.courseId, assignment.id)
+      // 先取得未繳交學生名單（以避免後端沒有預設計算時無人被提醒）
+      const statusResp = await ApiService.getAssignmentSubmissionStatus(assignment.courseId, assignment.id)
+      const statusData = (statusResp as any)?.data || {}
+      const results = Array.isArray(statusData?.results) ? statusData.results : []
+      const first = results[0] || null
+      const unsubmitted = Array.isArray(first?.unsubmitted_students) ? first.unsubmitted_students : []
+      const targetIds: string[] = unsubmitted
+        .map((u: any) => String(u?.userId ?? ''))
+        .filter((id: string) => id && id.trim().length > 0)
+
+      if (targetIds.length === 0) {
+        alert("目前沒有未繳交學生可提醒")
+        return
+      }
+
+      const resp = await ApiService.sendAssignmentReminder(assignment.courseId, assignment.id, targetIds)
       if (resp?.error) {
         throw new Error(resp.error)
       }
       alert("已發送提醒給所有未繳交的學生")
     } catch (error) {
       console.error("提醒未繳交學生失敗:", error)
+      alert("提醒失敗，請稍後重試")
+    } finally {
+      setReminding(false)
+    }
+  }
+
+  const handleRemindSelected = async () => {
+    try {
+      setReminding(true)
+      const ids = Array.from(selectedIds)
+      if (ids.length === 0) {
+        alert("請先選擇要提醒的學生")
+        return
+      }
+      const resp = await ApiService.sendAssignmentReminder(assignment.courseId, assignment.id, ids)
+      if (resp?.error) {
+        throw new Error(resp.error)
+      }
+      alert("已發送提醒給選定學生")
+    } catch (error) {
+      console.error("提醒失敗:", error)
       alert("提醒失敗，請稍後重試")
     } finally {
       setReminding(false)
@@ -287,28 +339,33 @@ export function TeacherAssignmentDetail({
       <Card className="p-4">
         <div className="flex items-center justify-between mb-4">
           <h3 className="text-lg font-semibold">學生繳交狀態</h3>
-          <AlertDialog>
-            <AlertDialogTrigger asChild>
-              <Button variant="outline" size="sm" disabled={reminding}>
-                <BellIcon className="w-4 h-4 mr-2" />
-                提醒未繳交
-              </Button>
-            </AlertDialogTrigger>
-            <AlertDialogContent>
-              <AlertDialogHeader>
-                <AlertDialogTitle>提醒未繳交學生</AlertDialogTitle>
-                <AlertDialogDescription>
-                  將透過 LINE 推播和 Email 提醒所有尚未繳交「{assignment.title}」的學生。
-                </AlertDialogDescription>
-              </AlertDialogHeader>
-              <AlertDialogFooter>
-                <AlertDialogCancel>取消</AlertDialogCancel>
-                <AlertDialogAction onClick={handleRemindAll}>
-                  確認提醒
-                </AlertDialogAction>
-              </AlertDialogFooter>
-            </AlertDialogContent>
-          </AlertDialog>
+          <div className="flex items-center gap-2">
+            <Button variant="default" size="sm" disabled={reminding || selectedIds.size === 0} onClick={handleRemindSelected}>
+              提醒選定學生
+            </Button>
+            <AlertDialog>
+              <AlertDialogTrigger asChild>
+                <Button variant="outline" size="sm" disabled={reminding}>
+                  <BellIcon className="w-4 h-4 mr-2" />
+                  提醒未繳交
+                </Button>
+              </AlertDialogTrigger>
+              <AlertDialogContent>
+                <AlertDialogHeader>
+                  <AlertDialogTitle>提醒未繳交學生</AlertDialogTitle>
+                  <AlertDialogDescription>
+                    將透過 LINE 推播和 Email 提醒所有尚未繳交「{assignment.title}」的學生。
+                  </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                  <AlertDialogCancel>取消</AlertDialogCancel>
+                  <AlertDialogAction onClick={handleRemindAll}>
+                    確認提醒
+                  </AlertDialogAction>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
+          </div>
         </div>
 
         <Input
@@ -343,16 +400,22 @@ export function TeacherAssignmentDetail({
                       )}
                     </div>
                   </div>
-                  <div className={`flex flex-col items-end gap-2 flex-shrink-0 ${
+                <div className={`flex flex-col items-end gap-2 flex-shrink-0 ${
                     student.grade === undefined ? 'justify-center' : ''
                   }`}>
-                    {student.grade !== undefined && (
-                      <span className="text-sm font-medium text-primary whitespace-nowrap">
-                        {student.grade}分
-                      </span>
-                    )}
-                    {getStatusBadge(student.status)}
-                  </div>
+                  {student.grade !== undefined && (
+                    <span className="text-sm font-medium text-primary whitespace-nowrap">
+                      {student.grade}分
+                    </span>
+                  )}
+                  {getStatusBadge(student.status)}
+                  <Checkbox
+                    checked={selectedIds.has(student.id)}
+                    disabled={student.submitted}
+                    onCheckedChange={(c) => toggleSelect(student.id, Boolean(c))}
+                    aria-label="選擇提醒"
+                  />
+                </div>
                 </div>
 
                 {/* 電腦版佈局 */}
@@ -378,6 +441,12 @@ export function TeacherAssignmentDetail({
                       </div>
                     )}
                     {getStatusBadge(student.status)}
+                    <Checkbox
+                      checked={selectedIds.has(student.id)}
+                      disabled={student.submitted}
+                      onCheckedChange={(c) => toggleSelect(student.id, Boolean(c))}
+                      aria-label="選擇提醒"
+                    />
                   </div>
                 </div>
               </div>

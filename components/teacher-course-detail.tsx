@@ -349,7 +349,22 @@ export function TeacherCourseDetail({
   const handleRemindUnsubmitted = async (assignmentId: string) => {
     try {
       setRemindingAssignment(assignmentId)
-      const resp = await ApiService.sendAssignmentReminder(courseId, assignmentId)
+      // 先查詢未繳交學生名單，確保有實際推送對象
+      const statusResp = await ApiService.getAssignmentSubmissionStatus(courseId, assignmentId)
+      const statusData = (statusResp as any)?.data || {}
+      const results = Array.isArray(statusData?.results) ? statusData.results : []
+      const first = results[0] || null
+      const unsubmitted = Array.isArray(first?.unsubmitted_students) ? first.unsubmitted_students : []
+      const targetIds: string[] = unsubmitted
+        .map((u: any) => String(u?.userId ?? ''))
+        .filter((id: string) => id && id.trim().length > 0)
+
+      if (targetIds.length === 0) {
+        alert('目前沒有未繳交學生可提醒')
+        return
+      }
+
+      const resp = await ApiService.sendAssignmentReminder(courseId, assignmentId, targetIds)
       if (resp?.error) {
         throw new Error(resp.error)
       }
