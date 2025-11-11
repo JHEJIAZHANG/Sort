@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useMemo } from "react"
+import { useState, useMemo, useEffect } from "react"
 import { Card } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
@@ -49,17 +49,62 @@ export function TeacherAssignmentDetail({
   const [reminding, setReminding] = useState(false)
   const [statusFilter, setStatusFilter] = useState<"all" | "submitted" | "missing">("all")
 
-  // 模擬學生繳交資料
-  const mockStudents: StudentSubmission[] = [
-    { id: "1", name: "張小明", email: "ming@example.com", submitted: true, submittedAt: new Date("2024-10-25"), grade: 95, status: "submitted" },
-    { id: "2", name: "李小華", email: "hua@example.com", submitted: true, submittedAt: new Date("2024-10-26"), grade: 88, status: "late" },
-    { id: "3", name: "王小美", email: "mei@example.com", submitted: false, status: "missing" },
-    { id: "4", name: "陳小強", email: "qiang@example.com", submitted: true, submittedAt: new Date("2024-10-24"), grade: 92, status: "submitted" },
-    { id: "5", name: "林小芳", email: "fang@example.com", submitted: false, status: "missing" },
-  ]
+  // 狀態：載入與資料
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
+  const [students, setStudents] = useState<StudentSubmission[]>([])
+  const [stats, setStats] = useState<{ total: number; submitted: number; unsubmitted: number; rate: number }>({ total: 0, submitted: 0, unsubmitted: 0, rate: 0 })
+
+  // 取得作業繳交統計（教師）
+  useEffect(() => {
+    let isMounted = true
+    const fetchStatus = async () => {
+      try {
+        setLoading(true)
+        setError(null)
+        const resp = await ApiService.getAssignmentSubmissionStatus(assignment.courseId, assignment.id)
+        const data = (resp as any)?.data || {}
+        const results = Array.isArray(data?.results) ? data.results : []
+        const first = results[0] || null
+        if (first && first.role === "teacher") {
+          const s = first.statistics || {}
+          const unSub = Array.isArray(first.unsubmitted_students) ? first.unsubmitted_students : []
+          const mapped: StudentSubmission[] = unSub.map((u: any, idx: number) => ({
+            id: String(u.userId ?? idx),
+            name: u.name ?? "未知學生",
+            email: u.emailAddress ?? "",
+            submitted: false,
+            status: "missing"
+          }))
+          if (isMounted) {
+            setStats({
+              total: Number(s.total_students ?? 0),
+              submitted: Number(s.submitted ?? 0),
+              unsubmitted: Number(s.unsubmitted ?? 0),
+              rate: Math.round(Number(s.completion_rate ?? 0))
+            })
+            setStudents(mapped)
+          }
+        } else {
+          if (isMounted) {
+            setStats({ total: 0, submitted: 0, unsubmitted: 0, rate: 0 })
+            setStudents([])
+          }
+        }
+      } catch (e: any) {
+        if (isMounted) setError(e?.message || "載入作業繳交狀態失敗")
+      } finally {
+        if (isMounted) setLoading(false)
+      }
+    }
+    fetchStatus()
+    return () => { isMounted = false }
+  }, [assignment.id, assignment.courseId])
 
   const filteredStudents = useMemo(() => {
-    return mockStudents.filter(student => {
+    // 我們目前僅有「未繳交學生」的名單；切換到「已繳交」時顯示空結果
+    const source = statusFilter === "submitted" ? [] : students
+    return source.filter(student => {
       // 搜尋過濾
       const matchesSearch = searchQuery === "" ||
         student.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -73,11 +118,11 @@ export function TeacherAssignmentDetail({
       
       return matchesSearch && matchesStatus
     })
-  }, [searchQuery, statusFilter])
+  }, [students, searchQuery, statusFilter])
 
-  const submittedCount = mockStudents.filter(s => s.submitted).length
-  const totalCount = mockStudents.length
-  const submissionRate = Math.round((submittedCount / totalCount) * 100)
+  const submittedCount = stats.submitted
+  const totalCount = stats.total
+  const submissionRate = stats.rate
 
   const formatDate = (date: Date) => {
     return date.toLocaleDateString("zh-TW", {
@@ -273,7 +318,11 @@ export function TeacherAssignmentDetail({
           className="mb-4"
         />
 
-        {filteredStudents.length > 0 ? (
+        {loading ? (
+          <div className="py-8 flex justify-center"><CircularProgress /></div>
+        ) : error ? (
+          <EmptyStateSimple title="載入失敗" description={error} showAction={false} />
+        ) : filteredStudents.length > 0 ? (
           <div className="space-y-2">
             {filteredStudents.map((student) => (
               <div
@@ -337,7 +386,7 @@ export function TeacherAssignmentDetail({
         ) : (
           <EmptyStateSimple
             title="沒有符合條件的學生"
-            description="請調整搜尋關鍵字"
+            description={statusFilter === "submitted" ? "目前僅顯示未繳交學生名單" : "請調整搜尋關鍵字"}
             showAction={false}
           />
         )}

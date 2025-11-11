@@ -1316,6 +1316,27 @@ export class ApiService {
     })
   }
 
+  // 作業提交狀態（教師/學生皆可，用於 Google Classroom）
+  static async getAssignmentSubmissionStatus(courseId: string, assignmentId: string) {
+    // 確保 line_user_id 已設定（必要欄位）
+    const effective = this.ensureLineUserId()
+    // 後端 serializer 支援 batch；這裡以單筆 pair 呼叫
+    const payload = {
+      line_user_id: effective,
+      course_coursework_pairs: [
+        {
+          course_id: String(courseId),
+          coursework_id: String(assignmentId)
+        }
+      ]
+    }
+    // 路由為 /api/classroom/submissions/status/，屬於一般 /api 前綴
+    return this.request('/classroom/submissions/status/', {
+      method: 'POST',
+      body: JSON.stringify(payload)
+    }, 'other')
+  }
+
 
 }
 
