@@ -207,20 +207,35 @@ export function TeacherCourseDetail({
       })) : []
 
       const resolvedAssignments: AssignmentWithMetrics[] = Array.isArray(assignmentsRaw) ? assignmentsRaw.map((a: any) => {
-        const due = a.due_date || a.dueDate || a.deadline
-        const dueDateObj = due ? new Date(due) : null
+        // 處理截止日期
+        const due = a.dueDateTime || a.due_date || a.dueDate || a.deadline
+        let dueDateObj = null
+        if (due) {
+          try {
+            dueDateObj = new Date(due)
+          } catch {
+            dueDateObj = null
+          }
+        }
+        
         const now = new Date()
-        const status: 'active' | 'overdue' | 'completed' = a.status === 'completed'
+        const status: 'active' | 'overdue' | 'completed' = a.status === 'completed' || a.state === 'COMPLETED'
           ? 'completed'
           : (dueDateObj && dueDateObj < now ? 'overdue' : 'active')
+        
+        // 確保繳交率計算正確
+        const submittedCount = Number(a.submitted_count ?? a.submissions_count ?? 0)
+        const totalCount = Number(a.total_count ?? a.total_students ?? resolvedStudents.length || 0)
+        const submissionRate = totalCount > 0 ? Math.round((submittedCount / totalCount) * 100) : 0
+        
         return {
           id: String(a.id ?? a.assignment_id ?? Math.random()),
           title: String(a.title ?? '未命名作業'),
           description: a.description ?? '',
           due_date: dueDateObj ? dueDateObj.toISOString().split('T')[0] : '',
-          submitted_count: Number(a.submitted_count ?? a.submissions_count ?? 0),
-          total_count: Number(a.total_count ?? a.total_students ?? (resolvedStudents.length || 0)),
-          submission_rate: Number(a.submission_rate ?? ((a.submitted_count && a.total_count) ? Math.round((a.submitted_count / a.total_count) * 100) : 0)),
+          submitted_count: submittedCount,
+          total_count: totalCount,
+          submission_rate: submissionRate,
           status
         }
       }) : courseAssignments.map(assignment => {
@@ -252,12 +267,26 @@ export function TeacherCourseDetail({
         schedule: course?.schedule || detail?.schedule || []
       }
 
-      const resolvedGroups: BoundGroup[] = Array.isArray(groupsRaw) ? groupsRaw.map((g: any) => ({
-        id: String(g.groupId ?? g.id ?? g.group_id ?? Math.random()),
-        name: String(g.name ?? g.group_name ?? g.groupId ?? '未知群組'),
-        member_count: Number(g.member_count ?? g.members ?? 0),
-        bound_at: String(g.boundAt ?? g.bound_at ?? g.created_at ?? '')
-      })) : []
+      const resolvedGroups: BoundGroup[] = Array.isArray(groupsRaw) ? groupsRaw.map((g: any) => {
+        // 處理綁定時間格式
+        let boundAtStr = ''
+        const rawBoundAt = g.boundAt ?? g.bound_at ?? g.created_at
+        if (rawBoundAt) {
+          try {
+            const date = new Date(rawBoundAt)
+            boundAtStr = date.toLocaleDateString('zh-TW', { year: 'numeric', month: '2-digit', day: '2-digit' })
+          } catch {
+            boundAtStr = String(rawBoundAt)
+          }
+        }
+        
+        return {
+          id: String(g.groupId ?? g.id ?? g.group_id ?? Math.random()),
+          name: String(g.name ?? g.group_name ?? g.groupId ?? '未知群組'),
+          member_count: Number(g.member_count ?? g.members ?? 0),
+          bound_at: boundAtStr
+        }
+      }) : []
 
       const resolvedWeekly: WeeklyReport[] = weeklyRaw ? [
         {
