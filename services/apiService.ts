@@ -1339,8 +1339,12 @@ export class ApiService {
 
   // 作業提交狀態（教師/學生皆可，用於 Google Classroom）
   static async getAssignmentSubmissionStatus(courseId: string, assignmentId: string) {
+    console.log('[ApiService] getAssignmentSubmissionStatus 開始', { courseId, assignmentId })
+    
     // 確保 line_user_id 已設定（必要欄位）
     const effective = this.ensureLineUserId()
+    console.log('[ApiService] 使用的 line_user_id:', effective)
+    
     // 後端 serializer 支援 batch；這裡以單筆 pair 呼叫
     const payload = {
       line_user_id: effective,
@@ -1351,11 +1355,16 @@ export class ApiService {
         }
       ]
     }
+    console.log('[ApiService] 請求 payload:', JSON.stringify(payload, null, 2))
+    
     // 路由為 /api/classroom/submissions/status/，屬於一般 /api 前綴
-    return this.request('/classroom/submissions/status/', {
+    const result = await this.request('/classroom/submissions/status/', {
       method: 'POST',
       body: JSON.stringify(payload)
     }, 'other')
+    
+    console.log('[ApiService] API 回應結果:', JSON.stringify(result, null, 2))
+    return result
   }
 
 

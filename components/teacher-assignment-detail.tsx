@@ -70,25 +70,42 @@ export function TeacherAssignmentDetail({
         })
         
         const resp = await ApiService.getAssignmentSubmissionStatus(assignment.courseId, assignment.id)
-        console.log('[TeacherAssignmentDetail] API 回應:', resp)
+        console.log('[TeacherAssignmentDetail] API 完整回應:', JSON.stringify(resp, null, 2))
+        
+        // 檢查是否有錯誤
+        if (resp?.error) {
+          console.error('[TeacherAssignmentDetail] API 錯誤:', resp.error)
+          if (isMounted) {
+            setError(resp.error)
+            setLoading(false)
+          }
+          return
+        }
         
         const data = (resp as any)?.data || {}
-        console.log('[TeacherAssignmentDetail] data:', data)
+        console.log('[TeacherAssignmentDetail] data:', JSON.stringify(data, null, 2))
         
         const results = Array.isArray(data?.results) ? data.results : []
-        console.log('[TeacherAssignmentDetail] results:', results)
+        console.log('[TeacherAssignmentDetail] results 陣列長度:', results.length)
+        console.log('[TeacherAssignmentDetail] results:', JSON.stringify(results, null, 2))
         
         const first = results[0] || null
-        console.log('[TeacherAssignmentDetail] first result:', first)
+        console.log('[TeacherAssignmentDetail] first result:', JSON.stringify(first, null, 2))
         
-        if (first && first.role === "teacher") {
+        if (first) {
+          console.log('[TeacherAssignmentDetail] 找到第一筆結果')
+          console.log('[TeacherAssignmentDetail] 角色:', first.role)
+          
+          // 不管角色是什麼，都嘗試解析資料（可能後端沒有正確設定 role）
           const s = first.statistics || {}
           const unSub = Array.isArray(first.unsubmitted_students) ? first.unsubmitted_students : []
           const sub = Array.isArray(first.submitted_students) ? first.submitted_students : []
           
-          console.log('[TeacherAssignmentDetail] 統計資料:', s)
+          console.log('[TeacherAssignmentDetail] 統計資料:', JSON.stringify(s, null, 2))
           console.log('[TeacherAssignmentDetail] 未繳交學生數:', unSub.length)
+          console.log('[TeacherAssignmentDetail] 未繳交學生:', JSON.stringify(unSub, null, 2))
           console.log('[TeacherAssignmentDetail] 已繳交學生數:', sub.length)
+          console.log('[TeacherAssignmentDetail] 已繳交學生:', JSON.stringify(sub, null, 2))
           
           // 合併已繳交和未繳交學生
           const allStudents: StudentSubmission[] = [
@@ -109,19 +126,25 @@ export function TeacherAssignmentDetail({
             }))
           ]
           
-          console.log('[TeacherAssignmentDetail] 合併後的學生列表:', allStudents)
+          console.log('[TeacherAssignmentDetail] 合併後的學生列表 (長度):', allStudents.length)
+          console.log('[TeacherAssignmentDetail] 合併後的學生列表:', JSON.stringify(allStudents, null, 2))
           
           if (isMounted) {
-            setStats({
+            const newStats = {
               total: Number(s.total_students ?? 0),
               submitted: Number(s.submitted ?? 0),
               unsubmitted: Number(s.unsubmitted ?? 0),
               rate: Math.round(Number(s.completion_rate ?? 0))
-            })
+            }
+            console.log('[TeacherAssignmentDetail] 設定統計資料:', newStats)
+            console.log('[TeacherAssignmentDetail] 設定學生列表，數量:', allStudents.length)
+            
+            setStats(newStats)
             setStudents(allStudents)
           }
         } else {
-          console.warn('[TeacherAssignmentDetail] 沒有找到教師角色的資料或資料為空')
+          console.warn('[TeacherAssignmentDetail] 沒有找到第一筆結果')
+          console.warn('[TeacherAssignmentDetail] results 內容:', results)
           if (isMounted) {
             setStats({ total: 0, submitted: 0, unsubmitted: 0, rate: 0 })
             setStudents([])
@@ -443,6 +466,17 @@ export function TeacherAssignmentDetail({
           onChange={(e) => setSearchQuery(e.target.value)}
           className="mb-4"
         />
+
+        {(() => {
+          console.log('[TeacherAssignmentDetail] 渲染狀態檢查:', {
+            loading,
+            error,
+            studentsLength: students.length,
+            filteredStudentsLength: filteredStudents.length,
+            stats
+          })
+          return null
+        })()}
 
         {loading ? (
           <div className="py-8 flex justify-center"><CircularProgress percentage={0} /></div>
