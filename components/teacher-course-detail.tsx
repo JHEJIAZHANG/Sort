@@ -123,9 +123,6 @@ export function TeacherCourseDetail({
   const [showDeleteDialog, setShowDeleteDialog] = useState(false)
   const [deleting, setDeleting] = useState(false)
   const [isEditing, setIsEditing] = useState(false)
-  // against delete operation, try to parse and save local course UUID (backend requires)
-  const [localCourseId, setLocalCourseId] = useState<string | null>(null)
-  const uuidRegex = /^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$/
 
   const { getCourseById, getAssignmentsByCourse } = useTeacherCourses(lineUserId)
   const course = getCourseById(courseId)
@@ -278,17 +275,6 @@ export function TeacherCourseDetail({
       setBoundGroups(resolvedGroups)
       setWeeklyReports(resolvedWeekly)
 
-      // 嘗試從各種可能欄位解析本地課程 UUID
-      const candidates = [
-        detail?.id,
-        detail?.course_id,
-        detail?.course?.id,
-        detail?.data?.id,
-        course?.id,
-        courseId
-      ].filter(Boolean).map(String)
-      const matched = candidates.find((c) => uuidRegex.test(c)) || null
-      setLocalCourseId(matched)
     } catch (error) {
       console.error('載入課程詳情失敗:', error)
     } finally {
@@ -1481,11 +1467,8 @@ export function TeacherCourseDetail({
                   try {
                     setDeleting(true)
                     ApiService.setLineUserId(lineUserId)
-                    // 目標 ID：
-                    // - 若已解析出本地 UUID，優先使用
-                    // - 否則直接使用傳入的 courseId（可能是 Google Classroom ID）
-                    const targetId = (localCourseId && uuidRegex.test(localCourseId)) ? localCourseId : courseId
-                    const resp = await ApiService.deleteCourse(targetId)
+                    // 使用教師端專用的刪除 API，傳入課程 ID（可能是整數 ID 或 gc_course_id）
+                    const resp = await ApiService.deleteTeacherCourse(courseId)
                     if ((resp as any)?.error) throw new Error((resp as any).error)
                     setShowDeleteDialog(false)
                     try { (document.activeElement as HTMLElement | null)?.blur?.() } catch { }
