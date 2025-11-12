@@ -83,8 +83,12 @@ export function TeacherAssignmentDetail({
         }
         
         const data = (resp as any)?.data || {}
+        console.log('[TeacherAssignmentDetail] ===== 開始診斷 =====')
         console.log('[TeacherAssignmentDetail] data 的所有鍵:', Object.keys(data))
         console.log('[TeacherAssignmentDetail] data:', JSON.stringify(data, null, 2))
+        console.log('[TeacherAssignmentDetail] data.results 存在?', !!data.results)
+        console.log('[TeacherAssignmentDetail] data.results 類型:', typeof data.results)
+        console.log('[TeacherAssignmentDetail] data.results 是陣列?', Array.isArray(data.results))
         
         // 檢查是否有 results 欄位
         if (!data.results) {
@@ -94,11 +98,19 @@ export function TeacherAssignmentDetail({
         
         const results = Array.isArray(data?.results) ? data.results : []
         console.log('[TeacherAssignmentDetail] results 陣列長度:', results.length)
-        console.log('[TeacherAssignmentDetail] results:', JSON.stringify(results, null, 2))
+        console.log('[TeacherAssignmentDetail] results 完整內容:', JSON.stringify(results, null, 2))
         
         const first = results[0] || null
+        console.log('[TeacherAssignmentDetail] ===== 第一筆結果分析 =====')
         console.log('[TeacherAssignmentDetail] first result:', JSON.stringify(first, null, 2))
         console.log('[TeacherAssignmentDetail] first result 的所有鍵:', first ? Object.keys(first) : [])
+        
+        if (first) {
+          console.log('[TeacherAssignmentDetail] first.role:', first.role)
+          console.log('[TeacherAssignmentDetail] first.statistics:', first.statistics)
+          console.log('[TeacherAssignmentDetail] first.unsubmitted_students:', first.unsubmitted_students)
+          console.log('[TeacherAssignmentDetail] first.submitted_students:', first.submitted_students)
+        }
         
         if (first) {
           console.log('[TeacherAssignmentDetail] 找到第一筆結果')
@@ -264,38 +276,52 @@ export function TeacherAssignmentDetail({
       setReminding(true)
       console.log('[Reminder] 開始提醒所有未繳交學生...')
       
-      // 不傳遞 student_ids 參數，讓後端自動查詢所有未繳交學生
-      console.log('[Reminder] 發送提醒給所有未繳交學生')
-      const resp = await ApiService.sendAssignmentReminder(assignment.courseId, assignment.id)
-      console.log('[Reminder] sendAssignmentReminder(all) response:', resp)
-      const data = (resp as any)?.data
+      // 先取得未繳交學生名單（以避免後端沒有預設計算時無人被提醒）
+      const statusResp = await ApiService.getAssignmentSubmissionStatus(assignment.courseId, assignment.id)
+      console.log('[Reminder] 查詢狀態回應:', statusResp)
+      
+      const statusData = (statusResp as any)?.data || {}
+      const results = Array.isArray(statusData?.results) ? statusData.results : []
+      const first = results[0] || null
+      const unsubmitted = Array.isArray(first?.unsubmitted_students) ? first.unsubmitted_students : []
+      
+      console.log('[Reminder] 未繳交學生:', unsubmitted)
+      
+      const targetIds: string[] = unsubmitted
+        .map((u: any) => String(u?.userId ?? ''))
+        .filter((id: string) => id && id.trim().length > 0)
 
-      // 檢查是否有錯誤
-      if (resp?.error) {
-        throw new Error(resp.error)
-      }
+      console.log('[Reminder] 目標學生 ID:', targetIds)
 
-      // 檢查後端回應
-      if (data?.total_students === 0) {
+      if (targetIds.length === 0) {
+        console.warn('[Reminder] 沒有未繳交學生')
         alert("目前沒有未繳交學生可提醒")
         return
       }
+
+      console.log('[Reminder] 發送提醒給', targetIds.length, '位學生')
+      const resp = await ApiService.sendAssignmentReminder(assignment.courseId, assignment.id, targetIds)
+      console.log('[Reminder] sendAssignmentReminder(all) response:', resp)
+      const data = (resp as any)?.data
 
       // 若後端以 200 回傳但內含失敗訊息，給出部分失敗提示
       const emailErrorText = typeof data?.error === 'string' ? data.error : (typeof data?.email_error === 'string' ? data.email_error : '')
       const emailFailed = Boolean(data?.email_error) || (emailErrorText && /email/i.test(emailErrorText))
       const partialFailed = emailFailed || (typeof data?.failed === 'number' && data.failed > 0)
+      const explicitFailure = resp?.error || data?.success === false
+
+      if (explicitFailure) {
+        throw new Error((resp as any)?.error || emailErrorText || '提醒失敗')
+      }
 
       if (partialFailed) {
-        const successCount = (data?.line_notified || 0) + (data?.email_notified || 0)
-        alert(`提醒已發送給 ${successCount} 位學生，但有 ${data?.failed || 0} 位失敗。詳情請查看主控台。`)
+        alert('提醒已執行，但部分通知失敗（含 Email）；詳情請查看主控台')
       } else {
-        const totalNotified = (data?.line_notified || 0) + (data?.email_notified || 0)
-        alert(`已成功發送提醒給 ${totalNotified} 位未繳交的學生`)
+        alert("已發送提醒給所有未繳交的學生")
       }
     } catch (error) {
       console.error("[Reminder] 提醒未繳交學生失敗:", error)
-      alert(`提醒失敗：${error instanceof Error ? error.message : '請稍後重試'}`)
+      alert("提醒失敗，請稍後重試")
     } finally {
       setReminding(false)
     }
