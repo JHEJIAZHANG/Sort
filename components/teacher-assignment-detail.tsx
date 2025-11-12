@@ -304,14 +304,8 @@ export function TeacherAssignmentDetail({
       console.log('[Reminder] 目標學生 ID:', targetIds)
 
       if (targetIds.length === 0) {
-        console.warn('[Reminder] 未取得未繳交名單，改用後端自動選取')
-        const resp = await ApiService.sendAssignmentReminder(assignment.courseId, assignment.id)
-        const data = (resp as any)?.data
-        const explicitFailure = resp?.error || data?.success === false
-        const partialFailed = (typeof data?.failed === 'number' && data.failed > 0)
-        if (explicitFailure) throw new Error((resp as any)?.error || '提醒失敗')
-        if (partialFailed) alert('提醒已執行，但部分通知失敗；詳情請查看主控台')
-        else alert('已發送提醒給未繳交的學生')
+        console.warn('[Reminder] 沒有未繳交學生')
+        alert("目前沒有未繳交學生可提醒")
         return
       }
 
