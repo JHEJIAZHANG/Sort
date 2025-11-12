@@ -64,14 +64,31 @@ export function TeacherAssignmentDetail({
       try {
         setLoading(true)
         setError(null)
+        console.log('[TeacherAssignmentDetail] 開始載入作業繳交狀態...', { 
+          courseId: assignment.courseId, 
+          assignmentId: assignment.id 
+        })
+        
         const resp = await ApiService.getAssignmentSubmissionStatus(assignment.courseId, assignment.id)
+        console.log('[TeacherAssignmentDetail] API 回應:', resp)
+        
         const data = (resp as any)?.data || {}
+        console.log('[TeacherAssignmentDetail] data:', data)
+        
         const results = Array.isArray(data?.results) ? data.results : []
+        console.log('[TeacherAssignmentDetail] results:', results)
+        
         const first = results[0] || null
+        console.log('[TeacherAssignmentDetail] first result:', first)
+        
         if (first && first.role === "teacher") {
           const s = first.statistics || {}
           const unSub = Array.isArray(first.unsubmitted_students) ? first.unsubmitted_students : []
           const sub = Array.isArray(first.submitted_students) ? first.submitted_students : []
+          
+          console.log('[TeacherAssignmentDetail] 統計資料:', s)
+          console.log('[TeacherAssignmentDetail] 未繳交學生數:', unSub.length)
+          console.log('[TeacherAssignmentDetail] 已繳交學生數:', sub.length)
           
           // 合併已繳交和未繳交學生
           const allStudents: StudentSubmission[] = [
@@ -92,6 +109,8 @@ export function TeacherAssignmentDetail({
             }))
           ]
           
+          console.log('[TeacherAssignmentDetail] 合併後的學生列表:', allStudents)
+          
           if (isMounted) {
             setStats({
               total: Number(s.total_students ?? 0),
@@ -102,12 +121,14 @@ export function TeacherAssignmentDetail({
             setStudents(allStudents)
           }
         } else {
+          console.warn('[TeacherAssignmentDetail] 沒有找到教師角色的資料或資料為空')
           if (isMounted) {
             setStats({ total: 0, submitted: 0, unsubmitted: 0, rate: 0 })
             setStudents([])
           }
         }
       } catch (e: any) {
+        console.error('[TeacherAssignmentDetail] 載入失敗:', e)
         if (isMounted) setError(e?.message || "載入作業繳交狀態失敗")
       } finally {
         if (isMounted) setLoading(false)
@@ -181,21 +202,32 @@ export function TeacherAssignmentDetail({
   const handleRemindAll = async () => {
     try {
       setReminding(true)
+      console.log('[Reminder] 開始提醒所有未繳交學生...')
+      
       // 先取得未繳交學生名單（以避免後端沒有預設計算時無人被提醒）
       const statusResp = await ApiService.getAssignmentSubmissionStatus(assignment.courseId, assignment.id)
+      console.log('[Reminder] 查詢狀態回應:', statusResp)
+      
       const statusData = (statusResp as any)?.data || {}
       const results = Array.isArray(statusData?.results) ? statusData.results : []
       const first = results[0] || null
       const unsubmitted = Array.isArray(first?.unsubmitted_students) ? first.unsubmitted_students : []
+      
+      console.log('[Reminder] 未繳交學生:', unsubmitted)
+      
       const targetIds: string[] = unsubmitted
         .map((u: any) => String(u?.userId ?? ''))
         .filter((id: string) => id && id.trim().length > 0)
 
+      console.log('[Reminder] 目標學生 ID:', targetIds)
+
       if (targetIds.length === 0) {
+        console.warn('[Reminder] 沒有未繳交學生')
         alert("目前沒有未繳交學生可提醒")
         return
       }
 
+      console.log('[Reminder] 發送提醒給', targetIds.length, '位學生')
       const resp = await ApiService.sendAssignmentReminder(assignment.courseId, assignment.id, targetIds)
       console.log('[Reminder] sendAssignmentReminder(all) response:', resp)
       const data = (resp as any)?.data
@@ -216,7 +248,7 @@ export function TeacherAssignmentDetail({
         alert("已發送提醒給所有未繳交的學生")
       }
     } catch (error) {
-      console.error("提醒未繳交學生失敗:", error)
+      console.error("[Reminder] 提醒未繳交學生失敗:", error)
       alert("提醒失敗，請稍後重試")
     } finally {
       setReminding(false)

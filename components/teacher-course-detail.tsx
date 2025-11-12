@@ -207,35 +207,20 @@ export function TeacherCourseDetail({
       })) : []
 
       const resolvedAssignments: AssignmentWithMetrics[] = Array.isArray(assignmentsRaw) ? assignmentsRaw.map((a: any) => {
-        // 處理截止日期
-        const due = a.dueDateTime || a.due_date || a.dueDate || a.deadline
-        let dueDateObj = null
-        if (due) {
-          try {
-            dueDateObj = new Date(due)
-          } catch {
-            dueDateObj = null
-          }
-        }
-        
+        const due = a.due_date || a.dueDate || a.deadline
+        const dueDateObj = due ? new Date(due) : null
         const now = new Date()
-        const status: 'active' | 'overdue' | 'completed' = a.status === 'completed' || a.state === 'COMPLETED'
+        const status: 'active' | 'overdue' | 'completed' = a.status === 'completed'
           ? 'completed'
           : (dueDateObj && dueDateObj < now ? 'overdue' : 'active')
-        
-        // 確保繳交率計算正確
-        const submittedCount = Number(a.submitted_count ?? a.submissions_count ?? 0)
-        const totalCount = Number(a.total_count ?? a.total_students ?? resolvedStudents.length || 0)
-        const submissionRate = totalCount > 0 ? Math.round((submittedCount / totalCount) * 100) : 0
-        
         return {
           id: String(a.id ?? a.assignment_id ?? Math.random()),
           title: String(a.title ?? '未命名作業'),
           description: a.description ?? '',
           due_date: dueDateObj ? dueDateObj.toISOString().split('T')[0] : '',
-          submitted_count: submittedCount,
-          total_count: totalCount,
-          submission_rate: submissionRate,
+          submitted_count: Number(a.submitted_count ?? a.submissions_count ?? 0),
+          total_count: Number(a.total_count ?? a.total_students ?? (resolvedStudents.length || 0)),
+          submission_rate: Number(a.submission_rate ?? ((a.submitted_count && a.total_count) ? Math.round((a.submitted_count / a.total_count) * 100) : 0)),
           status
         }
       }) : courseAssignments.map(assignment => {
@@ -267,26 +252,12 @@ export function TeacherCourseDetail({
         schedule: course?.schedule || detail?.schedule || []
       }
 
-      const resolvedGroups: BoundGroup[] = Array.isArray(groupsRaw) ? groupsRaw.map((g: any) => {
-        // 處理綁定時間格式
-        let boundAtStr = ''
-        const rawBoundAt = g.boundAt ?? g.bound_at ?? g.created_at
-        if (rawBoundAt) {
-          try {
-            const date = new Date(rawBoundAt)
-            boundAtStr = date.toLocaleDateString('zh-TW', { year: 'numeric', month: '2-digit', day: '2-digit' })
-          } catch {
-            boundAtStr = String(rawBoundAt)
-          }
-        }
-        
-        return {
-          id: String(g.groupId ?? g.id ?? g.group_id ?? Math.random()),
-          name: String(g.name ?? g.group_name ?? g.groupId ?? '未知群組'),
-          member_count: Number(g.member_count ?? g.members ?? 0),
-          bound_at: boundAtStr
-        }
-      }) : []
+      const resolvedGroups: BoundGroup[] = Array.isArray(groupsRaw) ? groupsRaw.map((g: any) => ({
+        id: String(g.groupId ?? g.id ?? g.group_id ?? Math.random()),
+        name: String(g.name ?? g.group_name ?? g.groupId ?? '未知群組'),
+        member_count: Number(g.member_count ?? g.members ?? 0),
+        bound_at: String(g.boundAt ?? g.bound_at ?? g.created_at ?? '')
+      })) : []
 
       const resolvedWeekly: WeeklyReport[] = weeklyRaw ? [
         {
@@ -364,23 +335,40 @@ export function TeacherCourseDetail({
   const handleRemindUnsubmitted = async (assignmentId: string) => {
     try {
       setRemindingAssignment(assignmentId)
+      console.log('[Reminder] 開始查詢未繳交學生名單...', { courseId, assignmentId })
+      
       // 先查詢未繳交學生名單，確保有實際推送對象
       const statusResp = await ApiService.getAssignmentSubmissionStatus(courseId, assignmentId)
+      console.log('[Reminder] API 回應:', statusResp)
+      
       const statusData = (statusResp as any)?.data || {}
+      console.log('[Reminder] statusData:', statusData)
+      
       const results = Array.isArray(statusData?.results) ? statusData.results : []
+      console.log('[Reminder] results 陣列:', results)
+      
       const first = results[0] || null
+      console.log('[Reminder] 第一筆結果:', first)
+      
       const unsubmitted = Array.isArray(first?.unsubmitted_students) ? first.unsubmitted_students : []
+      console.log('[Reminder] 未繳交學生原始資料:', unsubmitted)
+      
       const targetIds: string[] = unsubmitted
         .map((u: any) => String(u?.userId ?? ''))
         .filter((id: string) => id && id.trim().length > 0)
+      
+      console.log('[Reminder] 提取的學生 ID:', targetIds)
 
       if (targetIds.length === 0) {
+        console.warn('[Reminder] 沒有找到未繳交學生')
         alert('目前沒有未繳交學生可提醒')
         return
       }
 
+      console.log('[Reminder] 準備發送提醒給', targetIds.length, '位學生')
       const resp = await ApiService.sendAssignmentReminder(courseId, assignmentId, targetIds)
-      console.log('[Reminder] sendAssignmentReminder(unsubmitted) response:', resp)
+      console.log('[Reminder] sendAssignmentReminder 回應:', resp)
+      
       const data = (resp as any)?.data
       const emailErrorText = typeof data?.error === 'string' ? data.error : (typeof data?.email_error === 'string' ? data.email_error : '')
       const emailFailed = Boolean(data?.email_error) || (emailErrorText && /email/i.test(emailErrorText))
@@ -397,7 +385,7 @@ export function TeacherCourseDetail({
         alert('已發送提醒給未繳交該作業的學生')
       }
     } catch (error) {
-      console.error('提醒失敗:', error)
+      console.error('[Reminder] 提醒失敗:', error)
       alert('提醒失敗，請稍後重試')
     } finally {
       setRemindingAssignment(null)
