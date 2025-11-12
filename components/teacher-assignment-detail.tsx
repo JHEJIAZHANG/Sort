@@ -282,8 +282,26 @@ export function TeacherAssignmentDetail({
       console.log('[Reminder] 目標學生 ID:', targetIds)
 
       if (targetIds.length === 0) {
-        console.warn('[Reminder] 沒有未繳交學生')
-        alert("目前沒有未繳交學生可提醒")
+        console.warn('[Reminder] 沒有未繳交學生（本地名單為空），改用後端自動篩選')
+        const resp = await ApiService.sendAssignmentReminder(assignment.courseId, assignment.id)
+        console.log('[Reminder] sendAssignmentReminder(fallback) response:', resp)
+        const data = (resp as any)?.data
+        const emailErrorText = typeof data?.error === 'string' ? data.error : (typeof data?.email_error === 'string' ? data.email_error : '')
+        const emailFailed = Boolean(data?.email_error) || (emailErrorText && /email/i.test(emailErrorText))
+        const partialFailed = emailFailed || (typeof data?.failed === 'number' && data.failed > 0)
+        const explicitFailure = resp?.error || data?.success === false
+
+        if (explicitFailure) {
+          throw new Error((resp as any)?.error || emailErrorText || '提醒失敗')
+        }
+
+        if (data?.message && /沒有需要提醒的學生/.test(String(data.message))) {
+          alert('目前沒有未繳交學生可提醒')
+        } else if (partialFailed) {
+          alert('提醒已執行，但部分通知失敗（含 Email）；詳情請查看主控台')
+        } else {
+          alert('已發送提醒給所有未繳交的學生')
+        }
         return
       }
 
