@@ -71,13 +71,27 @@ export function TeacherAssignmentDetail({
         if (first && first.role === "teacher") {
           const s = first.statistics || {}
           const unSub = Array.isArray(first.unsubmitted_students) ? first.unsubmitted_students : []
-          const mapped: StudentSubmission[] = unSub.map((u: any, idx: number) => ({
-            id: String(u.userId ?? idx),
-            name: u.name ?? "未知學生",
-            email: u.emailAddress ?? "",
-            submitted: false,
-            status: "missing"
-          }))
+          const sub = Array.isArray(first.submitted_students) ? first.submitted_students : []
+          
+          // 合併已繳交和未繳交學生
+          const allStudents: StudentSubmission[] = [
+            ...sub.map((u: any, idx: number) => ({
+              id: String(u.userId ?? `sub-${idx}`),
+              name: u.name ?? "未知學生",
+              email: u.emailAddress ?? "",
+              submitted: true,
+              submittedAt: u.submittedAt ? new Date(u.submittedAt) : undefined,
+              status: (u.isLate ? "late" : "submitted") as "submitted" | "late" | "missing"
+            })),
+            ...unSub.map((u: any, idx: number) => ({
+              id: String(u.userId ?? `unsub-${idx}`),
+              name: u.name ?? "未知學生",
+              email: u.emailAddress ?? "",
+              submitted: false,
+              status: "missing" as "submitted" | "late" | "missing"
+            }))
+          ]
+          
           if (isMounted) {
             setStats({
               total: Number(s.total_students ?? 0),
@@ -85,7 +99,7 @@ export function TeacherAssignmentDetail({
               unsubmitted: Number(s.unsubmitted ?? 0),
               rate: Math.round(Number(s.completion_rate ?? 0))
             })
-            setStudents(mapped)
+            setStudents(allStudents)
           }
         } else {
           if (isMounted) {
@@ -118,9 +132,7 @@ export function TeacherAssignmentDetail({
   }
 
   const filteredStudents = useMemo(() => {
-    // 我們目前僅有「未繳交學生」的名單；切換到「已繳交」時顯示空結果
-    const source = statusFilter === "submitted" ? [] : students
-    return source.filter(student => {
+    return students.filter(student => {
       // 搜尋過濾
       const matchesSearch = searchQuery === "" ||
         student.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
