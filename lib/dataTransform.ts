@@ -105,16 +105,28 @@ export function transformBackendAssignment(backendAssignment: any): Assignment {
   const courseId = String(courseInfo.id || backendAssignment.course_id || backendAssignment.course || '')
   const courseName = courseInfo.name || backendAssignment.course_name || ''
 
-  // 處理狀態：state (PUBLISHED, DRAFT) → status (pending, completed, overdue)
+  // 處理狀態：支援 Google Classroom 繳交狀態和一般狀態
   let status: "pending" | "completed" | "overdue" = "pending"
   const backendStatus = backendAssignment.state || backendAssignment.status
   
-  if (backendStatus === "COMPLETED" || backendStatus === "completed") {
+  // Google Classroom 繳交狀態處理
+  if (backendStatus === "TURNED_IN" || backendStatus === "RETURNED") {
+    // TURNED_IN = 學生已繳交，RETURNED = 教師已批改並返還
+    status = "completed"
+  } else if (backendStatus === "COMPLETED" || backendStatus === "completed") {
     status = "completed"
   } else if (backendStatus === "OVERDUE" || backendStatus === "overdue") {
     status = "overdue"
+  } else if (backendStatus === "CREATED" || backendStatus === "NEW") {
+    // CREATED/NEW = 尚未繳交，需要根據截止日期判斷是否逾期
+    const now = new Date()
+    const due = backendAssignment.due_datetime ? new Date(backendAssignment.due_datetime) :
+                backendAssignment.due_date ? new Date(backendAssignment.due_date.replace(' ', 'T')) :
+                new Date()
+    status = now > due ? "overdue" : "pending"
   } else {
-    status = "pending"  // PUBLISHED, DRAFT, DELETED 都視為 pending
+    // PUBLISHED, DRAFT, DELETED 等其他狀態視為 pending
+    status = "pending"
   }
 
   // 處理到期日期
