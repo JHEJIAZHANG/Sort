@@ -132,9 +132,7 @@ export function TeacherAssignmentDetail({
   }
 
   const filteredStudents = useMemo(() => {
-    // 我們目前僅有「未繳交學生」的名單；切換到「已繳交」時顯示空結果
-    const source = statusFilter === "submitted" ? [] : students
-    return source.filter(student => {
+    return students.filter(student => {
       // 搜尋過濾
       const matchesSearch = searchQuery === "" ||
         student.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
