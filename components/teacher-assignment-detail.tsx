@@ -83,7 +83,14 @@ export function TeacherAssignmentDetail({
         }
         
         const data = (resp as any)?.data || {}
+        console.log('[TeacherAssignmentDetail] data 的所有鍵:', Object.keys(data))
         console.log('[TeacherAssignmentDetail] data:', JSON.stringify(data, null, 2))
+        
+        // 檢查是否有 results 欄位
+        if (!data.results) {
+          console.error('[TeacherAssignmentDetail] ❌ data 中沒有 results 欄位！')
+          console.error('[TeacherAssignmentDetail] data 的內容:', data)
+        }
         
         const results = Array.isArray(data?.results) ? data.results : []
         console.log('[TeacherAssignmentDetail] results 陣列長度:', results.length)
@@ -91,10 +98,40 @@ export function TeacherAssignmentDetail({
         
         const first = results[0] || null
         console.log('[TeacherAssignmentDetail] first result:', JSON.stringify(first, null, 2))
+        console.log('[TeacherAssignmentDetail] first result 的所有鍵:', first ? Object.keys(first) : [])
         
         if (first) {
           console.log('[TeacherAssignmentDetail] 找到第一筆結果')
           console.log('[TeacherAssignmentDetail] 角色:', first.role)
+          console.log('[TeacherAssignmentDetail] 完整的 first 物件:', first)
+          
+          // 檢查是否有必要的欄位
+          const hasStatistics = first.statistics && typeof first.statistics === 'object'
+          const hasUnsubmittedStudents = Array.isArray(first.unsubmitted_students)
+          const hasSubmittedStudents = Array.isArray(first.submitted_students)
+          
+          console.log('[TeacherAssignmentDetail] 欄位檢查:', {
+            hasStatistics,
+            hasUnsubmittedStudents,
+            hasSubmittedStudents,
+            role: first.role
+          })
+          
+          // 如果沒有這些欄位，可能是學生角色的回應
+          if (!hasStatistics && !hasUnsubmittedStudents && !hasSubmittedStudents) {
+            console.error('[TeacherAssignmentDetail] ❌ 缺少教師角色的必要欄位！')
+            console.error('[TeacherAssignmentDetail] 這可能是學生角色的回應，或後端沒有正確判斷用戶為教師')
+            console.error('[TeacherAssignmentDetail] 請檢查：')
+            console.error('[TeacherAssignmentDetail] 1. 用戶是否為教師角色')
+            console.error('[TeacherAssignmentDetail] 2. 用戶的 email 是否在課程的教師名單中')
+            console.error('[TeacherAssignmentDetail] 3. 後端日誌中的角色判斷邏輯')
+            
+            if (isMounted) {
+              setError('無法載入作業繳交狀態：您可能不是此課程的教師，或後端無法驗證您的教師身份。請確認您的 Google 帳號是否為此課程的教師。')
+              setLoading(false)
+            }
+            return
+          }
           
           // 不管角色是什麼，都嘗試解析資料（可能後端沒有正確設定 role）
           const s = first.statistics || {}
