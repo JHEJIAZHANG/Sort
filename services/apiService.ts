@@ -1262,14 +1262,18 @@ export class ApiService {
     if (!this.lineUserId) {
       this.bootstrapLineUserId()
     }
+    const payload: any = {
+      line_user_id: this.lineUserId,
+      course_id: String(courseId),
+      coursework_id: String(assignmentId)
+    }
+    // 只有在提供 studentIds 時才加入參數
+    if (studentIds && studentIds.length > 0) {
+      payload.student_ids = studentIds
+    }
     return this.request('/teacher/assignments/reminder/', {
       method: 'POST',
-      body: JSON.stringify({
-        line_user_id: this.lineUserId,
-        course_id: String(courseId),
-        coursework_id: String(assignmentId),
-        student_ids: studentIds
-      })
+      body: JSON.stringify(payload)
     })
   }
 
