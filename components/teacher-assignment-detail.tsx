@@ -132,14 +132,24 @@ export function TeacherAssignmentDetail({
           // 如果沒有這些欄位，可能是學生角色的回應
           if (!hasStatistics && !hasUnsubmittedStudents && !hasSubmittedStudents) {
             console.error('[TeacherAssignmentDetail] ❌ 缺少教師角色的必要欄位！')
-            console.error('[TeacherAssignmentDetail] 這可能是學生角色的回應，或後端沒有正確判斷用戶為教師')
-            console.error('[TeacherAssignmentDetail] 請檢查：')
-            console.error('[TeacherAssignmentDetail] 1. 用戶是否為教師角色')
-            console.error('[TeacherAssignmentDetail] 2. 用戶的 email 是否在課程的教師名單中')
-            console.error('[TeacherAssignmentDetail] 3. 後端日誌中的角色判斷邏輯')
+            console.error('[TeacherAssignmentDetail] 這可能是學生角色的回應，或後端無法驗證您的教師身份')
+            console.error('[TeacherAssignmentDetail] 完整的 first 物件:', first)
+            
+            // 檢查是否有錯誤訊息
+            if (first.error) {
+              console.error('[TeacherAssignmentDetail] 後端錯誤:', first.error, first.message)
+              if (isMounted) {
+                setError(`無法載入作業繳交狀態：${first.message || first.error}`)
+                setLoading(false)
+              }
+              return
+            }
+            
+            console.error('[TeacherAssignmentDetail] 請檢查後端日誌中的 [SubmissionStatus] 相關訊息')
+            console.error('[TeacherAssignmentDetail] 特別注意「最終驗證結果」和「驗證方法」')
             
             if (isMounted) {
-              setError('無法載入作業繳交狀態：您可能不是此課程的教師，或後端無法驗證您的教師身份。請確認您的 Google 帳號是否為此課程的教師。')
+              setError('無法載入作業繳交狀態：後端無法驗證您的教師身份。請檢查後端日誌以獲取更多資訊。')
               setLoading(false)
             }
             return
@@ -294,8 +304,14 @@ export function TeacherAssignmentDetail({
       console.log('[Reminder] 目標學生 ID:', targetIds)
 
       if (targetIds.length === 0) {
-        console.warn('[Reminder] 沒有未繳交學生')
-        alert("目前沒有未繳交學生可提醒")
+        console.warn('[Reminder] 未取得未繳交名單，改用後端自動選取')
+        const resp = await ApiService.sendAssignmentReminder(assignment.courseId, assignment.id)
+        const data = (resp as any)?.data
+        const explicitFailure = resp?.error || data?.success === false
+        const partialFailed = (typeof data?.failed === 'number' && data.failed > 0)
+        if (explicitFailure) throw new Error((resp as any)?.error || '提醒失敗')
+        if (partialFailed) alert('提醒已執行，但部分通知失敗；詳情請查看主控台')
+        else alert('已發送提醒給未繳交的學生')
         return
       }
 
