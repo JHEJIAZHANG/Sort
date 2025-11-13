@@ -1344,7 +1344,7 @@ export class ApiService {
     }, 'other')  // 使用 /api 前綴
   }
 
-  static async sendAssignmentReminder(assignmentId: string, courseId: string, studentIds?: string[]) {
+  static async sendAssignmentReminder(courseId: string, assignmentId: string, studentIds?: string[]) {
     if (!this.lineUserId) {
       this.bootstrapLineUserId()
     }
