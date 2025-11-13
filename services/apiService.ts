@@ -1305,12 +1305,11 @@ export class ApiService {
     if (!this.lineUserId) {
       this.bootstrapLineUserId()
     }
-    return this.request('/teacher/courses/unbind-line-group/', {
-      method: 'DELETE',
+    return this.request(`/teacher/courses/${courseId}/line-groups/unbind/`, {
+      method: 'POST',
       body: JSON.stringify({
         line_user_id: this.lineUserId,
-        course_id: courseId,
-        group_id: groupId
+        groupId: groupId
       })
     })
   }
