@@ -244,8 +244,9 @@ export class ApiService {
       this.bootstrapLineUserId()
     }
     
-    // 如果只更新 schedules，使用教師專用的 API（支援 Google Classroom 課程）
-    if (data.schedules && Object.keys(data).length === 1) {
+    // 如果有 schedules 字段，優先使用教師專用的 API（支援 Google Classroom 課程）
+    // 這個 API 只更新時間表，不會修改課程的其他資料
+    if (data.schedules && Array.isArray(data.schedules)) {
       const payload = {
         line_user_id: this.lineUserId,
         course_id: courseId,
