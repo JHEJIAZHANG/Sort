@@ -243,7 +243,20 @@ export class ApiService {
     if (!this.lineUserId) {
       this.bootstrapLineUserId()
     }
-    const payload = { line_user_id: this.lineUserId, course_id: courseId, ...data }
+    
+    // 轉換 schedule 格式：前端使用 camelCase，後端使用 snake_case
+    const payload: any = { line_user_id: this.lineUserId, course_id: courseId, ...data }
+    
+    if (payload.schedule && Array.isArray(payload.schedule)) {
+      payload.schedules = payload.schedule.map((slot: any) => ({
+        day_of_week: slot.dayOfWeek,
+        start_time: slot.startTime,
+        end_time: slot.endTime,
+        location: slot.location || payload.classroom || ''
+      }))
+      delete payload.schedule
+    }
+    
     const resp = await this.request<any>('/web/courses/update/', {
       method: 'PATCH',
       body: JSON.stringify(payload)
@@ -254,18 +267,14 @@ export class ApiService {
   }
 
   static async deleteCourse(courseId: string) {
-    // 確保 Header 會帶上有效的 Line User ID
-    const effectiveUserId = this.ensureLineUserId()
-
-    const payload = { line_user_id: effectiveUserId, course_id: courseId }
-
-    // 統一使用 /api/v2/web/courses/delete/ 刪除本地課程記錄
-    // 無論是本地創建的課程（UUID）還是 Google Classroom 同步的課程（數字 ID）
-    // 都只刪除本地同步記錄，不會影響 Google Classroom 的原始課程
+    if (!this.lineUserId) {
+      this.bootstrapLineUserId()
+    }
+    const payload = { line_user_id: this.lineUserId, course_id: courseId }
     return this.request('/web/courses/delete/', {
       method: 'DELETE',
       body: JSON.stringify(payload)
-    }, 'v2')
+    })
   }
 
   // 作業相關 API
@@ -943,22 +952,6 @@ export class ApiService {
     }, 'other')
   }
 
-  // 教師課程刪除（刪除本地記錄，不影響 Google Classroom）
-  static async deleteTeacherCourse(courseId: string) {
-    const lineUserId = this.ensureLineUserId()
-    if (!lineUserId || lineUserId.trim() === '') {
-      throw new Error('LINE User ID 未設置，請確認已正確登入')
-    }
-    
-    return this.request('/classroom/teacher/delete-course/', {
-      method: 'DELETE',
-      body: JSON.stringify({ 
-        line_user_id: lineUserId,
-        course_id: courseId
-      })
-    }, 'other')
-  }
-
   // Google OAuth 相關 API
   static async getGoogleOAuthUrl(userData?: { role?: 'teacher' | 'student'; name?: string }) {
     if (!this.lineUserId) {
@@ -1258,7 +1251,7 @@ export class ApiService {
     return this.request(`/teacher/courses/${courseId}/assignments/${qs}`)
   }
 
-  static async sendAssignmentReminder(courseId: string, assignmentId: string, studentIds?: string[]) {
+  static async sendAssignmentReminder(assignmentId: string, studentIds?: string[]) {
     if (!this.lineUserId) {
       this.bootstrapLineUserId()
     }
@@ -1266,11 +1259,10 @@ export class ApiService {
       method: 'POST',
       body: JSON.stringify({
         line_user_id: this.lineUserId,
-        course_id: String(courseId),
-        coursework_id: String(assignmentId),
+        assignment_id: assignmentId,
         student_ids: studentIds
       })
-    }, 'other')
+    })
   }
 
   static async getCourseLineGroups(courseId: string) {
@@ -1285,11 +1277,12 @@ export class ApiService {
     if (!this.lineUserId) {
       this.bootstrapLineUserId()
     }
-    return this.request(`/teacher/courses/${courseId}/line-groups/bind/`, {
+    return this.request('/teacher/courses/bind-line-group/', {
       method: 'POST',
       body: JSON.stringify({
         line_user_id: this.lineUserId,
-        groupId: groupId
+        course_id: courseId,
+        group_id: groupId
       })
     })
   }
@@ -1298,11 +1291,12 @@ export class ApiService {
     if (!this.lineUserId) {
       this.bootstrapLineUserId()
     }
-    return this.request(`/teacher/courses/${courseId}/line-groups/unbind/`, {
-      method: 'POST',
+    return this.request('/teacher/courses/unbind-line-group/', {
+      method: 'DELETE',
       body: JSON.stringify({
         line_user_id: this.lineUserId,
-        groupId: groupId
+        course_id: courseId,
+        group_id: groupId
       })
     })
   }
@@ -1327,44 +1321,14 @@ export class ApiService {
     if (!this.lineUserId) {
       this.bootstrapLineUserId()
     }
-    return this.request(`/teacher/courses/${courseId}/send-weekly-report/`, {
+    return this.request('/teacher/courses/send-weekly-report/', {
       method: 'POST',
       body: JSON.stringify({
         line_user_id: this.lineUserId,
-        // groupId 與其他週報參數由呼叫方傳入（例如 week_start）。
+        course_id: courseId,
         ...reportData
       })
     })
-  }
-
-  // 作業提交狀態（教師/學生皆可，用於 Google Classroom）
-  static async getAssignmentSubmissionStatus(courseId: string, assignmentId: string) {
-    console.log('[ApiService] getAssignmentSubmissionStatus 開始', { courseId, assignmentId })
-    
-    // 確保 line_user_id 已設定（必要欄位）
-    const effective = this.ensureLineUserId()
-    console.log('[ApiService] 使用的 line_user_id:', effective)
-    
-    // 後端 serializer 支援 batch；這裡以單筆 pair 呼叫
-    const payload = {
-      line_user_id: effective,
-      course_coursework_pairs: [
-        {
-          course_id: String(courseId),
-          coursework_id: String(assignmentId)
-        }
-      ]
-    }
-    console.log('[ApiService] 請求 payload:', JSON.stringify(payload, null, 2))
-    
-    // 路由為 /api/classroom/submissions/status/，屬於一般 /api 前綴
-    const result = await this.request('/classroom/submissions/status/', {
-      method: 'POST',
-      body: JSON.stringify(payload)
-    }, 'other')
-    
-    console.log('[ApiService] API 回應結果:', JSON.stringify(result, null, 2))
-    return result
   }
 
 
