@@ -1331,7 +1331,7 @@ export class ApiService {
     return this.request(`/teacher/courses/${courseId}/weekly-report/${qs}`)
   }
 
-  static async sendWeeklyReport(courseId: string, reportData: any) {
+  static async sendWeeklyReport(courseId: string, groupId: string) {
     if (!this.lineUserId) {
       this.bootstrapLineUserId()
     }
@@ -1339,23 +1339,29 @@ export class ApiService {
       method: 'POST',
       body: JSON.stringify({
         line_user_id: this.lineUserId,
-        course_id: courseId,
-        ...reportData
+        groupId: groupId  // 後端期望 groupId
       })
     }, 'other')  // 使用 /api 前綴
   }
 
-  static async sendAssignmentReminder(assignmentId: string, courseId: string) {
+  static async sendAssignmentReminder(assignmentId: string, courseId: string, studentIds?: string[]) {
     if (!this.lineUserId) {
       this.bootstrapLineUserId()
     }
+    const payload: any = {
+      line_user_id: this.lineUserId,
+      coursework_id: assignmentId,  // 後端期望 coursework_id
+      course_id: courseId
+    }
+    
+    // 如果指定了學生 ID，只提醒這些學生
+    if (studentIds && studentIds.length > 0) {
+      payload.student_ids = studentIds
+    }
+    
     return this.request('/teacher/assignments/reminder/', {
       method: 'POST',
-      body: JSON.stringify({
-        line_user_id: this.lineUserId,
-        assignment_id: assignmentId,
-        course_id: courseId
-      })
+      body: JSON.stringify(payload)
     }, 'other')  // 使用 /api 前綴
   }
 
