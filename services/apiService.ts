@@ -245,12 +245,17 @@ export class ApiService {
     }
     
     // 如果有 schedules 字段，優先使用教師專用的 API（支援 Google Classroom 課程）
-    // 這個 API 只更新時間表，不會修改課程的其他資料
+    // 這個 API 可以更新時間表和教室
     if (data.schedules && Array.isArray(data.schedules)) {
-      const payload = {
+      const payload: any = {
         line_user_id: this.lineUserId,
         course_id: courseId,
         schedules: data.schedules
+      }
+      
+      // 如果有教室資料，也一起發送
+      if (data.classroom !== undefined) {
+        payload.classroom = data.classroom
       }
       
       const resp = await this.request<any>('/teacher/courses/update-schedule/', {
@@ -1330,14 +1335,44 @@ export class ApiService {
     if (!this.lineUserId) {
       this.bootstrapLineUserId()
     }
-    return this.request('/teacher/courses/send-weekly-report/', {
+    return this.request(`/teacher/courses/${courseId}/send-weekly-report/`, {
       method: 'POST',
       body: JSON.stringify({
         line_user_id: this.lineUserId,
         course_id: courseId,
         ...reportData
       })
-    })
+    }, 'other')  // 使用 /api 前綴
+  }
+
+  static async sendAssignmentReminder(assignmentId: string, courseId: string) {
+    if (!this.lineUserId) {
+      this.bootstrapLineUserId()
+    }
+    return this.request('/teacher/assignments/reminder/', {
+      method: 'POST',
+      body: JSON.stringify({
+        line_user_id: this.lineUserId,
+        assignment_id: assignmentId,
+        course_id: courseId
+      })
+    }, 'other')  // 使用 /api 前綴
+  }
+
+  static async getAssignmentSubmissionStatus(courseId: string, assignmentId: string) {
+    if (!this.lineUserId) {
+      this.bootstrapLineUserId()
+    }
+    const payload = {
+      line_user_id: this.lineUserId,
+      course_coursework_pairs: [
+        { course_id: courseId, coursework_id: assignmentId }
+      ]
+    }
+    return this.request('/classroom/submissions/status/', {
+      method: 'POST',
+      body: JSON.stringify(payload)
+    }, 'other')
   }
 
 
