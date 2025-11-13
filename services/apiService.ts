@@ -1331,7 +1331,7 @@ export class ApiService {
     return this.request(`/teacher/courses/${courseId}/weekly-report/${qs}`)
   }
 
-  static async sendWeeklyReport(courseId: string, groupId: string) {
+  static async sendWeeklyReport(courseId: string, reportData: { groupId: string; week_start?: string }) {
     if (!this.lineUserId) {
       this.bootstrapLineUserId()
     }
@@ -1339,7 +1339,8 @@ export class ApiService {
       method: 'POST',
       body: JSON.stringify({
         line_user_id: this.lineUserId,
-        groupId: groupId  // 後端期望 groupId
+        groupId: reportData.groupId,  // 後端期望 groupId
+        week_start: reportData.week_start  // 可選的週開始日期
       })
     }, 'other')  // 使用 /api 前綴
   }
