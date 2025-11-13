@@ -244,7 +244,25 @@ export class ApiService {
       this.bootstrapLineUserId()
     }
     
-    // data 已經由 transformFrontendCourse 轉換過，直接使用
+    // 如果只更新 schedules，使用教師專用的 API（支援 Google Classroom 課程）
+    if (data.schedules && Object.keys(data).length === 1) {
+      const payload = {
+        line_user_id: this.lineUserId,
+        course_id: courseId,
+        schedules: data.schedules
+      }
+      
+      const resp = await this.request<any>('/teacher/courses/update-schedule/', {
+        method: 'PATCH',
+        body: JSON.stringify(payload)
+      }, 'other')  // 使用 /api 前綴
+      
+      if (resp?.error) return resp
+      const entity = (resp as any)?.data?.data || (resp as any)?.data
+      return { data: entity }
+    }
+    
+    // 否則使用一般的課程更新 API（僅支援本地課程）
     const payload = { line_user_id: this.lineUserId, course_id: courseId, ...data }
     
     const resp = await this.request<any>('/web/courses/update/', {
