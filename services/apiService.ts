@@ -244,18 +244,8 @@ export class ApiService {
       this.bootstrapLineUserId()
     }
     
-    // 轉換 schedule 格式：前端使用 camelCase，後端使用 snake_case
-    const payload: any = { line_user_id: this.lineUserId, course_id: courseId, ...data }
-    
-    if (payload.schedule && Array.isArray(payload.schedule)) {
-      payload.schedules = payload.schedule.map((slot: any) => ({
-        day_of_week: slot.dayOfWeek,
-        start_time: slot.startTime,
-        end_time: slot.endTime,
-        location: slot.location || payload.classroom || ''
-      }))
-      delete payload.schedule
-    }
+    // data 已經由 transformFrontendCourse 轉換過，直接使用
+    const payload = { line_user_id: this.lineUserId, course_id: courseId, ...data }
     
     const resp = await this.request<any>('/web/courses/update/', {
       method: 'PATCH',
