@@ -710,7 +710,7 @@ export default function HomePage() {
 
     return (
       <>
-        <div className="space-y-6 lg:grid lg:grid-cols-5 lg:gap-4 xl:gap-6 lg:space-y-0 mb-6 max-w-full overflow-hidden">
+        <div className="space-y-6 lg:grid lg:grid-cols-5 lg:gap-4 xl:gap-6 lg:space-y-0 mb-6 max-w-full overflow-hidden animate-fade-in">
           {/* Mobile: Date (ScrollSummary) - First on mobile */}
           <div className="lg:col-span-2 lg:space-y-6">
             {/* Header live indicator */}
@@ -770,7 +770,7 @@ export default function HomePage() {
           </div>
 
           {/* Mobile: Calendar - Fourth on mobile, Desktop: right column */}
-          <div className="lg:col-span-3 w-full max-w-full">
+          <div className="lg:col-span-3 w-full max-w-full animate-slide-up" style={{ animationDelay: '120ms' }}>
             <div className="w-full max-w-md mx-auto lg:max-w-full">
               <CompactMonthlyCalendar 
                     selectedDate={selectedDate} 
@@ -871,8 +871,8 @@ export default function HomePage() {
             courseView === "list" ? (
               filteredCourses.length > 0 ? (
                 <div className="space-y-2 sm:space-y-3">
-                  {filteredCourses.map((course) => (
-                    <div key={course.id} className="relative">
+                  {filteredCourses.map((course, index) => (
+                    <div key={course.id} className="relative animate-fade-in" style={{ animationDelay: `${index * 50}ms` }}>
                       {isSelectionMode && (
                         <div className="absolute top-4 left-4 z-10">
                           <input
@@ -1248,9 +1248,9 @@ export default function HomePage() {
 
         {sortedAssignments.length > 0 ? (
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
-            {sortedAssignments.map((assignment) => (
+            {sortedAssignments.map((assignment, index) => (
+              <div key={assignment.id} className="animate-fade-in" style={{ animationDelay: `${index * 50}ms` }}>
               <AssignmentCard
-                key={assignment.id}
                 assignment={assignment}
                 course={getCourseById(assignment.courseId)}
                 onStatusChange={(id, status) => updateAssignment(id, { status })}
@@ -1266,6 +1266,7 @@ export default function HomePage() {
                   }
                 }}
               />
+              </div>
             ))}
           </div>
         ) : (
@@ -1349,9 +1350,9 @@ export default function HomePage() {
 
         {sortedNotes.length > 0 ? (
           <div className="space-y-4">
-            {sortedNotes.map((note) => (
+            {sortedNotes.map((note, index) => (
+              <div key={note.id} className="animate-fade-in" style={{ animationDelay: `${index * 50}ms` }}>
               <NoteCard
-                key={note.id}
                 note={note}
                 course={getCourseById(note.courseId)}
                 onClick={() => setSelectedNoteId(note.id)}
@@ -1366,6 +1367,7 @@ export default function HomePage() {
                   }
                 }}
               />
+              </div>
             ))}
           </div>
         ) : (
@@ -1466,9 +1468,9 @@ export default function HomePage() {
 
         {sortedExams.length > 0 ? (
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
-            {sortedExams.map((exam) => (
+            {sortedExams.map((exam, index) => (
+              <div key={exam.id} className="animate-fade-in" style={{ animationDelay: `${index * 50}ms` }}>
               <ExamCard
-                key={exam.id}
                 exam={exam}
                 course={getCourseById(exam.courseId)}
                 onViewDetail={() => setSelectedExamId(exam.id)}
@@ -1484,6 +1486,7 @@ export default function HomePage() {
                 }}
                 onStatusChange={(id, status) => updateExam(id, { status })}
               />
+              </div>
             ))}
           </div>
         ) : (
@@ -1578,7 +1581,7 @@ export default function HomePage() {
     <div className="min-h-screen bg-background">
       <SidebarNavigation activeTab={activeTab} onTabChange={handleTabChange} />
       <div className="lg:ml-[var(--sidebar-width)] transition-[margin] duration-300">
-        <div className="mx-auto w-full px-3 sm:px-4 py-4 sm:py-6 pb-20 sm:pb-24 lg:px-6 xl:px-8 2xl:px-10 lg:py-10 lg:pb-10">{renderContent()}</div>
+        <div className="mx-auto w-full px-3 sm:px-4 py-4 sm:py-6 pb-20 sm:pb-24 lg:px-6 xl:px-8 2xl:px-10 lg:py-10 lg:pb-10 animate-fade-in animate-slide-up">{renderContent()}</div>
       </div>
 
       <div className="lg:hidden">
