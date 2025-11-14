@@ -11,6 +11,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { UserIcon, SettingsIcon, GoogleIcon, LogOutIcon, ChevronRightIcon, LineIcon } from "@/components/icons"
 import { PageHeader } from "@/components/page-header"
+import Link from "next/link"
 import { GoogleAuth } from "@/components/google-auth"
 import { GoogleSyncAll } from "@/components/google-sync-all"
 import { ApiService } from "@/services/apiService"
@@ -621,6 +622,18 @@ export function ProfileContent({ user: propUser, onUserChange, lineUserId }: Pro
         }
         subtitle="個人資料與設定"
       />
+
+      <Card className="p-0 overflow-hidden">
+        <div className="bg-gradient-to-r from-violet-600 to-indigo-600 p-6 sm:p-8 text-white flex items-center justify-between gap-4">
+          <div className="space-y-1">
+            <div className="text-xl font-bold">升級到 Pro，解鎖進階功能</div>
+            <div className="text-sm opacity-90">更高配額、進階提醒、AI 建議與更快同步</div>
+          </div>
+          <Link href="/pricing" className="shrink-0">
+            <Button size="lg" variant="secondary" className="font-semibold">立即升級</Button>
+          </Link>
+        </div>
+      </Card>
 
       {/* 用戶資訊卡片 */}
       <Card className="p-6">
