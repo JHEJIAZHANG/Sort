@@ -1,13 +1,14 @@
 import { createCsrfHeaders, fetchCsrfToken } from '@/lib/csrf-token'
 
+// 取得公開後端 URL（用於瀏覽器端直接打後端，避免代理未設定造成 404）
+const PUBLIC_BACKEND = process.env.NEXT_PUBLIC_BACKEND_API_URL || ''
+
 // 根據環境設定 API 基礎 URL
 function getApiBaseUrl(): string {
-  // 在瀏覽器環境中，使用 Next.js 代理
   if (typeof window !== 'undefined') {
+    if (PUBLIC_BACKEND) return `${PUBLIC_BACKEND}/api/v2`
     return '/api/v2'
   }
-
-  // 在伺服器環境中，使用環境變數
   return process.env.BACKEND_API_URL ? `${process.env.BACKEND_API_URL}/api/v2` : '/api/v2'
 }
 
@@ -86,11 +87,19 @@ export class ApiService {
       // 根據前綴決定基礎 URL
       let baseUrl: string
       if (typeof window !== 'undefined') {
-        // 瀏覽器端一律走 Next.js 代理，避免公開變數配置錯誤造成跨網域與 CORS 問題
-        if (apiPrefix === 'oauth') baseUrl = '/api/oauth'
-        else if (apiPrefix === 'onboard') baseUrl = '/api'
-        else if (apiPrefix === 'other') baseUrl = '/api'
-        else baseUrl = '/api/v2'
+        // 優先使用公開後端 URL（避免 Vercel 未配置代理導致 404）
+        if (PUBLIC_BACKEND) {
+          if (apiPrefix === 'oauth') baseUrl = `${PUBLIC_BACKEND}/api/oauth`
+          else if (apiPrefix === 'onboard') baseUrl = `${PUBLIC_BACKEND}/api`
+          else if (apiPrefix === 'other') baseUrl = `${PUBLIC_BACKEND}/api`
+          else baseUrl = `${PUBLIC_BACKEND}/api/v2`
+        } else {
+          // 回退使用 Next.js 代理
+          if (apiPrefix === 'oauth') baseUrl = '/api/oauth'
+          else if (apiPrefix === 'onboard') baseUrl = '/api'
+          else if (apiPrefix === 'other') baseUrl = '/api'
+          else baseUrl = '/api/v2'
+        }
       } else {
         // 伺服器端，使用環境變數
         const backendUrl = process.env.BACKEND_API_URL || ''
