@@ -211,6 +211,29 @@ export class ApiService {
     })
   }
 
+  // 方案與結帳 API
+  static async getPlans() {
+    return this.request('/plans/')
+  }
+
+  static async checkoutLinePayRequest(params: { planCode?: string; planId?: string; seatCount?: number; confirmUrl: string; cancelUrl: string }) {
+    return this.request('/checkout/linepay/request', {
+      method: 'POST',
+      body: JSON.stringify(params)
+    })
+  }
+
+  static async checkoutLinePayConfirm(params: { transactionId?: string; orderNo?: string }) {
+    return this.request('/checkout/linepay/confirm', {
+      method: 'POST',
+      body: JSON.stringify(params)
+    })
+  }
+
+  static async getMySubscriptions() {
+    return this.request('/me/subscriptions')
+  }
+
   // 課程相關 API
   static async getCourses(lineUserId: string) {
     this.setLineUserId(lineUserId)
