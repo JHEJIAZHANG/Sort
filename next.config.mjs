@@ -48,12 +48,20 @@ const nextConfig = {
         source: '/_api/v2/:path*',
         headers: [
           { key: 'Cache-Control', value: 'no-store, no-cache, must-revalidate, proxy-revalidate' },
+          { key: 'X-Content-Type-Options', value: 'nosniff' },
         ],
       },
       {
         source: '/api/v2/:path*',
         headers: [
           { key: 'Cache-Control', value: 'no-store, no-cache, must-revalidate, proxy-revalidate' },
+          { key: 'X-Content-Type-Options', value: 'nosniff' },
+        ],
+      },
+      {
+        source: '/api/:path*',
+        headers: [
+          { key: 'X-Content-Type-Options', value: 'nosniff' },
         ],
       },
     ]

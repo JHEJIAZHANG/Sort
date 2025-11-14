@@ -22,12 +22,10 @@ export default function CheckoutReturnPage() {
         const resp = await ApiService.checkoutLinePayConfirm({ transactionId: tx || undefined, orderNo: orderNo || undefined })
         if ((resp as any)?.error) {
           setStatus('error')
-          setMessage((resp as any).error || '交易確認失敗')
-          setDetails((resp as any).details)
+          setMessage('交易確認失敗')
           return
         }
         setStatus('success')
-        setDetails((resp as any).data || resp)
       } catch (e) {
         setStatus('error')
         setMessage('網路或伺服器錯誤')
@@ -44,23 +42,20 @@ export default function CheckoutReturnPage() {
         </CardHeader>
         <CardContent className="space-y-3">
           {status === 'processing' && <div>確認中...</div>}
-          {status === 'success' && (
-            <div className="space-y-2">
-              <div className="text-green-700">付款成功</div>
-              <pre className="text-xs bg-muted p-3 rounded">{JSON.stringify(details, null, 2)}</pre>
-              <Button onClick={() => (window.location.href = '/me/subscriptions')}>查看我的授權</Button>
-            </div>
-          )}
-          {status === 'error' && (
-            <div className="space-y-2">
-              <div className="text-red-700">{message || '付款失敗'}</div>
-              {details && <pre className="text-xs bg-muted p-3 rounded">{JSON.stringify(details, null, 2)}</pre>}
-              <Button onClick={() => (window.location.href = '/pricing')}>返回方案頁</Button>
-            </div>
-          )}
+        {status === 'success' && (
+          <div className="space-y-2">
+            <div className="text-green-700">付款成功</div>
+            <Button onClick={() => (window.location.href = '/me/subscriptions')}>查看我的授權</Button>
+          </div>
+        )}
+        {status === 'error' && (
+          <div className="space-y-2">
+            <div className="text-red-700">{message || '付款失敗'}</div>
+            <Button onClick={() => (window.location.href = '/pricing')}>返回方案頁</Button>
+          </div>
+        )}
         </CardContent>
       </Card>
     </div>
   )
 }
-

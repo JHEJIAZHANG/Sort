@@ -43,6 +43,7 @@ export default function PricingPage() {
   const [error, setError] = useState<string | null>(null)
   const [currentPlanCode, setCurrentPlanCode] = useState<string>('')
   const [currentEndAt, setCurrentEndAt] = useState<string>('')
+  const [hasActive, setHasActive] = useState<boolean>(false)
 
   useEffect(() => {
     const run = async () => {
@@ -65,6 +66,7 @@ export default function PricingPage() {
         const items = (resp as any)?.data?.items || []
         const now = Date.now()
         const active = items.find((x: any) => x.status === 'active' && new Date(x.end_at).getTime() > now)
+        setHasActive(Boolean(active))
         if (active?.plan?.code) {
           setCurrentPlanCode(active.plan.code)
           setCurrentEndAt(active.end_at)
@@ -80,22 +82,19 @@ export default function PricingPage() {
     try {
       setLoading(true)
       setError(null)
-      const origin = typeof window !== 'undefined' ? window.location.origin : ''
-      const confirmUrl = `${origin}/checkout/return`
-      const cancelUrl = `${origin}/checkout/return`
-      const resp = await ApiService.checkoutLinePayRequest({ planCode: plan.code, seatCount: 1, confirmUrl, cancelUrl })
-      if ((resp as any)?.error) {
-        setError((resp as any).error || '建立訂單失敗')
+      const now = Date.now()
+      if (hasActive && currentEndAt && new Date(currentEndAt).getTime() > now) {
+        alert(`您已是尊貴會員，訂閱期至 ${new Date(currentEndAt).toLocaleDateString()}`)
+        window.location.href = '/me/subscriptions'
         setLoading(false)
         return
       }
-      const redirectUrl = (resp as any)?.data?.redirectUrl || (resp as any)?.redirectUrl
-      if (redirectUrl) {
-        window.location.href = redirectUrl
-      } else {
-        setError('未取得支付連結')
-        setLoading(false)
-      }
+      const origin = typeof window !== 'undefined' ? window.location.origin : ''
+      const confirmUrl = `${origin}/checkout/return`
+      const cancelUrl = `${origin}/checkout/return`
+      const memberUrl = `${origin}/me/subscriptions`
+      const qs = new URLSearchParams({ planCode: plan.code, seatCount: String(1), confirmUrl, cancelUrl, memberUrl }).toString()
+      window.location.href = `/api/v2/checkout/linepay/request?${qs}`
     } catch (e) {
       setError('結帳請求失敗')
       setLoading(false)

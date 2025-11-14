@@ -122,7 +122,6 @@ export class ApiService {
       baseHeaders['ngrok-skip-browser-warning'] = 'true'
 
       const fullUrl = `${baseUrl}${endpoint}`
-      console.log(`[API] Making request to: ${fullUrl}`)
 
       const response = await fetch(fullUrl, {
         ...options,
@@ -138,26 +137,7 @@ export class ApiService {
       })
 
       if (!response.ok) {
-        // 後端可能回傳非 JSON 錯誤或空 body
-        const errText = await response.text().catch(() => '')
-        let errJson: any = {}
-        try { errJson = errText ? JSON.parse(errText) : {} } catch { errJson = {} }
-        // 強化錯誤輸出，便於定位 400 的真正原因
-        try {
-          console.error('[API] Request failed', {
-            url: fullUrl,
-            method: options.method || 'GET',
-            status: response.status,
-            statusText: response.statusText,
-            contentType: response.headers.get('content-type') || '',
-            bodyPreview: errText ? errText.slice(0, 500) : '',
-            json: errJson,
-          })
-        } catch { }
-        return {
-          error: errJson.message || `HTTP ${response.status}`,
-          details: errJson || errText
-        }
+        return { error: `HTTP ${response.status}` }
       }
 
       // 處理 204 或空 body
@@ -166,14 +146,9 @@ export class ApiService {
         return { data: null as any }
       }
       const raw = await response.text()
-      if (!raw) {
-        return { data: null as any }
-      }
-      if (!contentType.includes('application/json')) {
-        return { data: raw as any }
-      }
-      const data = JSON.parse(raw)
-      return { data }
+      if (!raw) return { data: null as any }
+      if (!contentType.includes('application/json')) return { data: null as any }
+      try { return { data: JSON.parse(raw) } } catch { return { data: null as any } }
     } catch (error) {
       return {
         error: error instanceof Error ? error.message : '網路錯誤'
