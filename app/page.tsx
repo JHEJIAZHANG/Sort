@@ -14,6 +14,7 @@ import { CourseCalendar } from "@/components/course-calendar"
 import { UnifiedCalendar } from "@/components/unified-calendar"
 import { Card } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
+import Link from "next/link"
 import { PlusIcon, CalendarIcon, ListIcon } from "@/components/icons"
 import { useCourses } from "@/hooks/use-courses"
 import { AssignmentForm } from "@/components/assignment-form"
@@ -710,6 +711,11 @@ export default function HomePage() {
 
     return (
       <>
+        <div className="flex justify-end mb-4">
+          <Link href="/pricing" className="inline-block">
+            <Button size="sm" variant="default">升級/購買方案</Button>
+          </Link>
+        </div>
         <div className="space-y-6 lg:grid lg:grid-cols-5 lg:gap-4 xl:gap-6 lg:space-y-0 mb-6 max-w-full overflow-hidden animate-fade-in">
           {/* Mobile: Date (ScrollSummary) - First on mobile */}
           <div className="lg:col-span-2 lg:space-y-6">
