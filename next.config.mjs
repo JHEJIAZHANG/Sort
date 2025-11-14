@@ -11,9 +11,9 @@ const nextConfig = {
     unoptimized: true,
   },
   async rewrites() {
-    const apiBaseUrl = process.env.BACKEND_API_URL
+    const apiBaseUrl = process.env.BACKEND_API_URL || process.env.NEXT_PUBLIC_API_URL
     if (!apiBaseUrl) {
-      console.warn('BACKEND_API_URL is not configured; API rewrites disabled for dev.')
+      console.warn('BACKEND_API_URL/NEXT_PUBLIC_API_URL not configured; API rewrites disabled.')
       return []
     }
     
