@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { ApiService } from '@/services/apiService'
 import { useLineAuth } from '@/hooks/use-line-auth'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
@@ -41,6 +41,8 @@ export default function PricingPage() {
   const [plans, setPlans] = useState<Plan[]>([])
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [currentPlanCode, setCurrentPlanCode] = useState<string>('')
+  const [currentEndAt, setCurrentEndAt] = useState<string>('')
 
   useEffect(() => {
     const run = async () => {
@@ -54,6 +56,25 @@ export default function PricingPage() {
     }
     run()
   }, [])
+
+  useEffect(() => {
+    if (isLoggedIn && user?.userId) {
+      ApiService.setLineUserId(user.userId)
+      ;(async () => {
+        const resp = await ApiService.getMySubscriptions()
+        const items = (resp as any)?.data?.items || []
+        const now = Date.now()
+        const active = items.find((x: any) => x.status === 'active' && new Date(x.end_at).getTime() > now)
+        if (active?.plan?.code) {
+          setCurrentPlanCode(active.plan.code)
+          setCurrentEndAt(active.end_at)
+        } else {
+          setCurrentPlanCode('')
+          setCurrentEndAt('')
+        }
+      })()
+    }
+  }, [isLoggedIn, user?.userId])
 
   const startCheckout = async (plan: Plan) => {
     try {
@@ -91,7 +112,12 @@ export default function PricingPage() {
           <Card key={p.id}>
             <CardHeader>
               <CardTitle className="flex items-center justify-between">
-                <span>{p.name}</span>
+                <span className="flex items-center gap-2">
+                  <span>{p.name}</span>
+                  {currentPlanCode && currentPlanCode === p.code && (
+                    <Badge>目前方案</Badge>
+                  )}
+                </span>
                 <span className="text-primary">NT$ {p.price_twd}</span>
               </CardTitle>
             </CardHeader>
@@ -108,10 +134,13 @@ export default function PricingPage() {
                 <a href="mailto:hello@example.com?subject=School方案洽詢" className="block">
                   <Button disabled={loading} className="w-full" variant="secondary">聯絡我們</Button>
                 </a>
+              ) : currentPlanCode && currentPlanCode === p.code ? (
+                <Button disabled className="w-full" variant="outline">目前方案</Button>
               ) : (
-                <Button disabled={loading || !isInitialized} onClick={() => startCheckout(p)} className="w-full">
-                  使用 LINE Pay 購買
-                </Button>
+                <Button disabled={loading || !isInitialized} onClick={() => startCheckout(p)} className="w-full">使用 LINE Pay 購買</Button>
+              )}
+              {currentPlanCode && currentPlanCode === p.code && currentEndAt && (
+                <div className="text-xs text-muted-foreground text-center">到期日 {new Date(currentEndAt).toLocaleDateString()}</div>
               )}
             </CardContent>
           </Card>

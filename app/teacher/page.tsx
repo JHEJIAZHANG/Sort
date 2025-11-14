@@ -7,7 +7,6 @@ import { TeacherSidebarNavigation } from "@/components/teacher-sidebar-navigatio
 import { TeacherDashboard } from "@/components/teacher-dashboard"
 import { PageHeader } from "@/components/page-header"
 import { Button } from "@/components/ui/button"
-import { Card } from "@/components/ui/card"
 import { CalendarIcon, ListIcon, ArrowLeftIcon } from "@/components/icons"
 import { CourseFilters } from "@/components/course-filters"
 import { CourseCard } from "@/components/course-card"
@@ -23,6 +22,7 @@ import { TeacherAssignmentManagement } from "@/components/teacher-assignment-man
 import { TeacherAssignmentDetail } from "@/components/teacher-assignment-detail"
 import { TeacherProfileContent } from "@/components/teacher-profile-content"
 import { ApiService } from "@/services/apiService"
+import { Card } from "@/components/ui/card"
 
 export default function TeacherPage() {
   const searchParams = useSearchParams()
@@ -59,6 +59,7 @@ export default function TeacherPage() {
   const [courseSearchQuery, setCourseSearchQuery] = useState("")
   const [courseFilterDay, setCourseFilterDay] = useState<string>("all")
   const [selectedAssignmentId, setSelectedAssignmentId] = useState<string | null>(null)
+  const [hasActivePro, setHasActivePro] = useState<boolean>(false)
 
   // 新增：課程選取切換（與學生端一致的行為）
   const handleCourseSelection = (courseId: string) => {
@@ -106,6 +107,18 @@ export default function TeacherPage() {
       ApiService.setLineUserId(id)
     }
   }, [isLineLoggedIn, lineUser])
+
+  useEffect(() => {
+    if (!lineUserId) return
+    ;(async () => {
+      const resp = await ApiService.getMySubscriptions()
+      const items = (resp as any)?.data?.items || []
+      const now = Date.now()
+      const active = items.find((x: any) => x.status === 'active' && new Date(x.end_at).getTime() > now)
+      const code = active?.plan?.code || ''
+      setHasActivePro(Boolean(active && (code.startsWith('pro') || code.startsWith('school'))))
+    })()
+  }, [lineUserId])
 
   // 從後端獲取用戶資料
   useEffect(() => {
@@ -238,15 +251,27 @@ export default function TeacherPage() {
     switch (activeTab) {
       case "dashboard":
         return (
-          <TeacherDashboard
-            courses={classroomCourses}
-            assignments={assignments}
-            onCourseClick={handleCourseClick}
-            onAddCourse={handleAddCourse}
-            onManageGroups={handleManageGroups}
-            onRemindStudents={handleRemindStudents}
-            user={user}
-          />
+          <>
+            {!hasActivePro && (
+              <div className="mb-4">
+                <Card>
+                  <div className="p-4 text-sm text-muted-foreground flex items-center justify-between">
+                    <span>需要有效的 Pro 方案以啟用老師功能</span>
+                    <Button size="sm" onClick={() => (window.location.href = '/pricing')}>前往升級</Button>
+                  </div>
+                </Card>
+              </div>
+            )}
+            <TeacherDashboard
+              courses={classroomCourses}
+              assignments={assignments}
+              onCourseClick={handleCourseClick}
+              onAddCourse={handleAddCourse}
+              onManageGroups={handleManageGroups}
+              onRemindStudents={handleRemindStudents}
+              user={user}
+            />
+          </>
         )
       case "courses":
         return (
