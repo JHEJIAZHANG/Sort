@@ -219,6 +219,10 @@ export class ApiService {
     return this.request('/me/subscriptions')
   }
 
+  static async getMyOrders() {
+    return this.request('/me/orders')
+  }
+
   // 課程相關 API
   static async getCourses(lineUserId: string) {
     this.setLineUserId(lineUserId)

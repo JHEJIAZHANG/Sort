@@ -106,21 +106,23 @@ export default function PricingPage() {
       <h1 className="text-2xl font-bold">教育方案</h1>
       <p className="text-sm text-muted-foreground">結合 LINE 與 Google Classroom/Calendar，簡化作業建立與提醒，提升課程管理效率</p>
       {error && <div className="text-red-600 text-sm">{error}</div>}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        {plans.map(p => (
-          <Card key={p.id}>
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+        {plans.map(p => {
+          const isCurrent = currentPlanCode && currentPlanCode === p.code
+          const isRecommended = p.code === 'pro_month'
+          return (
+          <Card key={p.id} className={`rounded-2xl ${isRecommended ? 'border-primary shadow-md' : ''}`}>
             <CardHeader>
               <CardTitle className="flex items-center justify-between">
                 <span className="flex items-center gap-2">
                   <span>{p.name}</span>
-                  {currentPlanCode && currentPlanCode === p.code && (
-                    <Badge>目前方案</Badge>
-                  )}
+                  {isRecommended && <Badge variant="secondary">最受歡迎</Badge>}
+                  {isCurrent && <Badge>目前方案</Badge>}
                 </span>
                 <span className="text-primary">NT$ {p.price_twd}</span>
               </CardTitle>
             </CardHeader>
-            <CardContent className="space-y-3">
+            <CardContent className="space-y-4">
               <div className="text-sm text-muted-foreground">{p.description || ''}</div>
               <ul className="text-sm space-y-1">
                 {renderFeatureBullets(p).map((t, idx) => (
@@ -128,22 +130,22 @@ export default function PricingPage() {
                 ))}
               </ul>
               {p.code === 'free' ? (
-                <Button disabled className="w-full" variant="outline">已啟用</Button>
+                <Button disabled className="w-full rounded-xl" variant="outline">已啟用</Button>
               ) : p.code === 'school_year' ? (
                 <a href="mailto:hello@example.com?subject=School方案洽詢" className="block">
-                  <Button disabled={loading} className="w-full" variant="secondary">聯絡我們</Button>
+                  <Button disabled={loading} className="w-full rounded-xl" variant="secondary">聯絡我們</Button>
                 </a>
-              ) : currentPlanCode && currentPlanCode === p.code ? (
-                <Button disabled className="w-full" variant="outline">目前方案</Button>
+              ) : isCurrent ? (
+                <Button disabled className="w-full rounded-xl" variant="outline">目前方案</Button>
               ) : (
-                <Button disabled={loading || !isInitialized} onClick={() => startCheckout(p)} className="w-full">使用 LINE Pay 購買</Button>
+                <Button disabled={loading || !isInitialized} onClick={() => startCheckout(p)} className="w-full rounded-xl">使用 LINE Pay 購買</Button>
               )}
-              {currentPlanCode && currentPlanCode === p.code && currentEndAt && (
+              {isCurrent && currentEndAt && (
                 <div className="text-xs text-muted-foreground text-center">到期日 {new Date(currentEndAt).toLocaleDateString()}</div>
               )}
             </CardContent>
           </Card>
-        ))}
+        )})}
       </div>
     </div>
   )
