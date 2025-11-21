@@ -101,9 +101,10 @@ export function transformBackendAssignment(backendAssignment: any): Assignment {
   console.log('🔄 transformBackendAssignment 輸入:', backendAssignment)
 
   // 教師API返回的格式：{ id, title, course_info: { id, name }, due_date, state, ... }
-  const courseInfo = backendAssignment.course_info || {}
-  const courseId = String(courseInfo.id || backendAssignment.course_id || backendAssignment.course || '')
-  const courseName = courseInfo.name || backendAssignment.course_name || ''
+  const courseField = backendAssignment.course || backendAssignment.course_info || backendAssignment.course_id
+  const courseExtracted = extractCourseIdAndName(courseField)
+  const courseId = courseExtracted.id
+  const courseName = backendAssignment.course_name || courseExtracted.name || ''
 
   // 處理狀態：支援 Google Classroom 繳交狀態和一般狀態
   let status: "pending" | "completed" | "overdue" = "pending"
