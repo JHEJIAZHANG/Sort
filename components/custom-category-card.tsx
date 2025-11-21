@@ -172,8 +172,9 @@ export function CustomCategoryCard({
         <div>
           <p className={`text-sm font-semibold ${getStatusColor().split(" ")[0]}`}>{getStatusText()}</p>
           <p className="text-xs text-muted-foreground mt-1 font-medium">
-            {item.dueDate.toLocaleDateString("zh-TW")} {" "}
-            {item.dueDate.toLocaleTimeString("zh-TW", { hour: "2-digit", minute: "2-digit" })}
+            {item.dueDate && item.dueDate instanceof Date && !isNaN(item.dueDate.getTime())
+              ? `${item.dueDate.toLocaleDateString("zh-TW")} ${item.dueDate.toLocaleTimeString("zh-TW", { hour: "2-digit", minute: "2-digit" })}`
+              : "日期未設定"}
           </p>
         </div>
 

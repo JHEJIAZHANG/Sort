@@ -375,7 +375,11 @@ export function UnifiedTodoSection({
               <div className="flex items-center gap-2">
                 <div className="text-right">
                   <p className={`text-xs font-medium ${getItemTextColor(item)}`}>{formatDueDate(item.dueDate)}</p>
-                  <p className="text-xs text-slate-600">{item.dueDate.toLocaleDateString("zh-TW")}</p>
+                  <p className="text-xs text-slate-600">
+                    {item.dueDate && item.dueDate instanceof Date && !isNaN(item.dueDate.getTime())
+                      ? item.dueDate.toLocaleDateString("zh-TW")
+                      : "日期未設定"}
+                  </p>
                 </div>
                 {(!item.status || item.status !== "completed") && (
                   <Button

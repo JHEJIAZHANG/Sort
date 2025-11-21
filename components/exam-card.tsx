@@ -197,8 +197,9 @@ export function ExamCard({ exam, course, onStatusChange, onEdit, onDelete, onVie
               {getStatusText(exam.status, exam.examDate, exam.duration)}
             </p>
             <p className="text-xs text-muted-foreground mt-1 font-medium">
-              {new Date(exam.examDate).toLocaleDateString("zh-TW")}{" "}
-              {new Date(exam.examDate).toLocaleTimeString("zh-TW", { hour: "2-digit", minute: "2-digit" })}
+              {exam.examDate && exam.examDate instanceof Date && !isNaN(exam.examDate.getTime())
+                ? `${exam.examDate.toLocaleDateString("zh-TW")} ${exam.examDate.toLocaleTimeString("zh-TW", { hour: "2-digit", minute: "2-digit" })}`
+                : "日期未設定"}
             </p>
           </div>
 

@@ -133,11 +133,18 @@ export function transformBackendAssignment(backendAssignment: any): Assignment {
   // 處理到期日期
   let dueDate = new Date()
   if (backendAssignment.due_datetime) {
-    dueDate = new Date(backendAssignment.due_datetime)
+    const raw = String(backendAssignment.due_datetime)
+    const normalized = raw.includes('T') ? raw : raw.replace(' ', 'T')
+    dueDate = new Date(normalized)
   } else if (backendAssignment.due_date) {
     // due_date 可能是 "2025-10-15 23:59" 格式
-    dueDate = new Date(backendAssignment.due_date.replace(' ', 'T'))
+    const raw = String(backendAssignment.due_date)
+    const normalized = raw.includes('T') ? raw : raw.replace(' ', 'T')
+    dueDate = new Date(normalized)
   }
+  
+  console.log('  - dueDate 原始值:', backendAssignment.due_datetime || backendAssignment.due_date)
+  console.log('  - dueDate 轉換後:', dueDate, '是否為有效日期:', dueDate instanceof Date && !isNaN(dueDate.getTime()))
 
   // 處理創建和更新時間
   const createdAt = backendAssignment.creation_time ? new Date(backendAssignment.creation_time) :
@@ -235,6 +242,8 @@ export function transformFrontendNote(frontendNote: Note, lineUserId: string) {
 
 // 後端 Exam 轉換為前端 Exam
 export function transformBackendExam(backendExam: any): Exam {
+  console.log('🔄 transformBackendExam 輸入:', backendExam)
+  
   const course = extractCourseIdAndName(backendExam.course)
   let examDate: Date = new Date()
   if (backendExam.exam_date) {
@@ -242,7 +251,15 @@ export function transformBackendExam(backendExam: any): Exam {
     const normalized = raw.includes('T') ? raw : raw.replace(' ', 'T')
     examDate = new Date(normalized)
   }
-  return {
+  
+  // 處理提醒時間
+  const notificationTime = backendExam.notification_time ? new Date(backendExam.notification_time) : undefined
+  
+  // 處理創建和更新時間
+  const createdAt = backendExam.created_at ? new Date(backendExam.created_at) : new Date()
+  const updatedAt = backendExam.updated_at ? new Date(backendExam.updated_at) : new Date()
+  
+  const result: Exam = {
     id: backendExam.id.toString(),
     title: backendExam.title,
     description: backendExam.description || '',
@@ -253,9 +270,16 @@ export function transformBackendExam(backendExam: any): Exam {
     duration: backendExam.duration || 120,
     type: backendExam.type || 'other',
     status: backendExam.status || 'pending',
-    createdAt: new Date(backendExam.created_at),
-    updatedAt: new Date(backendExam.updated_at)
+    customReminderTiming: backendExam.custom_reminder_timing || 'default',
+    notificationTime: notificationTime,
+    createdAt: createdAt,
+    updatedAt: updatedAt
   }
+  
+  console.log('✅ transformBackendExam 輸出:', result)
+  console.log('  - examDate:', result.examDate, '是否為有效日期:', result.examDate instanceof Date && !isNaN(result.examDate.getTime()))
+  
+  return result
 }
 
 // 前端 Exam 轉換為後端格式

@@ -274,15 +274,19 @@ export function CourseDetail({ courseId, lineUserId, showBackButton = true, onOp
                     <p
                       className={`text-sm font-medium ${getAssignmentDateColor(assignment.status)} ${assignment.status === "completed" ? "line-through" : ""}`}
                     >
-                      {assignment.dueDate.toLocaleDateString("zh-TW")}
+                      {assignment.dueDate && assignment.dueDate instanceof Date && !isNaN(assignment.dueDate.getTime())
+                        ? assignment.dueDate.toLocaleDateString("zh-TW")
+                        : "日期未設定"}
                     </p>
                     <p
                       className={`text-xs text-muted-foreground ${assignment.status === "completed" ? "line-through" : ""}`}
                     >
-                      {assignment.dueDate.toLocaleTimeString("zh-TW", {
-                        hour: "2-digit",
-                        minute: "2-digit",
-                      })}
+                      {assignment.dueDate && assignment.dueDate instanceof Date && !isNaN(assignment.dueDate.getTime())
+                        ? assignment.dueDate.toLocaleTimeString("zh-TW", {
+                            hour: "2-digit",
+                            minute: "2-digit",
+                          })
+                        : ""}
                     </p>
                   </div>
                 </div>
@@ -320,13 +324,17 @@ export function CourseDetail({ courseId, lineUserId, showBackButton = true, onOp
                 </div>
                 <div className="text-right">
                   <p className={`text-sm font-medium ${getExamDateColor(exam)}`}>
-                    {exam.examDate.toLocaleDateString("zh-TW")}
+                    {exam.examDate && exam.examDate instanceof Date && !isNaN(exam.examDate.getTime())
+                      ? exam.examDate.toLocaleDateString("zh-TW")
+                      : "日期未設定"}
                   </p>
                   <p className="text-xs text-muted-foreground">
-                    {exam.examDate.toLocaleTimeString("zh-TW", {
-                      hour: "2-digit",
-                      minute: "2-digit",
-                    })}
+                    {exam.examDate && exam.examDate instanceof Date && !isNaN(exam.examDate.getTime())
+                      ? exam.examDate.toLocaleTimeString("zh-TW", {
+                          hour: "2-digit",
+                          minute: "2-digit",
+                        })
+                      : ""}
                   </p>
                 </div>
               </div>

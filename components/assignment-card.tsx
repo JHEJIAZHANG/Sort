@@ -216,8 +216,9 @@ export function AssignmentCard({
               {getStatusText(assignment.status)}
             </p>
             <p className="text-xs text-muted-foreground mt-1 font-medium">
-              {assignment.dueDate.toLocaleDateString("zh-TW")}{" "}
-              {assignment.dueDate.toLocaleTimeString("zh-TW", { hour: "2-digit", minute: "2-digit" })}
+              {assignment.dueDate && assignment.dueDate instanceof Date && !isNaN(assignment.dueDate.getTime())
+                ? `${assignment.dueDate.toLocaleDateString("zh-TW")} ${assignment.dueDate.toLocaleTimeString("zh-TW", { hour: "2-digit", minute: "2-digit" })}`
+                : "日期未設定"}
             </p>
           </div>
 
