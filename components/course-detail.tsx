@@ -53,6 +53,16 @@ export function CourseDetail({ courseId, lineUserId, showBackButton = true, onOp
   const { categories: customCategories } = useCustomCategories(lineUserId)
   const { items: customTodos } = useCustomTodos(lineUserId)
 
+  // 調試日誌
+  console.log('📋 CourseDetail 渲染:')
+  console.log('  - courseId:', courseId)
+  console.log('  - course:', course)
+  console.log('  - assignments 數量:', assignments?.length || 0)
+  console.log('  - exams 數量:', exams?.length || 0)
+  console.log('  - notes 數量:', notes?.length || 0)
+  console.log('  - customCategories 數量:', customCategories?.length || 0)
+  console.log('  - customTodos 數量:', customTodos?.length || 0)
+
   // 清理 HTML 標籤的函數
   const stripHtml = (html: string) => {
     const temp = document.createElement("div")
@@ -165,6 +175,9 @@ export function CourseDetail({ courseId, lineUserId, showBackButton = true, onOp
     return !(exam.status === "completed" || daysDiff < 0)
   })
 
+  console.log('  - sortedAssignments 數量:', sortedAssignments.length)
+  console.log('  - activeExams 數量:', activeExams.length)
+
   const handleCourseUpdate = async (updatedCourse: Omit<typeof course, "id" | "createdAt">) => {
     try {
       await updateCourse(courseId, updatedCourse)
@@ -241,8 +254,8 @@ export function CourseDetail({ courseId, lineUserId, showBackButton = true, onOp
       </div>
 
       {/* Assignments */}
-      <Card className="p-4">
-        <h2 className="font-semibold text-foreground mb-3">作業</h2>
+      <Card className="p-4 border-2 border-blue-500">
+        <h2 className="font-semibold text-foreground mb-3 text-lg">作業</h2>
         {sortedAssignments.length > 0 ? (
           <div className="space-y-3">
             {sortedAssignments.map((assignment) => {
@@ -303,8 +316,8 @@ export function CourseDetail({ courseId, lineUserId, showBackButton = true, onOp
       </Card>
 
       {/* Exams */}
-      <Card className="p-4">
-        <h2 className="font-semibold text-foreground mb-3">考試時間</h2>
+      <Card className="p-4 border-2 border-green-500">
+        <h2 className="font-semibold text-foreground mb-3 text-lg">考試時間</h2>
         {activeExams.length > 0 ? (
           <div className="space-y-3">
             {activeExams.map((exam) => (
@@ -350,8 +363,8 @@ export function CourseDetail({ courseId, lineUserId, showBackButton = true, onOp
       </Card>
 
       {/* 自訂分類（僅顯示此課程已新增的待辦） */}
-      <Card className="p-4">
-        <h2 className="font-semibold text-foreground mb-3">自訂分類</h2>
+      <Card className="p-4 border-2 border-purple-500">
+        <h2 className="font-semibold text-foreground mb-3 text-lg">自訂分類</h2>
         <div className="space-y-3">
           {customCategories.map((cat) => {
             const items = customTodos.filter((t) => t.course === courseId && t.category === cat.id)
@@ -384,8 +397,8 @@ export function CourseDetail({ courseId, lineUserId, showBackButton = true, onOp
       </Card>
 
       {/* Notes */}
-      <Card className="p-4">
-        <h2 className="font-semibold text-foreground mb-3">課程筆記</h2>
+      <Card className="p-4 border-2 border-orange-500">
+        <h2 className="font-semibold text-foreground mb-3 text-lg">課程筆記</h2>
         {notes.length > 0 ? (
           <div className="space-y-3">
             {notes.map((note) => (
