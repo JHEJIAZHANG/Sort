@@ -407,9 +407,6 @@ export function TeacherAssignmentManagement({
     if (state === "active") {
       return "進行中"
     }
-    if ((assignment.status || "").toLowerCase() === "overdue") {
-      return "已逾期"
-    }
     return "已結束"
   }
 

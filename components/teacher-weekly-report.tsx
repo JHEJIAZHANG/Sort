@@ -354,8 +354,7 @@ export function TeacherWeeklyReport({
                           variant={assignment.status === 'overdue' ? 'destructive' : 'default'}
                           className={assignment.status === 'active' ? 'bg-orange-500' : ''}
                         >
-                          {assignment.status === 'overdue' ? '已逾期' : 
-                           assignment.status === 'active' ? '進行中' : '已完成'}
+                          {assignment.status === 'active' ? '進行中' : '已結束'}
                         </Badge>
                       </div>
 

@@ -1719,7 +1719,7 @@ export function TeacherCourseDetail({
                       >
                         {(() => {
                           const state = resolveAssignmentState(assignment)
-                          const badgeText = state === 'active' ? '進行中' : (state === 'overdue' ? '已逾期' : '已結束')
+                          const badgeText = state === 'active' ? '進行中' : '已結束'
                           const badgeVariant = state === 'active' ? "default" : "secondary"
                           return (
                             <div className="flex items-center gap-3 mb-2">
