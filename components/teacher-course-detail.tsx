@@ -99,6 +99,15 @@ interface WeeklyReport {
 
 const DAYS = ["週一", "週二", "週三", "週四", "週五", "週六", "週日"]
 
+// 依據後端狀態與截止時間，統一判斷作業狀態，避免過期仍顯示進行中
+const resolveAssignmentState = (assignment: AssignmentWithMetrics): 'active' | 'overdue' | 'completed' => {
+  if (assignment.status === 'completed') return 'completed'
+  if (assignment.status === 'overdue') return 'overdue'
+  const now = Date.now()
+  const dueTs = new Date(assignment.due_date).getTime()
+  return dueTs >= now ? 'active' : 'overdue'
+}
+
 export function TeacherCourseDetail({ 
   courseId, 
   lineUserId, 
@@ -787,7 +796,8 @@ export function TeacherCourseDetail({
       const matchesSearch = searchQuery === "" || 
         assignment.title.toLowerCase().includes(searchQuery.toLowerCase())
       
-      const matchesFilter = assignmentFilter === "all" || assignment.status === assignmentFilter
+      const state = resolveAssignmentState(assignment)
+      const matchesFilter = assignmentFilter === "all" || state === assignmentFilter
       
       return matchesSearch && matchesFilter
     })
@@ -795,8 +805,10 @@ export function TeacherCourseDetail({
       const now = new Date()
       const aDueDate = new Date(a.due_date)
       const bDueDate = new Date(b.due_date)
-      const aIsActive = a.status === 'active'
-      const bIsActive = b.status === 'active'
+      const aState = resolveAssignmentState(a)
+      const bState = resolveAssignmentState(b)
+      const aIsActive = aState === 'active'
+      const bIsActive = bState === 'active'
 
       // 先按狀態分組：進行中在前，已結束在後
       if (aIsActive !== bIsActive) {
@@ -1705,12 +1717,19 @@ export function TeacherCourseDetail({
                         className="flex-1 cursor-pointer"
                         onClick={() => onAssignmentClick && onAssignmentClick(assignment.id)}
                       >
-                        <div className="flex items-center gap-3 mb-2">
-                          <h4 className="font-medium">{assignment.title}</h4>
-                          <Badge variant={assignment.status === 'active' ? "default" : "secondary"}>
-                            {assignment.status === 'active' ? '進行中' : '已結束'}
-                          </Badge>
-                        </div>
+                        {(() => {
+                          const state = resolveAssignmentState(assignment)
+                          const badgeText = state === 'active' ? '進行中' : (state === 'overdue' ? '已逾期' : '已結束')
+                          const badgeVariant = state === 'active' ? "default" : "secondary"
+                          return (
+                            <div className="flex items-center gap-3 mb-2">
+                              <h4 className="font-medium">{assignment.title}</h4>
+                              <Badge variant={badgeVariant}>
+                                {badgeText}
+                              </Badge>
+                            </div>
+                          )
+                        })()}
                         {/* 手機版：垂直排列test */}
                         <div className="flex flex-col gap-1 text-sm text-muted-foreground md:hidden">
                           <span className="whitespace-nowrap">截止: {assignment.due_date}</span>
