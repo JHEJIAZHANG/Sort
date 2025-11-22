@@ -146,6 +146,14 @@ export function transformBackendAssignment(backendAssignment: any): Assignment {
   console.log('  - dueDate 原始值:', backendAssignment.due_datetime || backendAssignment.due_date)
   console.log('  - dueDate 轉換後:', dueDate, '是否為有效日期:', dueDate instanceof Date && !isNaN(dueDate.getTime()))
 
+  // 若未標示完成且截止時間已過，強制標記為逾期，避免「已結束」仍顯示進行中
+  if (status !== "completed" && dueDate instanceof Date && !isNaN(dueDate.getTime())) {
+    const now = new Date()
+    if (dueDate < now) {
+      status = "overdue"
+    }
+  }
+
   // 處理創建和更新時間
   const createdAt = backendAssignment.creation_time ? new Date(backendAssignment.creation_time) :
                     backendAssignment.created_at ? new Date(backendAssignment.created_at) :
