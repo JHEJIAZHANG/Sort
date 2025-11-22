@@ -53,12 +53,32 @@ export function CourseDetail({ courseId, lineUserId, showBackButton = true, onOp
   const { categories: customCategories } = useCustomCategories(lineUserId)
   const { items: customTodos } = useCustomTodos(lineUserId)
 
+  const normalizeDate = (value: unknown) => {
+    if (!value) return null
+    if (value instanceof Date) return isNaN(value.getTime()) ? null : value
+    if (typeof value === "string") {
+      const normalized = value.includes("T") ? value : value.replace(" ", "T")
+      const parsed = new Date(normalized)
+      if (!isNaN(parsed.getTime())) return parsed
+    }
+    const fallback = new Date(value as any)
+    return isNaN(fallback.getTime()) ? null : fallback
+  }
+
   // 調試日誌
   console.log('📋 CourseDetail 渲染:')
-  console.log('  - courseId:', courseId)
+  console.log('  - courseId:', courseId, 'type:', typeof courseId)
   console.log('  - course:', course)
   console.log('  - assignments 數量:', assignments?.length || 0)
+  if (assignments && assignments.length > 0) {
+    console.log('  - 第一個作業的 courseId:', assignments[0].courseId, 'type:', typeof assignments[0].courseId)
+    console.log('  - courseId 比對:', assignments[0].courseId === courseId, assignments[0].courseId == courseId)
+  }
   console.log('  - exams 數量:', exams?.length || 0)
+  if (exams && exams.length > 0) {
+    console.log('  - 第一個考試的 courseId:', exams[0].courseId, 'type:', typeof exams[0].courseId)
+    console.log('  - courseId 比對:', exams[0].courseId === courseId, exams[0].courseId == courseId)
+  }
   console.log('  - notes 數量:', notes?.length || 0)
   console.log('  - customCategories 數量:', customCategories?.length || 0)
   console.log('  - customTodos 數量:', customTodos?.length || 0)
@@ -115,7 +135,8 @@ export function CourseDetail({ courseId, lineUserId, showBackButton = true, onOp
 
   const getExamDateColor = (exam: Exam) => {
     const now = new Date()
-    const examDate = new Date(exam.examDate)
+    const examDate = normalizeDate(exam.examDate)
+    if (!examDate) return "text-muted-foreground"
     const daysDiff = Math.ceil((examDate.getTime() - now.getTime()) / (1000 * 60 * 60 * 24))
 
     if (exam.status === "completed" || daysDiff < 0) {
@@ -170,7 +191,8 @@ export function CourseDetail({ courseId, lineUserId, showBackButton = true, onOp
 
   const activeExams = exams.filter((exam) => {
     const now = new Date()
-    const examDate = new Date(exam.examDate)
+    const examDate = normalizeDate(exam.examDate)
+    if (!examDate) return exam.status !== "completed"
     const daysDiff = Math.ceil((examDate.getTime() - now.getTime()) / (1000 * 60 * 60 * 24))
     return !(exam.status === "completed" || daysDiff < 0)
   })
@@ -260,6 +282,7 @@ export function CourseDetail({ courseId, lineUserId, showBackButton = true, onOp
           <div className="space-y-3">
             {sortedAssignments.map((assignment) => {
               const StatusIcon = getStatusIcon(assignment.status)
+              const dueDate = normalizeDate(assignment.dueDate)
               return (
                 <div
                   key={assignment.id}
@@ -287,15 +310,13 @@ export function CourseDetail({ courseId, lineUserId, showBackButton = true, onOp
                     <p
                       className={`text-sm font-medium ${getAssignmentDateColor(assignment.status)} ${assignment.status === "completed" ? "line-through" : ""}`}
                     >
-                      {assignment.dueDate && assignment.dueDate instanceof Date && !isNaN(assignment.dueDate.getTime())
-                        ? assignment.dueDate.toLocaleDateString("zh-TW")
-                        : "日期未設定"}
+                      {dueDate ? dueDate.toLocaleDateString("zh-TW") : "日期未設定"}
                     </p>
                     <p
                       className={`text-xs text-muted-foreground ${assignment.status === "completed" ? "line-through" : ""}`}
                     >
-                      {assignment.dueDate && assignment.dueDate instanceof Date && !isNaN(assignment.dueDate.getTime())
-                        ? assignment.dueDate.toLocaleTimeString("zh-TW", {
+                      {dueDate
+                        ? dueDate.toLocaleTimeString("zh-TW", {
                             hour: "2-digit",
                             minute: "2-digit",
                           })
@@ -320,38 +341,39 @@ export function CourseDetail({ courseId, lineUserId, showBackButton = true, onOp
         <h2 className="font-semibold text-foreground mb-3 text-lg">考試時間</h2>
         {activeExams.length > 0 ? (
           <div className="space-y-3">
-            {activeExams.map((exam) => (
-              <div
-                key={exam.id}
-                className="flex items-center justify-between p-3 bg-muted rounded-lg hover:bg-muted/80 transition-colors cursor-pointer"
-                onClick={() => onOpenExam && onOpenExam(exam.id)}
-              >
-                <div>
-                  <p className="font-medium text-foreground">{exam.title}</p>
-                  {exam.description && <p className="text-sm text-muted-foreground">{exam.description}</p>}
-                  <div className="flex items-center gap-4 mt-1">
-                    <span className="text-xs text-muted-foreground">{getExamTypeText(exam.type)}</span>
-                    <span className="text-xs text-muted-foreground">時長：{exam.duration} 分鐘</span>
-                    {exam.location && <span className="text-xs text-muted-foreground">地點：{exam.location}</span>}
+            {activeExams.map((exam) => {
+              const examDate = normalizeDate(exam.examDate)
+              return (
+                <div
+                  key={exam.id}
+                  className="flex items-center justify-between p-3 bg-muted rounded-lg hover:bg-muted/80 transition-colors cursor-pointer"
+                  onClick={() => onOpenExam && onOpenExam(exam.id)}
+                >
+                  <div>
+                    <p className="font-medium text-foreground">{exam.title}</p>
+                    {exam.description && <p className="text-sm text-muted-foreground">{exam.description}</p>}
+                    <div className="flex items-center gap-4 mt-1">
+                      <span className="text-xs text-muted-foreground">{getExamTypeText(exam.type)}</span>
+                      <span className="text-xs text-muted-foreground">時長：{exam.duration} 分鐘</span>
+                      {exam.location && <span className="text-xs text-muted-foreground">地點：{exam.location}</span>}
+                    </div>
+                  </div>
+                  <div className="text-right">
+                    <p className={`text-sm font-medium ${getExamDateColor(exam)}`}>
+                      {examDate ? examDate.toLocaleDateString("zh-TW") : "日期未設定"}
+                    </p>
+                    <p className="text-xs text-muted-foreground">
+                      {examDate
+                        ? examDate.toLocaleTimeString("zh-TW", {
+                            hour: "2-digit",
+                            minute: "2-digit",
+                          })
+                        : ""}
+                    </p>
                   </div>
                 </div>
-                <div className="text-right">
-                  <p className={`text-sm font-medium ${getExamDateColor(exam)}`}>
-                    {exam.examDate && exam.examDate instanceof Date && !isNaN(exam.examDate.getTime())
-                      ? exam.examDate.toLocaleDateString("zh-TW")
-                      : "日期未設定"}
-                  </p>
-                  <p className="text-xs text-muted-foreground">
-                    {exam.examDate && exam.examDate instanceof Date && !isNaN(exam.examDate.getTime())
-                      ? exam.examDate.toLocaleTimeString("zh-TW", {
-                          hour: "2-digit",
-                          minute: "2-digit",
-                        })
-                      : ""}
-                  </p>
-                </div>
-              </div>
-            ))}
+              )
+            })}
           </div>
         ) : (
           <EmptyStateSimple
