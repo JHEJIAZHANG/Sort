@@ -1594,7 +1594,19 @@ export function TeacherCourseDetail({
                         <h4 className="font-medium">{group.name}</h4>
                         {/* 手機版和電腦版都垂直排列 */}
                         <div className="flex flex-col gap-1 text-sm text-muted-foreground mt-1">
-                          <span className="whitespace-nowrap">成員數: {group.member_count}</span>
+                          <span className="whitespace-nowrap">
+                            成員數: {
+                              group.member_count === -1 ? (
+                                <span className="text-orange-600" title="需要 LINE 已驗證帳號或高級帳號才能查看">
+                                  無權限查看 ⚠️
+                                </span>
+                              ) : group.member_count === null || group.member_count === 0 ? (
+                                <span className="text-gray-500">未知</span>
+                              ) : (
+                                group.member_count
+                              )
+                            }
+                          </span>
                           <span className="whitespace-nowrap">綁定時間: {group.bound_at}</span>
                         </div>
                       </div>
