@@ -108,11 +108,11 @@ const resolveAssignmentState = (assignment: AssignmentWithMetrics): 'active' | '
   return dueTs >= now ? 'active' : 'overdue'
 }
 
-export function TeacherCourseDetail({ 
-  courseId, 
-  lineUserId, 
-  showBackButton = true, 
-  onDeleted, 
+export function TeacherCourseDetail({
+  courseId,
+  lineUserId,
+  showBackButton = true,
+  onDeleted,
   onUpdated,
   onAssignmentClick
 }: TeacherCourseDetailProps) {
@@ -123,12 +123,8 @@ export function TeacherCourseDetail({
   const [assignments, setAssignments] = useState<AssignmentWithMetrics[]>([])
   const [boundGroups, setBoundGroups] = useState<BoundGroup[]>([])
   const [weeklyReports, setWeeklyReports] = useState<WeeklyReport[]>([])
-  const [memberStatus, setMemberStatus] = useState<CourseMemberStatus[]>([])
-  const [memberStatusLoading, setMemberStatusLoading] = useState(false)
-  const [memberStatusError, setMemberStatusError] = useState<string | null>(null)
-  const [selectedMemberReminderTargets, setSelectedMemberReminderTargets] = useState<Set<string>>(new Set())
-  const [sendingClassroomReminder, setSendingClassroomReminder] = useState(false)
-  
+
+
   // 篩選狀態 - 改為多選（預設未勾選）
   const [studentFilters, setStudentFilters] = useState<Set<string>>(new Set())
   const [assignmentFilter, setAssignmentFilter] = useState<"all" | "active" | "overdue">("all")
@@ -139,7 +135,7 @@ export function TeacherCourseDetail({
   const filterRefDesktop = useRef<HTMLDivElement>(null)
   const [showNotificationDialog, setShowNotificationDialog] = useState(false)
   const [sendingNotification, setSendingNotification] = useState(false)
-  
+
   // 操作狀態
   const [remindingAssignment, setRemindingAssignment] = useState<string | null>(null)
   const [unbindingGroup, setUnbindingGroup] = useState<string | null>(null)
@@ -169,7 +165,7 @@ export function TeacherCourseDetail({
 
       const detail = (detailResp as any)?.data?.data || (detailResp as any)?.data || {}
       const studentsRaw = (studentsResp as any)?.data?.students || (studentsResp as any)?.data?.data?.students || (studentsResp as any)?.data || []
-      
+
       // 修正群組回應解析：後端回傳 { success: true, groups: [...], total: N }
       const groupsRaw = (
         (groupsResp as any)?.data?.groups ||  // 新格式：{ data: { groups: [...] } }
@@ -178,7 +174,7 @@ export function TeacherCourseDetail({
         (groupsResp as any)?.data ||  // 最後備用：{ data: [...] }
         []
       )
-      
+
       const assignmentsRaw = (assignmentsResp as any)?.data?.assignments || (assignmentsResp as any)?.data?.data?.assignments || (assignmentsResp as any)?.data || []
       const weeklyRaw = (weeklyResp as any)?.data?.report || (weeklyResp as any)?.data?.data?.report || (weeklyResp as any)?.data || null
 
@@ -217,23 +213,23 @@ export function TeacherCourseDetail({
         // 優先使用後端明確提供的值
         const explicit = s?.classroom_joined ?? s?.joined_classroom ?? s?.is_classroom_joined
         if (typeof explicit === 'boolean') return explicit
-        
+
         // 如果有 Google Classroom 的 userId，表示已加入
         if (s?.userId || s?.user_id) return true
-        
+
         // 如果有 emailAddress（Google Classroom 特有欄位），表示已加入
         if (s?.emailAddress || s?.email_address) return true
-        
+
         // 如果 name 是物件格式（Google Classroom 格式），表示已加入
         if (s?.name && typeof s?.name === 'object' && (s.name.fullName || s.name.givenName)) return true
-        
+
         // 檢查角色
         const role = s?.courseRole || s?.role || s?.course_role
         if (typeof role === 'string' && role.toLowerCase().includes('student')) return true
-        
+
         // 檢查註冊時間
         if (s?.enrollmentTime || s?.enrolled_at || s?.enrollment_time) return true
-        
+
         // 預設為未加入
         return false
       }
@@ -242,12 +238,12 @@ export function TeacherCourseDetail({
         // 優先使用各種可能的名稱欄位
         const raw = g?.name ?? g?.display_name ?? g?.title ?? g?.group_name ?? g?.groupName
         let s = String(raw || '').trim()
-        
+
         // 如果沒有名稱，使用 ID
         if (!s) {
           s = String(g?.groupId ?? g?.id ?? g?.group_id ?? g?.group_id ?? '').trim()
         }
-        
+
         // 嘗試 URL 解碼
         try {
           if (/%[0-9A-Fa-f]{2}/.test(s)) {
@@ -257,7 +253,7 @@ export function TeacherCourseDetail({
         } catch (e) {
           console.warn('URL decode failed:', e)
         }
-        
+
         // 嘗試 Base64 解碼（但要小心，不是所有字串都是 Base64）
         try {
           // 只有當字串看起來像 Base64 且長度合理時才嘗試解碼
@@ -271,22 +267,22 @@ export function TeacherCourseDetail({
         } catch (e) {
           // Base64 解碼失敗，保持原字串
         }
-        
+
         return s || '未知群組'
       }
 
       const resolvedStudents: StudentWithBinding[] = Array.isArray(studentsRaw) ? studentsRaw.map((s: any) => {
         // 判定 LINE 綁定狀態：優先使用後端明確提供的值
         const lineBound = Boolean(
-          s.line_bound ?? 
-          s.is_line_bound ?? 
-          s.line_linked ?? 
-          s.has_line_binding ?? 
-          s.lineUserId ?? 
-          s.line_user_id ?? 
+          s.line_bound ??
+          s.is_line_bound ??
+          s.line_linked ??
+          s.has_line_binding ??
+          s.lineUserId ??
+          s.line_user_id ??
           false
         )
-        
+
         return {
           id: String(s.id ?? s.student_id ?? s.userId ?? s.user_id ?? s.email ?? Math.random()),
           name: resolveStudentName(s),
@@ -346,25 +342,25 @@ export function TeacherCourseDetail({
       const resolvedGroups: BoundGroup[] = Array.isArray(groupsRaw) ? groupsRaw.map((g: any) => {
         // 解析成員數量，支援多種可能的欄位名稱
         const memberCount = Number(
-          g.member_count ?? 
-          g.members ?? 
-          g.memberCount ?? 
-          g.members_count ?? 
-          g.membersCount ?? 
+          g.member_count ??
+          g.members ??
+          g.memberCount ??
+          g.members_count ??
+          g.membersCount ??
           0
         )
-        
+
         // 解析綁定時間
         const boundAt = String(
-          g.boundAt ?? 
-          g.bound_at ?? 
-          g.created_at ?? 
-          g.createdAt ?? 
-          g.bind_time ?? 
-          g.bindTime ?? 
+          g.boundAt ??
+          g.bound_at ??
+          g.created_at ??
+          g.createdAt ??
+          g.bind_time ??
+          g.bindTime ??
           ''
         )
-        
+
         return {
           id: String(g.groupId ?? g.id ?? g.group_id ?? g.lineGroupId ?? Math.random()),
           name: resolveGroupName(g),
@@ -412,7 +408,7 @@ export function TeacherCourseDetail({
             return { ...a, submitted_count: submitted, total_count: total, submission_rate: rate }
           }))
         })()
-      } catch {}
+      } catch { }
 
     } catch (error) {
       console.error('載入課程詳情失敗:', error)
@@ -421,132 +417,7 @@ export function TeacherCourseDetail({
     }
   }
 
-  const extractMemberList = (response: any): any[] => {
-    const candidates = [
-      response?.data?.members,
-      response?.data?.data?.members,
-      response?.data?.line_only_members,
-      response?.data?.needs_classroom_reminder,
-      response?.data?.member_status,
-      response?.data
-    ]
-    for (const candidate of candidates) {
-      if (Array.isArray(candidate) && candidate.length) {
-        return candidate
-      }
-    }
-    if (Array.isArray(response)) {
-      return response
-    }
-    return []
-  }
 
-  const loadCourseMemberStatus = async () => {
-    try {
-      setMemberStatusLoading(true)
-      setMemberStatusError(null)
-      ApiService.setLineUserId(lineUserId)
-      const resp = await ApiService.getCourseMemberStatus(courseId)
-      const rawMembers = extractMemberList(resp)
-      const normalized: CourseMemberStatus[] = Array.isArray(rawMembers)
-        ? rawMembers.map((member: any) => {
-            const resolvedLineId = String(
-              member?.line_user_id ??
-              member?.lineUserId ??
-              member?.user_id ??
-              member?.userId ??
-              member?.id ??
-              member?.email ??
-              ''
-            ).trim()
-
-            const resolvedName = (() => {
-              if (member?.name) {
-                if (typeof member.name === 'string') return member.name
-                if (member.name.fullName) return member.name.fullName
-                if (member.name.displayName) return member.name.displayName
-              }
-              if (member?.display_name) return member.display_name
-              if (member?.displayName) return member.displayName
-              if (member?.user?.displayName) return member.user.displayName
-              const email = member?.email ?? member?.emailAddress ?? ''
-              if (typeof email === 'string' && email.includes('@')) {
-                return email.split('@')[0]
-              }
-              return resolvedLineId || '未知成員'
-            })()
-
-            const resolvedEmail = member?.email ?? member?.emailAddress ?? member?.email_address ?? member?.mail ?? ''
-            const inLineGroup = Boolean(
-              member?.in_line_group ??
-              member?.inLineGroup ??
-              member?.line_member ??
-              member?.joined_line_group ??
-              member?.inLine ??
-              true
-            )
-            const inClassroom = Boolean(
-              member?.in_classroom ??
-              member?.inClassroom ??
-              member?.classroom_joined ??
-              member?.joined_classroom ??
-              member?.member_in_classroom ??
-              member?.classroomStatus
-            )
-
-            return {
-              id: resolvedLineId || String(member?.id ?? Math.random()),
-              lineUserId: resolvedLineId || String(member?.id ?? Math.random()),
-              name: resolvedName,
-              email: typeof resolvedEmail === 'string' ? resolvedEmail : '',
-              inLineGroup,
-              inClassroom,
-              lineGroupName: member?.line_group_name ?? member?.group_name ?? member?.lineGroupName ?? ''
-            }
-          })
-        : []
-      setMemberStatus(normalized)
-      setSelectedMemberReminderTargets(new Set())
-    } catch (error) {
-      console.error('取得課程成員狀態失敗:', error)
-      setMemberStatus([])
-      setMemberStatusError('無法載入成員資料，請稍後再試')
-    } finally {
-      setMemberStatusLoading(false)
-    }
-  }
-
-  const toggleMemberReminderSelection = (memberId: string, checked: boolean) => {
-    setSelectedMemberReminderTargets((prev) => {
-      const next = new Set(prev)
-      if (checked) {
-        next.add(memberId)
-      } else {
-        next.delete(memberId)
-      }
-      return next
-    })
-  }
-
-  const handleSendClassroomReminder = async () => {
-    if (selectedMemberReminderTargets.size === 0) {
-      alert('請先選擇至少一位學生')
-      return
-    }
-    try {
-      setSendingClassroomReminder(true)
-      const targets = Array.from(selectedMemberReminderTargets)
-      await ApiService.sendClassroomReminder(courseId, targets)
-      alert('提醒已發送，請通知學生盡快加入 Classroom')
-      setSelectedMemberReminderTargets(new Set())
-      await loadCourseMemberStatus()
-    } catch (error) {
-      console.error('發送 Classroom 加入提醒失敗:', error)
-      alert('提醒失敗，請稍後再試')
-    } finally {
-      setSendingClassroomReminder(false)
-    }
-  }
 
   const handleRefreshGroupMembers = async (groupId: string) => {
     try {
@@ -581,11 +452,7 @@ export function TeacherCourseDetail({
     }
   }, [courseId, lineUserId, course])
 
-  useEffect(() => {
-    if (courseId && lineUserId) {
-      loadCourseMemberStatus()
-    }
-  }, [courseId, lineUserId])
+
 
   // 點擊外部關閉下拉選單 - 手機版
   useEffect(() => {
@@ -625,7 +492,7 @@ export function TeacherCourseDetail({
     if (!course?.schedule || course.schedule.length === 0) {
       return "未設定上課時間"
     }
-    return course.schedule.map((slot) => 
+    return course.schedule.map((slot) =>
       `${DAYS[slot.dayOfWeek]} ${formatTime(slot.startTime)}-${formatTime(slot.endTime)}`
     ).join(", ")
   }
@@ -635,27 +502,27 @@ export function TeacherCourseDetail({
     try {
       setRemindingAssignment(assignmentId)
       console.log('[Reminder] 開始查詢未繳交學生名單...', { courseId, assignmentId })
-      
+
       // 先查詢未繳交學生名單，確保有實際推送對象
       const statusResp = await ApiService.getAssignmentSubmissionStatus(courseId, assignmentId)
       console.log('[Reminder] API 回應:', statusResp)
-      
+
       const statusData = (statusResp as any)?.data || {}
       console.log('[Reminder] statusData:', statusData)
-      
+
       const results = Array.isArray(statusData?.results) ? statusData.results : []
       console.log('[Reminder] results 陣列:', results)
-      
+
       const first = results[0] || null
       console.log('[Reminder] 第一筆結果:', first)
-      
+
       const unsubmitted = Array.isArray(first?.unsubmitted_students) ? first.unsubmitted_students : []
       console.log('[Reminder] 未繳交學生原始資料:', unsubmitted)
-      
+
       const targetIds: string[] = unsubmitted
         .map((u: any) => String(u?.userId ?? ''))
         .filter((id: string) => id && id.trim().length > 0)
-      
+
       console.log('[Reminder] 提取的學生 ID:', targetIds)
 
       if (targetIds.length === 0) {
@@ -667,7 +534,7 @@ export function TeacherCourseDetail({
       console.log('[Reminder] 準備發送提醒給', targetIds.length, '位學生')
       const resp = await ApiService.sendAssignmentReminder(courseId, assignmentId, targetIds)
       console.log('[Reminder] sendAssignmentReminder 回應:', resp)
-      
+
       const data = (resp as any)?.data
       const emailErrorText = typeof data?.error === 'string' ? data.error : (typeof data?.email_error === 'string' ? data.email_error : '')
       const emailFailed = Boolean(data?.email_error) || (emailErrorText && /email/i.test(emailErrorText))
@@ -759,46 +626,44 @@ export function TeacherCourseDetail({
     }
   }
 
-  const lineOnlyMembers = memberStatus.filter(member => member.inLineGroup && !member.inClassroom)
-  const lineOnlyIds = lineOnlyMembers.map(member => member.lineUserId || member.id)
-  const allLineOnlySelected = lineOnlyMembers.length > 0 && lineOnlyMembers.every(member => selectedMemberReminderTargets.has(member.lineUserId || member.id))
+
 
   // 篩選學生
   const filteredStudents = students.filter(student => {
-    const matchesSearch = searchQuery === "" || 
+    const matchesSearch = searchQuery === "" ||
       student.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
       student.email.toLowerCase().includes(searchQuery.toLowerCase())
-    
+
     // 如果沒有選擇任何篩選條件，顯示全部學生
     if (studentFilters.size === 0) {
       return matchesSearch
     }
-    
+
     // 檢查學生是否符合任一選中的篩選條件
-    const matchesLineFilter = 
+    const matchesLineFilter =
       (studentFilters.has("line_bound") && student.line_bound) ||
       (studentFilters.has("line_unbound") && !student.line_bound)
-    
-    const matchesClassroomFilter = 
+
+    const matchesClassroomFilter =
       (studentFilters.has("classroom_joined") && student.classroom_joined) ||
       (studentFilters.has("classroom_not_joined") && !student.classroom_joined)
-    
-    const matchesSubmissionFilter = 
+
+    const matchesSubmissionFilter =
       (studentFilters.has("submission_good") && (student.recent_submission_rate || 0) >= 70) ||
       (studentFilters.has("submission_poor") && (student.recent_submission_rate || 0) < 70)
-    
+
     return matchesSearch && (matchesLineFilter || matchesClassroomFilter || matchesSubmissionFilter)
   })
 
   // 篩選和排序作業
   const filteredAssignments = assignments
     .filter(assignment => {
-      const matchesSearch = searchQuery === "" || 
+      const matchesSearch = searchQuery === "" ||
         assignment.title.toLowerCase().includes(searchQuery.toLowerCase())
-      
+
       const state = resolveAssignmentState(assignment)
       const matchesFilter = assignmentFilter === "all" || state === assignmentFilter
-      
+
       return matchesSearch && matchesFilter
     })
     .sort((a, b) => {
@@ -911,24 +776,24 @@ export function TeacherCourseDetail({
         </div>
 
         {/* 上課時間 */}
-<div className="flex items-center gap-2">
-  <CalendarIcon className="w-4 h-4 text-primary flex-shrink-0" />
-  {course.schedule && course.schedule.length > 0 ? (
-    <span className="text-sm text-muted-foreground text-balance">
-      {formatSchedule()}
-    </span>
-  ) : (
-    <div className="text-xs text-muted-foreground italic">尚未設定上課時間</div>
-  )}
-</div>
+        <div className="flex items-center gap-2">
+          <CalendarIcon className="w-4 h-4 text-primary flex-shrink-0" />
+          {course.schedule && course.schedule.length > 0 ? (
+            <span className="text-sm text-muted-foreground text-balance">
+              {formatSchedule()}
+            </span>
+          ) : (
+            <div className="text-xs text-muted-foreground italic">尚未設定上課時間</div>
+          )}
+        </div>
 
-{/* 教室 */}
-<div className="flex items-center gap-2">
-  <span className="text-sm">📍</span>
-  <span className={`text-sm ${course.classroom ? 'text-muted-foreground' : 'text-gray-400 italic'}`}>
-    {course.classroom || "尚未設定教室"}
-  </span>
-</div>
+        {/* 教室 */}
+        <div className="flex items-center gap-2">
+          <span className="text-sm">📍</span>
+          <span className={`text-sm ${course.classroom ? 'text-muted-foreground' : 'text-gray-400 italic'}`}>
+            {course.classroom || "尚未設定教室"}
+          </span>
+        </div>
       </div>
 
       <div className="mb-6">
@@ -970,690 +835,547 @@ export function TeacherCourseDetail({
 
       <div className="w-full">
         {activeTab === "overview" && (
-        <div className="space-y-6 mt-6">
-          {/* 課程統計卡片 */}
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            <Card className="p-4">
-              <div className="flex items-center space-x-2">
-                <UserIcon className="w-5 h-5 text-blue-500" />
-                <div>
-                  <p className="text-sm text-muted-foreground">學生人數</p>
-                  <p className="text-2xl font-bold">{courseStats.students_count}</p>
+          <div className="space-y-6 mt-6">
+            {/* 課程統計卡片 */}
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+              <Card className="p-4">
+                <div className="flex items-center space-x-2">
+                  <UserIcon className="w-5 h-5 text-blue-500" />
+                  <div>
+                    <p className="text-sm text-muted-foreground">學生人數</p>
+                    <p className="text-2xl font-bold">{courseStats.students_count}</p>
+                  </div>
                 </div>
-              </div>
-            </Card>
-            
-            <Card className="p-4">
-              <div className="flex items-center space-x-2">
-                <BookIcon className="w-5 h-5 text-green-500" />
-                <div>
-                  <p className="text-sm text-muted-foreground">綁定群組</p>
-                  <p className="text-2xl font-bold">{courseStats.bound_groups_count}</p>
-                </div>
-              </div>
-            </Card>
-            
-            <Card className="p-4">
-              <div className="flex items-center space-x-2">
-                <ClockIcon className="w-5 h-5 text-orange-500" />
-                <div>
-                  <p className="text-sm text-muted-foreground">進行中作業</p>
-                  <p className="text-2xl font-bold">{assignments.filter(a => a.status === 'active').length}</p>
-                </div>
-              </div>
-            </Card>
-            
-            <Card className="p-4">
-              <div className="flex items-center space-x-2">
-                <CheckIcon className="w-5 h-5 text-gray-500" />
-                <div>
-                  <p className="text-sm text-muted-foreground">已結束作業</p>
-                  <p className="text-2xl font-bold">{assignments.filter(a => a.status === 'overdue').length}</p>
-                </div>
-              </div>
-            </Card>
-          </div>
+              </Card>
 
-          {/* 週報概覽卡片 */}
-          {weeklyReports.length > 0 && (
-            <Card className="p-4">
-              <div className="flex items-start justify-between gap-4">
-                <div>
-                  <h3 className="text-lg font-semibold">本週週報</h3>
-                  <div className="mt-2 text-sm text-muted-foreground space-y-1">
-                    <div>週期: {weeklyReports[0].week}</div>
-                    <div>繳交率: {weeklyReports[0].submission_rate}%</div>
-                    <div>總作業數: {weeklyReports[0].total_assignments}</div>
-                    <div>已完成作業: {weeklyReports[0].completed_assignments}</div>
-                    {weeklyReports[0].missing_students.length > 0 && (
-                      <div>未繳學生: {weeklyReports[0].missing_students.join(', ')}</div>
+              <Card className="p-4">
+                <div className="flex items-center space-x-2">
+                  <BookIcon className="w-5 h-5 text-green-500" />
+                  <div>
+                    <p className="text-sm text-muted-foreground">綁定群組</p>
+                    <p className="text-2xl font-bold">{courseStats.bound_groups_count}</p>
+                  </div>
+                </div>
+              </Card>
+
+              <Card className="p-4">
+                <div className="flex items-center space-x-2">
+                  <ClockIcon className="w-5 h-5 text-orange-500" />
+                  <div>
+                    <p className="text-sm text-muted-foreground">進行中作業</p>
+                    <p className="text-2xl font-bold">{assignments.filter(a => a.status === 'active').length}</p>
+                  </div>
+                </div>
+              </Card>
+
+              <Card className="p-4">
+                <div className="flex items-center space-x-2">
+                  <CheckIcon className="w-5 h-5 text-gray-500" />
+                  <div>
+                    <p className="text-sm text-muted-foreground">已結束作業</p>
+                    <p className="text-2xl font-bold">{assignments.filter(a => a.status === 'overdue').length}</p>
+                  </div>
+                </div>
+              </Card>
+            </div>
+
+            {/* 週報概覽卡片 */}
+            {weeklyReports.length > 0 && (
+              <Card className="p-4">
+                <div className="flex items-start justify-between gap-4">
+                  <div>
+                    <h3 className="text-lg font-semibold">本週週報</h3>
+                    <div className="mt-2 text-sm text-muted-foreground space-y-1">
+                      <div>週期: {weeklyReports[0].week}</div>
+                      <div>繳交率: {weeklyReports[0].submission_rate}%</div>
+                      <div>總作業數: {weeklyReports[0].total_assignments}</div>
+                      <div>已完成作業: {weeklyReports[0].completed_assignments}</div>
+                      {weeklyReports[0].missing_students.length > 0 && (
+                        <div>未繳學生: {weeklyReports[0].missing_students.join(', ')}</div>
+                      )}
+                    </div>
+                  </div>
+                  <div className="flex flex-col gap-2">
+                    <Button
+                      variant="default"
+                      size="sm"
+                      disabled={sendingReport || boundGroups.length === 0}
+                      onClick={handleSendWeeklyReportAll}
+                    >
+                      {sendingReport ? '發送中...' : '群發週報到所有群組'}
+                    </Button>
+                    {boundGroups.length === 0 && (
+                      <p className="text-xs text-muted-foreground">尚無綁定群組，無法推播週報</p>
                     )}
                   </div>
                 </div>
-                <div className="flex flex-col gap-2">
-                  <Button 
-                    variant="default" 
-                    size="sm"
-                    disabled={sendingReport || boundGroups.length === 0}
-                    onClick={handleSendWeeklyReportAll}
-                  >
-                    {sendingReport ? '發送中...' : '群發週報到所有群組'}
-                  </Button>
-                  {boundGroups.length === 0 && (
-                    <p className="text-xs text-muted-foreground">尚無綁定群組，無法推播週報</p>
-                  )}
-                </div>
-              </div>
-            </Card>
-          )}
+              </Card>
+            )}
 
-          {/* 課程資訊已移至上方 */}
-        </div>
+            {/* 課程資訊已移至上方 */}
+          </div>
         )}
 
         {activeTab === "students" && (
-        <div className="space-y-4 mt-6">
-          <Card className="p-4 space-y-4">
-            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-              <div>
-                <h3 className="text-lg font-semibold">LINE 已入群但未加入 Classroom</h3>
-                <p className="text-sm text-muted-foreground">
-                  {memberStatusLoading
-                    ? "正在載入成員資料..."
-                    : lineOnlyMembers.length > 0
-                      ? `共有 ${lineOnlyMembers.length} 位學生尚未加入 Classroom`
-                      : "目前所有 LINE 成員皆已加入 Classroom"}
-                </p>
-              </div>
-              <div className="flex flex-wrap gap-2">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={loadCourseMemberStatus}
-                  disabled={memberStatusLoading}
+          <div className="space-y-4 mt-6">
+
+            {/* 搜尋框 - 手機版獨立一行 */}
+            <div className="sm:hidden">
+              <Input
+                placeholder="搜尋學生姓名或信箱..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+              />
+            </div>
+
+            {/* 篩選控制 - 手機版在搜尋框下方 */}
+            <div className="sm:hidden flex gap-2">
+              <div className="relative flex-1" ref={filterRef}>
+                <button
+                  onClick={() => setIsFilterOpen(!isFilterOpen)}
+                  className="w-full flex items-center justify-between px-3 py-2 text-sm border border-input rounded-md bg-background hover:bg-accent hover:text-accent-foreground transition-colors"
                 >
-                  {memberStatusLoading ? "重新整理中..." : "重新整理"}
-                </Button>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => {
-                    if (allLineOnlySelected) {
-                      setSelectedMemberReminderTargets(new Set())
-                    } else {
-                      setSelectedMemberReminderTargets(new Set(lineOnlyIds))
-                    }
-                  }}
-                  disabled={memberStatusLoading || lineOnlyMembers.length === 0}
-                >
-                  {allLineOnlySelected ? "取消全選" : "全選"}
-                </Button>
-              </div>
-            </div>
-            {memberStatusError && (
-              <p className="text-sm text-destructive">{memberStatusError}</p>
-            )}
-            {memberStatusLoading ? (
-              <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                <div className="h-4 w-4 animate-spin rounded-full border-b-2 border-primary" />
-                讀取資料中...
-              </div>
-            ) : (
-              <>
-                {lineOnlyMembers.length > 0 ? (
-                  <div className="space-y-2 max-h-56 overflow-y-auto pr-1">
-                    {lineOnlyMembers.map((member) => {
-                      const memberId = member.lineUserId || member.id
-                      return (
-                        <div
-                          key={memberId}
-                          className="flex items-center justify-between rounded-md border p-3"
-                        >
-                          <div className="flex items-center gap-3 flex-1 min-w-0">
-                            <Checkbox
-                              id={`reminder-${memberId}`}
-                              checked={selectedMemberReminderTargets.has(memberId)}
-                              onCheckedChange={(checked) =>
-                                toggleMemberReminderSelection(memberId, Boolean(checked))
-                              }
-                            />
-                            <div className="min-w-0">
-                              <p className="font-medium truncate">{member.name}</p>
-                              <p className="text-xs text-muted-foreground truncate">
-                                {member.email || "無信箱資料"}
-                              </p>
-                              {member.lineGroupName && (
-                                <p className="text-xs text-muted-foreground truncate">
-                                  群組：{member.lineGroupName}
-                                </p>
-                              )}
-                            </div>
-                          </div>
-                          <Badge variant="outline" className="text-xs bg-orange-50 text-orange-700 border-orange-200">
-                            待加入 Classroom
-                          </Badge>
-                        </div>
-                      )
-                    })}
-                  </div>
-                ) : (
-                  <p className="text-sm text-muted-foreground">
-                    沒有需要提醒的學生。
-                  </p>
-                )}
-              </>
-            )}
-            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 pt-3 border-t">
-              <p className="text-sm text-muted-foreground">
-                已選擇 {selectedMemberReminderTargets.size} 位學生
-              </p>
-              <Button
-                onClick={handleSendClassroomReminder}
-                disabled={
-                  memberStatusLoading ||
-                  selectedMemberReminderTargets.size === 0 ||
-                  sendingClassroomReminder
-                }
-                className="sm:w-auto"
-              >
-                {sendingClassroomReminder ? "發送中..." : "提醒加入 Classroom"}
-              </Button>
-            </div>
-          </Card>
-          {/* 搜尋框 - 手機版獨立一行 */}
-          <div className="sm:hidden">
-            <Input
-              placeholder="搜尋學生姓名或信箱..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-            />
-          </div>
-          
-          {/* 篩選控制 - 手機版在搜尋框下方 */}
-          <div className="sm:hidden flex gap-2">
-            <div className="relative flex-1" ref={filterRef}>
-              <button
-                onClick={() => setIsFilterOpen(!isFilterOpen)}
-                className="w-full flex items-center justify-between px-3 py-2 text-sm border border-input rounded-md bg-background hover:bg-accent hover:text-accent-foreground transition-colors"
-              >
-                <span className="text-sm">
-                  {studentFilters.size === 0 ? "全部學生" : `已選擇 ${studentFilters.size} 個篩選條件`}
-                </span>
-                <ChevronDown className={`w-4 h-4 ml-2 transition-transform ${isFilterOpen ? 'rotate-180' : ''}`} />
-              </button>
+                  <span className="text-sm">
+                    {studentFilters.size === 0 ? "全部學生" : `已選擇 ${studentFilters.size} 個篩選條件`}
+                  </span>
+                  <ChevronDown className={`w-4 h-4 ml-2 transition-transform ${isFilterOpen ? 'rotate-180' : ''}`} />
+                </button>
 
-              {isFilterOpen && (
-                <div className="absolute z-50 w-full mt-1 bg-popover border border-border rounded-md shadow-md overflow-hidden">
-                  <div className="max-h-[300px] overflow-y-auto p-1">
-                    <div
-                      className="relative flex w-full cursor-pointer select-none items-center rounded-sm py-1.5 pl-8 pr-2 text-sm outline-none hover:bg-accent hover:text-accent-foreground"
-                      onClick={() => {
-                        const newFilters = new Set(studentFilters)
-                        if (studentFilters.has("line_bound")) {
-                          newFilters.delete("line_bound")
-                        } else {
-                          newFilters.add("line_bound")
-                        }
-                        setStudentFilters(newFilters)
-                      }}
-                    >
-                      <span className="absolute left-2 flex h-3.5 w-3.5 items-center justify-center">
-                        {studentFilters.has("line_bound") && (
-                          <CheckIcon className="h-4 w-4" />
-                        )}
-                      </span>
-                      已綁定 LINE
-                    </div>
-                    
-                    <div
-                      className="relative flex w-full cursor-pointer select-none items-center rounded-sm py-1.5 pl-8 pr-2 text-sm outline-none hover:bg-accent hover:text-accent-foreground"
-                      onClick={() => {
-                        const newFilters = new Set(studentFilters)
-                        if (studentFilters.has("line_unbound")) {
-                          newFilters.delete("line_unbound")
-                        } else {
-                          newFilters.add("line_unbound")
-                        }
-                        setStudentFilters(newFilters)
-                      }}
-                    >
-                      <span className="absolute left-2 flex h-3.5 w-3.5 items-center justify-center">
-                        {studentFilters.has("line_unbound") && (
-                          <CheckIcon className="h-4 w-4" />
-                        )}
-                      </span>
-                      未綁定 LINE
-                    </div>
-                    
-                    <div
-                      className="relative flex w-full cursor-pointer select-none items-center rounded-sm py-1.5 pl-8 pr-2 text-sm outline-none hover:bg-accent hover:text-accent-foreground"
-                      onClick={() => {
-                        const newFilters = new Set(studentFilters)
-                        if (studentFilters.has("classroom_joined")) {
-                          newFilters.delete("classroom_joined")
-                        } else {
-                          newFilters.add("classroom_joined")
-                        }
-                        setStudentFilters(newFilters)
-                      }}
-                    >
-                      <span className="absolute left-2 flex h-3.5 w-3.5 items-center justify-center">
-                        {studentFilters.has("classroom_joined") && (
-                          <CheckIcon className="h-4 w-4" />
-                        )}
-                      </span>
-                      已加入 Classroom
-                    </div>
-                    
-                    <div
-                      className="relative flex w-full cursor-pointer select-none items-center rounded-sm py-1.5 pl-8 pr-2 text-sm outline-none hover:bg-accent hover:text-accent-foreground"
-                      onClick={() => {
-                        const newFilters = new Set(studentFilters)
-                        if (studentFilters.has("classroom_not_joined")) {
-                          newFilters.delete("classroom_not_joined")
-                        } else {
-                          newFilters.add("classroom_not_joined")
-                        }
-                        setStudentFilters(newFilters)
-                      }}
-                    >
-                      <span className="absolute left-2 flex h-3.5 w-3.5 items-center justify-center">
-                        {studentFilters.has("classroom_not_joined") && (
-                          <CheckIcon className="h-4 w-4" />
-                        )}
-                      </span>
-                      未加入 Classroom
-                    </div>
-                    
-                    <div
-                      className="relative flex w-full cursor-pointer select-none items-center rounded-sm py-1.5 pl-8 pr-2 text-sm outline-none hover:bg-accent hover:text-accent-foreground"
-                      onClick={() => {
-                        const newFilters = new Set(studentFilters)
-                        if (studentFilters.has("submission_good")) {
-                          newFilters.delete("submission_good")
-                        } else {
-                          newFilters.add("submission_good")
-                        }
-                        setStudentFilters(newFilters)
-                      }}
-                    >
-                      <span className="absolute left-2 flex h-3.5 w-3.5 items-center justify-center">
-                        {studentFilters.has("submission_good") && (
-                          <CheckIcon className="h-4 w-4" />
-                        )}
-                      </span>
-                      繳交率良好
-                    </div>
-                    
-                    <div
-                      className="relative flex w-full cursor-pointer select-none items-center rounded-sm py-1.5 pl-8 pr-2 text-sm outline-none hover:bg-accent hover:text-accent-foreground"
-                      onClick={() => {
-                        const newFilters = new Set(studentFilters)
-                        if (studentFilters.has("submission_poor")) {
-                          newFilters.delete("submission_poor")
-                        } else {
-                          newFilters.add("submission_poor")
-                        }
-                        setStudentFilters(newFilters)
-                      }}
-                    >
-                      <span className="absolute left-2 flex h-3.5 w-3.5 items-center justify-center">
-                        {studentFilters.has("submission_poor") && (
-                          <CheckIcon className="h-4 w-4" />
-                        )}
-                      </span>
-                      繳交率偏低
-                    </div>
-                  </div>
-                </div>
-              )}
-            </div>
-            
-            {/* 清除篩選按鈕 - 手機版 */}
-            {studentFilters.size > 0 && (
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => setStudentFilters(new Set())}
-                className="whitespace-nowrap"
-              >
-                清除篩選
-              </Button>
-            )}
-          </div>
-          
-          {/* 搜尋框和篩選控制 - 電腦版在同一行 */}
-          <div className="hidden sm:flex gap-2">
-            <Input
-              placeholder="搜尋學生姓名或信箱..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="flex-1"
-            />
-            
-            {/* 篩選控制 - 下拉式多選 */}
-            <div className="relative w-48" ref={filterRefDesktop}>
-              <button
-                onClick={() => setIsFilterOpenDesktop(!isFilterOpenDesktop)}
-                className="w-full flex items-center justify-between px-3 py-2 text-sm border border-input rounded-md bg-background hover:bg-accent hover:text-accent-foreground transition-colors"
-              >
-                <span className="text-sm">
-                  {studentFilters.size === 0 ? "全部學生" : `已選擇 ${studentFilters.size} 個篩選條件`}
-                </span>
-                <ChevronDown className={`w-4 h-4 ml-2 transition-transform ${isFilterOpenDesktop ? 'rotate-180' : ''}`} />
-              </button>
-
-              {isFilterOpenDesktop && (
-                <div className="absolute z-50 w-full mt-1 bg-popover border border-border rounded-md shadow-md overflow-hidden">
-                  <div className="max-h-[300px] overflow-y-auto p-1">
-                    <div
-                      className="relative flex w-full cursor-pointer select-none items-center rounded-sm py-1.5 pl-8 pr-2 text-sm outline-none hover:bg-accent hover:text-accent-foreground"
-                      onClick={() => {
-                        const newFilters = new Set(studentFilters)
-                        if (studentFilters.has("line_bound")) {
-                          newFilters.delete("line_bound")
-                        } else {
-                          newFilters.add("line_bound")
-                        }
-                        setStudentFilters(newFilters)
-                      }}
-                    >
-                      <span className="absolute left-2 flex h-3.5 w-3.5 items-center justify-center">
-                        {studentFilters.has("line_bound") && (
-                          <CheckIcon className="h-4 w-4" />
-                        )}
-                      </span>
-                      已綁定 LINE
-                    </div>
-                    
-                    <div
-                      className="relative flex w-full cursor-pointer select-none items-center rounded-sm py-1.5 pl-8 pr-2 text-sm outline-none hover:bg-accent hover:text-accent-foreground"
-                      onClick={() => {
-                        const newFilters = new Set(studentFilters)
-                        if (studentFilters.has("line_unbound")) {
-                          newFilters.delete("line_unbound")
-                        } else {
-                          newFilters.add("line_unbound")
-                        }
-                        setStudentFilters(newFilters)
-                      }}
-                    >
-                      <span className="absolute left-2 flex h-3.5 w-3.5 items-center justify-center">
-                        {studentFilters.has("line_unbound") && (
-                          <CheckIcon className="h-4 w-4" />
-                        )}
-                      </span>
-                      未綁定 LINE
-                    </div>
-                    
-                    <div
-                      className="relative flex w-full cursor-pointer select-none items-center rounded-sm py-1.5 pl-8 pr-2 text-sm outline-none hover:bg-accent hover:text-accent-foreground"
-                      onClick={() => {
-                        const newFilters = new Set(studentFilters)
-                        if (studentFilters.has("classroom_joined")) {
-                          newFilters.delete("classroom_joined")
-                        } else {
-                          newFilters.add("classroom_joined")
-                        }
-                        setStudentFilters(newFilters)
-                      }}
-                    >
-                      <span className="absolute left-2 flex h-3.5 w-3.5 items-center justify-center">
-                        {studentFilters.has("classroom_joined") && (
-                          <CheckIcon className="h-4 w-4" />
-                        )}
-                      </span>
-                      Classroom 已加入
-                    </div>
-                    
-                    <div
-                      className="relative flex w-full cursor-pointer select-none items-center rounded-sm py-1.5 pl-8 pr-2 text-sm outline-none hover:bg-accent hover:text-accent-foreground"
-                      onClick={() => {
-                        const newFilters = new Set(studentFilters)
-                        if (studentFilters.has("classroom_not_joined")) {
-                          newFilters.delete("classroom_not_joined")
-                        } else {
-                          newFilters.add("classroom_not_joined")
-                        }
-                        setStudentFilters(newFilters)
-                      }}
-                    >
-                      <span className="absolute left-2 flex h-3.5 w-3.5 items-center justify-center">
-                        {studentFilters.has("classroom_not_joined") && (
-                          <CheckIcon className="h-4 w-4" />
-                        )}
-                      </span>
-                      Classroom 未加入
-                    </div>
-                    
-                    <div
-                      className="relative flex w-full cursor-pointer select-none items-center rounded-sm py-1.5 pl-8 pr-2 text-sm outline-none hover:bg-accent hover:text-accent-foreground"
-                      onClick={() => {
-                        const newFilters = new Set(studentFilters)
-                        if (studentFilters.has("submission_good")) {
-                          newFilters.delete("submission_good")
-                        } else {
-                          newFilters.add("submission_good")
-                        }
-                        setStudentFilters(newFilters)
-                      }}
-                    >
-                      <span className="absolute left-2 flex h-3.5 w-3.5 items-center justify-center">
-                        {studentFilters.has("submission_good") && (
-                          <CheckIcon className="h-4 w-4" />
-                        )}
-                      </span>
-                      繳交率良好
-                    </div>
-                    
-                    <div
-                      className="relative flex w-full cursor-pointer select-none items-center rounded-sm py-1.5 pl-8 pr-2 text-sm outline-none hover:bg-accent hover:text-accent-foreground"
-                      onClick={() => {
-                        const newFilters = new Set(studentFilters)
-                        if (studentFilters.has("submission_poor")) {
-                          newFilters.delete("submission_poor")
-                        } else {
-                          newFilters.add("submission_poor")
-                        }
-                        setStudentFilters(newFilters)
-                      }}
-                    >
-                      <span className="absolute left-2 flex h-3.5 w-3.5 items-center justify-center">
-                        {studentFilters.has("submission_poor") && (
-                          <CheckIcon className="h-4 w-4" />
-                        )}
-                      </span>
-                      繳交率偏低
-                    </div>
-                  </div>
-                </div>
-              )}
-            </div>
-            
-            {/* 清除篩選按鈕 - 電腦版 */}
-            {studentFilters.size > 0 && (
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => setStudentFilters(new Set())}
-                className="whitespace-nowrap"
-              >
-                清除篩選
-              </Button>
-            )}
-          </div>
-
-          {/* 學生列表 */}
-          <Card className="p-4">
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="text-lg font-semibold">
-                學生名單 ({filteredStudents.length}/{students.length})
-              </h3>
-              {studentFilters.size > 0 && filteredStudents.length > 0 && (
-                <AlertDialog open={showNotificationDialog} onOpenChange={setShowNotificationDialog}>
-                  <AlertDialogTrigger asChild>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      className="whitespace-nowrap"
-                    >
-                      <BellIcon className="w-4 h-4 mr-2" />
-                      發送通知
-                    </Button>
-                  </AlertDialogTrigger>
-                  <AlertDialogContent>
-                    <AlertDialogHeader>
-                      <AlertDialogTitle>發送通知給篩選的學生</AlertDialogTitle>
-                      <AlertDialogDescription>
-                        <div className="space-y-3 mt-2">
-                          <p>將向以下 <span className="font-semibold text-foreground">{filteredStudents.length}</span> 位學生發送通知：</p>
-                          <div className="space-y-1 text-sm">
-                            {studentFilters.has("line_unbound") && (
-                              <div className="flex items-start gap-2">
-                                <span className="text-orange-600">•</span>
-                                <span>提醒尚未綁定 LINE 的學生進行綁定</span>
-                              </div>
-                            )}
-                            {studentFilters.has("classroom_not_joined") && (
-                              <div className="flex items-start gap-2">
-                                <span className="text-blue-600">•</span>
-                                <span>提醒尚未加入 Google Classroom 的學生加入課程</span>
-                              </div>
-                            )}
-                            {studentFilters.has("submission_poor") && (
-                              <div className="flex items-start gap-2">
-                                <span className="text-red-600">•</span>
-                                <span>提醒繳交率偏低的學生注意作業繳交</span>
-                              </div>
-                            )}
-                            {studentFilters.has("line_bound") && !studentFilters.has("line_unbound") && (
-                              <div className="flex items-start gap-2">
-                                <span className="text-green-600">•</span>
-                                <span>向已綁定 LINE 的學生發送通知</span>
-                              </div>
-                            )}
-                            {studentFilters.has("classroom_joined") && !studentFilters.has("classroom_not_joined") && (
-                              <div className="flex items-start gap-2">
-                                <span className="text-blue-600">•</span>
-                                <span>向已加入 Classroom 的學生發送通知</span>
-                              </div>
-                            )}
-                            {studentFilters.has("submission_good") && !studentFilters.has("submission_poor") && (
-                              <div className="flex items-start gap-2">
-                                <span className="text-orange-600">•</span>
-                                <span>向繳交率良好的學生發送通知</span>
-                              </div>
-                            )}
-                          </div>
-                          <p className="text-xs text-muted-foreground mt-3">
-                            通知將透過 LINE 推播和 Email 發送
-                          </p>
-                        </div>
-                      </AlertDialogDescription>
-                    </AlertDialogHeader>
-                    <AlertDialogFooter>
-                      <AlertDialogCancel>取消</AlertDialogCancel>
-                      <AlertDialogAction
-                        onClick={async () => {
-                          setSendingNotification(true)
-                          try {
-                            // TODO: 實際 API 呼叫
-                            // await ApiService.sendNotificationToStudents({
-                            //   courseId,
-                            //   studentIds: filteredStudents.map(s => s.id),
-                            //   filters: Array.from(studentFilters),
-                            //   lineUserId
-                            // })
-                            console.log('發送通知給學生:', filteredStudents.map(s => s.name))
-                            await new Promise(resolve => setTimeout(resolve, 1000))
-                            alert('通知已發送！')
-                          } catch (error) {
-                            console.error('發送通知失敗:', error)
-                            alert('發送通知失敗，請稍後再試')
-                          } finally {
-                            setSendingNotification(false)
-                            setShowNotificationDialog(false)
+                {isFilterOpen && (
+                  <div className="absolute z-50 w-full mt-1 bg-popover border border-border rounded-md shadow-md overflow-hidden">
+                    <div className="max-h-[300px] overflow-y-auto p-1">
+                      <div
+                        className="relative flex w-full cursor-pointer select-none items-center rounded-sm py-1.5 pl-8 pr-2 text-sm outline-none hover:bg-accent hover:text-accent-foreground"
+                        onClick={() => {
+                          const newFilters = new Set(studentFilters)
+                          if (studentFilters.has("line_bound")) {
+                            newFilters.delete("line_bound")
+                          } else {
+                            newFilters.add("line_bound")
                           }
+                          setStudentFilters(newFilters)
                         }}
-                        disabled={sendingNotification}
                       >
-                        {sendingNotification ? '發送中...' : '確認發送'}
-                      </AlertDialogAction>
-                    </AlertDialogFooter>
-                  </AlertDialogContent>
-                </AlertDialog>
-              )}
-            </div>
-            {filteredStudents.length > 0 ? (
-              <div className="space-y-3">
-                {filteredStudents.map((student) => (
-                  <div key={student.id} className="p-3 border rounded-lg">
-                    {/* 手機版布局 */}
-                    <div className="md:hidden">
-                      <h4 className="font-medium mb-1">{student.name}</h4>
-                      <p className="text-sm text-muted-foreground mb-2">{student.email}</p>
-                      <div className="flex items-center gap-1 flex-wrap">
-                        <Badge 
-                          variant="outline" 
-                          className={student.line_bound 
-                            ? "bg-gradient-to-r from-green-50 to-green-100 text-green-700 border-0 text-xs" 
-                            : "bg-gradient-to-r from-gray-50 to-gray-100 text-gray-700 border-0 text-xs"
+                        <span className="absolute left-2 flex h-3.5 w-3.5 items-center justify-center">
+                          {studentFilters.has("line_bound") && (
+                            <CheckIcon className="h-4 w-4" />
+                          )}
+                        </span>
+                        已綁定 LINE
+                      </div>
+
+                      <div
+                        className="relative flex w-full cursor-pointer select-none items-center rounded-sm py-1.5 pl-8 pr-2 text-sm outline-none hover:bg-accent hover:text-accent-foreground"
+                        onClick={() => {
+                          const newFilters = new Set(studentFilters)
+                          if (studentFilters.has("line_unbound")) {
+                            newFilters.delete("line_unbound")
+                          } else {
+                            newFilters.add("line_unbound")
                           }
-                        >
-                          {student.line_bound ? "已綁定 LINE" : "未綁定 LINE"}
-                        </Badge>
-                        <Badge 
-                          variant="outline" 
-                          className={student.classroom_joined 
-                            ? "bg-gradient-to-r from-blue-50 to-blue-100 text-blue-700 border-0 text-xs" 
-                            : "bg-gradient-to-r from-gray-50 to-gray-100 text-gray-700 border-0 text-xs"
+                          setStudentFilters(newFilters)
+                        }}
+                      >
+                        <span className="absolute left-2 flex h-3.5 w-3.5 items-center justify-center">
+                          {studentFilters.has("line_unbound") && (
+                            <CheckIcon className="h-4 w-4" />
+                          )}
+                        </span>
+                        未綁定 LINE
+                      </div>
+
+                      <div
+                        className="relative flex w-full cursor-pointer select-none items-center rounded-sm py-1.5 pl-8 pr-2 text-sm outline-none hover:bg-accent hover:text-accent-foreground"
+                        onClick={() => {
+                          const newFilters = new Set(studentFilters)
+                          if (studentFilters.has("classroom_joined")) {
+                            newFilters.delete("classroom_joined")
+                          } else {
+                            newFilters.add("classroom_joined")
                           }
-                        >
-                          {student.classroom_joined ? "已加入 Classroom" : "未加入 Classroom"}
-                        </Badge>
-                        {student.recent_submission_rate !== undefined && (
-                          <Badge 
-                            variant="outline"
-                            className={student.recent_submission_rate >= 70 
-                              ? "bg-gradient-to-r from-orange-50 to-orange-100 text-orange-700 border-0 text-xs" 
-                              : "bg-gradient-to-r from-red-50 to-red-100 text-red-700 border-0 text-xs"
-                            }
-                          >
-                            繳交率 {student.recent_submission_rate}%
-                          </Badge>
-                        )}
+                          setStudentFilters(newFilters)
+                        }}
+                      >
+                        <span className="absolute left-2 flex h-3.5 w-3.5 items-center justify-center">
+                          {studentFilters.has("classroom_joined") && (
+                            <CheckIcon className="h-4 w-4" />
+                          )}
+                        </span>
+                        已加入 Classroom
+                      </div>
+
+                      <div
+                        className="relative flex w-full cursor-pointer select-none items-center rounded-sm py-1.5 pl-8 pr-2 text-sm outline-none hover:bg-accent hover:text-accent-foreground"
+                        onClick={() => {
+                          const newFilters = new Set(studentFilters)
+                          if (studentFilters.has("classroom_not_joined")) {
+                            newFilters.delete("classroom_not_joined")
+                          } else {
+                            newFilters.add("classroom_not_joined")
+                          }
+                          setStudentFilters(newFilters)
+                        }}
+                      >
+                        <span className="absolute left-2 flex h-3.5 w-3.5 items-center justify-center">
+                          {studentFilters.has("classroom_not_joined") && (
+                            <CheckIcon className="h-4 w-4" />
+                          )}
+                        </span>
+                        未加入 Classroom
+                      </div>
+
+                      <div
+                        className="relative flex w-full cursor-pointer select-none items-center rounded-sm py-1.5 pl-8 pr-2 text-sm outline-none hover:bg-accent hover:text-accent-foreground"
+                        onClick={() => {
+                          const newFilters = new Set(studentFilters)
+                          if (studentFilters.has("submission_good")) {
+                            newFilters.delete("submission_good")
+                          } else {
+                            newFilters.add("submission_good")
+                          }
+                          setStudentFilters(newFilters)
+                        }}
+                      >
+                        <span className="absolute left-2 flex h-3.5 w-3.5 items-center justify-center">
+                          {studentFilters.has("submission_good") && (
+                            <CheckIcon className="h-4 w-4" />
+                          )}
+                        </span>
+                        繳交率良好
+                      </div>
+
+                      <div
+                        className="relative flex w-full cursor-pointer select-none items-center rounded-sm py-1.5 pl-8 pr-2 text-sm outline-none hover:bg-accent hover:text-accent-foreground"
+                        onClick={() => {
+                          const newFilters = new Set(studentFilters)
+                          if (studentFilters.has("submission_poor")) {
+                            newFilters.delete("submission_poor")
+                          } else {
+                            newFilters.add("submission_poor")
+                          }
+                          setStudentFilters(newFilters)
+                        }}
+                      >
+                        <span className="absolute left-2 flex h-3.5 w-3.5 items-center justify-center">
+                          {studentFilters.has("submission_poor") && (
+                            <CheckIcon className="h-4 w-4" />
+                          )}
+                        </span>
+                        繳交率偏低
                       </div>
                     </div>
-                    
-                    {/* 電腦版布局 */}
-                    <div className="hidden md:block">
-                      <div className="flex items-center justify-between mb-1">
-                        <h4 className="font-medium">{student.name}</h4>
-                        <div className="flex items-center gap-2">
-                          <Badge 
-                            variant="outline" 
-                            className={student.line_bound 
-                              ? "bg-gradient-to-r from-green-50 to-green-100 text-green-700 border-0" 
-                              : "bg-gradient-to-r from-gray-50 to-gray-100 text-gray-700 border-0"
+                  </div>
+                )}
+              </div>
+
+              {/* 清除篩選按鈕 - 手機版 */}
+              {studentFilters.size > 0 && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setStudentFilters(new Set())}
+                  className="whitespace-nowrap"
+                >
+                  清除篩選
+                </Button>
+              )}
+            </div>
+
+            {/* 搜尋框和篩選控制 - 電腦版在同一行 */}
+            <div className="hidden sm:flex gap-2">
+              <Input
+                placeholder="搜尋學生姓名或信箱..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="flex-1"
+              />
+
+              {/* 篩選控制 - 下拉式多選 */}
+              <div className="relative w-48" ref={filterRefDesktop}>
+                <button
+                  onClick={() => setIsFilterOpenDesktop(!isFilterOpenDesktop)}
+                  className="w-full flex items-center justify-between px-3 py-2 text-sm border border-input rounded-md bg-background hover:bg-accent hover:text-accent-foreground transition-colors"
+                >
+                  <span className="text-sm">
+                    {studentFilters.size === 0 ? "全部學生" : `已選擇 ${studentFilters.size} 個篩選條件`}
+                  </span>
+                  <ChevronDown className={`w-4 h-4 ml-2 transition-transform ${isFilterOpenDesktop ? 'rotate-180' : ''}`} />
+                </button>
+
+                {isFilterOpenDesktop && (
+                  <div className="absolute z-50 w-full mt-1 bg-popover border border-border rounded-md shadow-md overflow-hidden">
+                    <div className="max-h-[300px] overflow-y-auto p-1">
+                      <div
+                        className="relative flex w-full cursor-pointer select-none items-center rounded-sm py-1.5 pl-8 pr-2 text-sm outline-none hover:bg-accent hover:text-accent-foreground"
+                        onClick={() => {
+                          const newFilters = new Set(studentFilters)
+                          if (studentFilters.has("line_bound")) {
+                            newFilters.delete("line_bound")
+                          } else {
+                            newFilters.add("line_bound")
+                          }
+                          setStudentFilters(newFilters)
+                        }}
+                      >
+                        <span className="absolute left-2 flex h-3.5 w-3.5 items-center justify-center">
+                          {studentFilters.has("line_bound") && (
+                            <CheckIcon className="h-4 w-4" />
+                          )}
+                        </span>
+                        已綁定 LINE
+                      </div>
+
+                      <div
+                        className="relative flex w-full cursor-pointer select-none items-center rounded-sm py-1.5 pl-8 pr-2 text-sm outline-none hover:bg-accent hover:text-accent-foreground"
+                        onClick={() => {
+                          const newFilters = new Set(studentFilters)
+                          if (studentFilters.has("line_unbound")) {
+                            newFilters.delete("line_unbound")
+                          } else {
+                            newFilters.add("line_unbound")
+                          }
+                          setStudentFilters(newFilters)
+                        }}
+                      >
+                        <span className="absolute left-2 flex h-3.5 w-3.5 items-center justify-center">
+                          {studentFilters.has("line_unbound") && (
+                            <CheckIcon className="h-4 w-4" />
+                          )}
+                        </span>
+                        未綁定 LINE
+                      </div>
+
+                      <div
+                        className="relative flex w-full cursor-pointer select-none items-center rounded-sm py-1.5 pl-8 pr-2 text-sm outline-none hover:bg-accent hover:text-accent-foreground"
+                        onClick={() => {
+                          const newFilters = new Set(studentFilters)
+                          if (studentFilters.has("classroom_joined")) {
+                            newFilters.delete("classroom_joined")
+                          } else {
+                            newFilters.add("classroom_joined")
+                          }
+                          setStudentFilters(newFilters)
+                        }}
+                      >
+                        <span className="absolute left-2 flex h-3.5 w-3.5 items-center justify-center">
+                          {studentFilters.has("classroom_joined") && (
+                            <CheckIcon className="h-4 w-4" />
+                          )}
+                        </span>
+                        Classroom 已加入
+                      </div>
+
+                      <div
+                        className="relative flex w-full cursor-pointer select-none items-center rounded-sm py-1.5 pl-8 pr-2 text-sm outline-none hover:bg-accent hover:text-accent-foreground"
+                        onClick={() => {
+                          const newFilters = new Set(studentFilters)
+                          if (studentFilters.has("classroom_not_joined")) {
+                            newFilters.delete("classroom_not_joined")
+                          } else {
+                            newFilters.add("classroom_not_joined")
+                          }
+                          setStudentFilters(newFilters)
+                        }}
+                      >
+                        <span className="absolute left-2 flex h-3.5 w-3.5 items-center justify-center">
+                          {studentFilters.has("classroom_not_joined") && (
+                            <CheckIcon className="h-4 w-4" />
+                          )}
+                        </span>
+                        Classroom 未加入
+                      </div>
+
+                      <div
+                        className="relative flex w-full cursor-pointer select-none items-center rounded-sm py-1.5 pl-8 pr-2 text-sm outline-none hover:bg-accent hover:text-accent-foreground"
+                        onClick={() => {
+                          const newFilters = new Set(studentFilters)
+                          if (studentFilters.has("submission_good")) {
+                            newFilters.delete("submission_good")
+                          } else {
+                            newFilters.add("submission_good")
+                          }
+                          setStudentFilters(newFilters)
+                        }}
+                      >
+                        <span className="absolute left-2 flex h-3.5 w-3.5 items-center justify-center">
+                          {studentFilters.has("submission_good") && (
+                            <CheckIcon className="h-4 w-4" />
+                          )}
+                        </span>
+                        繳交率良好
+                      </div>
+
+                      <div
+                        className="relative flex w-full cursor-pointer select-none items-center rounded-sm py-1.5 pl-8 pr-2 text-sm outline-none hover:bg-accent hover:text-accent-foreground"
+                        onClick={() => {
+                          const newFilters = new Set(studentFilters)
+                          if (studentFilters.has("submission_poor")) {
+                            newFilters.delete("submission_poor")
+                          } else {
+                            newFilters.add("submission_poor")
+                          }
+                          setStudentFilters(newFilters)
+                        }}
+                      >
+                        <span className="absolute left-2 flex h-3.5 w-3.5 items-center justify-center">
+                          {studentFilters.has("submission_poor") && (
+                            <CheckIcon className="h-4 w-4" />
+                          )}
+                        </span>
+                        繳交率偏低
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              {/* 清除篩選按鈕 - 電腦版 */}
+              {studentFilters.size > 0 && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setStudentFilters(new Set())}
+                  className="whitespace-nowrap"
+                >
+                  清除篩選
+                </Button>
+              )}
+            </div>
+
+            {/* 學生列表 */}
+            <Card className="p-4">
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-lg font-semibold">
+                  學生名單 ({filteredStudents.length}/{students.length})
+                </h3>
+                {studentFilters.size > 0 && filteredStudents.length > 0 && (
+                  <AlertDialog open={showNotificationDialog} onOpenChange={setShowNotificationDialog}>
+                    <AlertDialogTrigger asChild>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="whitespace-nowrap"
+                      >
+                        <BellIcon className="w-4 h-4 mr-2" />
+                        發送通知
+                      </Button>
+                    </AlertDialogTrigger>
+                    <AlertDialogContent>
+                      <AlertDialogHeader>
+                        <AlertDialogTitle>發送通知給篩選的學生</AlertDialogTitle>
+                        <AlertDialogDescription>
+                          <div className="space-y-3 mt-2">
+                            <p>將向以下 <span className="font-semibold text-foreground">{filteredStudents.length}</span> 位學生發送通知：</p>
+                            <div className="space-y-1 text-sm">
+                              {studentFilters.has("line_unbound") && (
+                                <div className="flex items-start gap-2">
+                                  <span className="text-orange-600">•</span>
+                                  <span>提醒尚未綁定 LINE 的學生進行綁定</span>
+                                </div>
+                              )}
+                              {studentFilters.has("classroom_not_joined") && (
+                                <div className="flex items-start gap-2">
+                                  <span className="text-blue-600">•</span>
+                                  <span>提醒尚未加入 Google Classroom 的學生加入課程</span>
+                                </div>
+                              )}
+                              {studentFilters.has("submission_poor") && (
+                                <div className="flex items-start gap-2">
+                                  <span className="text-red-600">•</span>
+                                  <span>提醒繳交率偏低的學生注意作業繳交</span>
+                                </div>
+                              )}
+                              {studentFilters.has("line_bound") && !studentFilters.has("line_unbound") && (
+                                <div className="flex items-start gap-2">
+                                  <span className="text-green-600">•</span>
+                                  <span>向已綁定 LINE 的學生發送通知</span>
+                                </div>
+                              )}
+                              {studentFilters.has("classroom_joined") && !studentFilters.has("classroom_not_joined") && (
+                                <div className="flex items-start gap-2">
+                                  <span className="text-blue-600">•</span>
+                                  <span>向已加入 Classroom 的學生發送通知</span>
+                                </div>
+                              )}
+                              {studentFilters.has("submission_good") && !studentFilters.has("submission_poor") && (
+                                <div className="flex items-start gap-2">
+                                  <span className="text-orange-600">•</span>
+                                  <span>向繳交率良好的學生發送通知</span>
+                                </div>
+                              )}
+                            </div>
+                            <p className="text-xs text-muted-foreground mt-3">
+                              通知將透過 LINE 推播和 Email 發送
+                            </p>
+                          </div>
+                        </AlertDialogDescription>
+                      </AlertDialogHeader>
+                      <AlertDialogFooter>
+                        <AlertDialogCancel>取消</AlertDialogCancel>
+                        <AlertDialogAction
+                          onClick={async () => {
+                            setSendingNotification(true)
+                            try {
+                              // TODO: 實際 API 呼叫
+                              // await ApiService.sendNotificationToStudents({
+                              //   courseId,
+                              //   studentIds: filteredStudents.map(s => s.id),
+                              //   filters: Array.from(studentFilters),
+                              //   lineUserId
+                              // })
+                              console.log('發送通知給學生:', filteredStudents.map(s => s.name))
+                              await new Promise(resolve => setTimeout(resolve, 1000))
+                              alert('通知已發送！')
+                            } catch (error) {
+                              console.error('發送通知失敗:', error)
+                              alert('發送通知失敗，請稍後再試')
+                            } finally {
+                              setSendingNotification(false)
+                              setShowNotificationDialog(false)
+                            }
+                          }}
+                          disabled={sendingNotification}
+                        >
+                          {sendingNotification ? '發送中...' : '確認發送'}
+                        </AlertDialogAction>
+                      </AlertDialogFooter>
+                    </AlertDialogContent>
+                  </AlertDialog>
+                )}
+              </div>
+              {filteredStudents.length > 0 ? (
+                <div className="space-y-3">
+                  {filteredStudents.map((student) => (
+                    <div key={student.id} className="p-3 border rounded-lg">
+                      {/* 手機版布局 */}
+                      <div className="md:hidden">
+                        <h4 className="font-medium mb-1">{student.name}</h4>
+                        <p className="text-sm text-muted-foreground mb-2">{student.email}</p>
+                        <div className="flex items-center gap-1 flex-wrap">
+                          <Badge
+                            variant="outline"
+                            className={student.line_bound
+                              ? "bg-gradient-to-r from-green-50 to-green-100 text-green-700 border-0 text-xs"
+                              : "bg-gradient-to-r from-gray-50 to-gray-100 text-gray-700 border-0 text-xs"
                             }
                           >
                             {student.line_bound ? "已綁定 LINE" : "未綁定 LINE"}
                           </Badge>
-                          <Badge 
-                            variant="outline" 
-                            className={student.classroom_joined 
-                              ? "bg-gradient-to-r from-blue-50 to-blue-100 text-blue-700 border-0" 
-                              : "bg-gradient-to-r from-gray-50 to-gray-100 text-gray-700 border-0"
+                          <Badge
+                            variant="outline"
+                            className={student.classroom_joined
+                              ? "bg-gradient-to-r from-blue-50 to-blue-100 text-blue-700 border-0 text-xs"
+                              : "bg-gradient-to-r from-gray-50 to-gray-100 text-gray-700 border-0 text-xs"
                             }
                           >
                             {student.classroom_joined ? "已加入 Classroom" : "未加入 Classroom"}
                           </Badge>
                           {student.recent_submission_rate !== undefined && (
-                            <Badge 
+                            <Badge
                               variant="outline"
-                              className={student.recent_submission_rate >= 70 
-                                ? "bg-gradient-to-r from-orange-50 to-orange-100 text-orange-700 border-0" 
-                                : "bg-gradient-to-r from-red-50 to-red-100 text-red-700 border-0"
+                              className={student.recent_submission_rate >= 70
+                                ? "bg-gradient-to-r from-orange-50 to-orange-100 text-orange-700 border-0 text-xs"
+                                : "bg-gradient-to-r from-red-50 to-red-100 text-red-700 border-0 text-xs"
                               }
                             >
                               繳交率 {student.recent_submission_rate}%
@@ -1661,213 +1383,250 @@ export function TeacherCourseDetail({
                           )}
                         </div>
                       </div>
-                      <div className="flex items-center justify-between">
-                        <p className="text-sm text-muted-foreground">{student.email}</p>
+
+                      {/* 電腦版布局 */}
+                      <div className="hidden md:block">
+                        <div className="flex items-center justify-between mb-1">
+                          <h4 className="font-medium">{student.name}</h4>
+                          <div className="flex items-center gap-2">
+                            <Badge
+                              variant="outline"
+                              className={student.line_bound
+                                ? "bg-gradient-to-r from-green-50 to-green-100 text-green-700 border-0"
+                                : "bg-gradient-to-r from-gray-50 to-gray-100 text-gray-700 border-0"
+                              }
+                            >
+                              {student.line_bound ? "已綁定 LINE" : "未綁定 LINE"}
+                            </Badge>
+                            <Badge
+                              variant="outline"
+                              className={student.classroom_joined
+                                ? "bg-gradient-to-r from-blue-50 to-blue-100 text-blue-700 border-0"
+                                : "bg-gradient-to-r from-gray-50 to-gray-100 text-gray-700 border-0"
+                              }
+                            >
+                              {student.classroom_joined ? "已加入 Classroom" : "未加入 Classroom"}
+                            </Badge>
+                            {student.recent_submission_rate !== undefined && (
+                              <Badge
+                                variant="outline"
+                                className={student.recent_submission_rate >= 70
+                                  ? "bg-gradient-to-r from-orange-50 to-orange-100 text-orange-700 border-0"
+                                  : "bg-gradient-to-r from-red-50 to-red-100 text-red-700 border-0"
+                                }
+                              >
+                                繳交率 {student.recent_submission_rate}%
+                              </Badge>
+                            )}
+                          </div>
+                        </div>
+                        <div className="flex items-center justify-between">
+                          <p className="text-sm text-muted-foreground">{student.email}</p>
+                        </div>
                       </div>
                     </div>
-                  </div>
-                ))}
-              </div>
-            ) : (
-              <EmptyStateSimple
-                title="沒有符合條件的學生"
-                description="請調整篩選條件或搜尋關鍵字"
-              />
-            )}
-          </Card>
-        </div>
+                  ))}
+                </div>
+              ) : (
+                <EmptyStateSimple
+                  title="沒有符合條件的學生"
+                  description="請調整篩選條件或搜尋關鍵字"
+                />
+              )}
+            </Card>
+          </div>
         )}
 
         {activeTab === "assignments" && (
-        <div className="space-y-4 mt-6">
-          {/* 篩選控制 */}
-          <div className="flex flex-col sm:flex-row gap-4">
-            <Input
-              placeholder="搜尋作業標題..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="flex-1"
-            />
-            <Select value={assignmentFilter} onValueChange={(value: any) => setAssignmentFilter(value)}>
-              <SelectTrigger className="w-full sm:w-48">
-                <SelectValue placeholder="篩選狀態" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">全部作業</SelectItem>
-                <SelectItem value="active">進行中</SelectItem>
-                <SelectItem value="overdue">已結束</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
+          <div className="space-y-4 mt-6">
+            {/* 篩選控制 */}
+            <div className="flex flex-col sm:flex-row gap-4">
+              <Input
+                placeholder="搜尋作業標題..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="flex-1"
+              />
+              <Select value={assignmentFilter} onValueChange={(value: any) => setAssignmentFilter(value)}>
+                <SelectTrigger className="w-full sm:w-48">
+                  <SelectValue placeholder="篩選狀態" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">全部作業</SelectItem>
+                  <SelectItem value="active">進行中</SelectItem>
+                  <SelectItem value="overdue">已結束</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
 
-          {/* 作業列表 */}
-          <Card className="p-4">
-            <h3 className="text-lg font-semibold mb-4">
-              作業管理 ({filteredAssignments.length}/{assignments.length})
-            </h3>
-            {filteredAssignments.length > 0 ? (
-              <div className="space-y-3">
-                {filteredAssignments.map((assignment) => (
-                  <div 
-                    key={assignment.id} 
-                    className="p-4 border rounded-lg hover:bg-muted/50 transition-colors"
-                  >
-                    <div className="flex items-start justify-between gap-3">
-                      <div 
-                        className="flex-1 cursor-pointer"
-                        onClick={() => onAssignmentClick && onAssignmentClick(assignment.id)}
-                      >
-                        {(() => {
-                          const state = resolveAssignmentState(assignment)
-                          const badgeText = state === 'active' ? '進行中' : '已結束'
-                          const badgeVariant = state === 'active' ? "default" : "secondary"
-                          return (
-                            <div className="flex items-center gap-3 mb-2">
-                              <h4 className="font-medium">{assignment.title}</h4>
-                              <Badge variant={badgeVariant}>
-                                {badgeText}
-                              </Badge>
-                            </div>
-                          )
-                        })()}
-                        {/* 手機版：垂直排列test */}
-                        <div className="flex flex-col gap-1 text-sm text-muted-foreground md:hidden">
-                          <span className="whitespace-nowrap">截止: {assignment.due_date}</span>
-                          <span className="whitespace-nowrap">繳交率: {assignment.submission_rate}% ({assignment.submitted_count}/{assignment.total_count})</span>
+            {/* 作業列表 */}
+            <Card className="p-4">
+              <h3 className="text-lg font-semibold mb-4">
+                作業管理 ({filteredAssignments.length}/{assignments.length})
+              </h3>
+              {filteredAssignments.length > 0 ? (
+                <div className="space-y-3">
+                  {filteredAssignments.map((assignment) => (
+                    <div
+                      key={assignment.id}
+                      className="p-4 border rounded-lg hover:bg-muted/50 transition-colors"
+                    >
+                      <div className="flex items-start justify-between gap-3">
+                        <div
+                          className="flex-1 cursor-pointer"
+                          onClick={() => onAssignmentClick && onAssignmentClick(assignment.id)}
+                        >
+                          {(() => {
+                            const state = resolveAssignmentState(assignment)
+                            const badgeText = state === 'active' ? '進行中' : '已結束'
+                            const badgeVariant = state === 'active' ? "default" : "secondary"
+                            return (
+                              <div className="flex items-center gap-3 mb-2">
+                                <h4 className="font-medium">{assignment.title}</h4>
+                                <Badge variant={badgeVariant}>
+                                  {badgeText}
+                                </Badge>
+                              </div>
+                            )
+                          })()}
+                          {/* 手機版：垂直排列test */}
+                          <div className="flex flex-col gap-1 text-sm text-muted-foreground md:hidden">
+                            <span className="whitespace-nowrap">截止: {assignment.due_date}</span>
+                            <span className="whitespace-nowrap">繳交率: {assignment.submission_rate}% ({assignment.submitted_count}/{assignment.total_count})</span>
+                          </div>
+                          {/* 電腦版：水平排列 */}
+                          <div className="hidden md:flex items-center gap-4 text-sm text-muted-foreground">
+                            <span className="whitespace-nowrap">截止: {assignment.due_date}</span>
+                            <span className="whitespace-nowrap">繳交率: {assignment.submission_rate}% ({assignment.submitted_count}/{assignment.total_count})</span>
+                          </div>
                         </div>
-                        {/* 電腦版：水平排列 */}
-                        <div className="hidden md:flex items-center gap-4 text-sm text-muted-foreground">
-                          <span className="whitespace-nowrap">截止: {assignment.due_date}</span>
-                          <span className="whitespace-nowrap">繳交率: {assignment.submission_rate}% ({assignment.submitted_count}/{assignment.total_count})</span>
+                        <div className="flex gap-2 flex-shrink-0">
+                          <AlertDialog>
+                            <AlertDialogTrigger asChild>
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                disabled={remindingAssignment === assignment.id}
+                                onClick={(e) => e.stopPropagation()}
+                              >
+                                <BellIcon className="w-4 h-4 mr-1" />
+                                <span className="hidden sm:inline">提醒未繳</span>
+                                <span className="sm:hidden">提醒</span>
+                              </Button>
+                            </AlertDialogTrigger>
+                            <AlertDialogContent>
+                              <AlertDialogHeader>
+                                <AlertDialogTitle>提醒未繳交學生</AlertDialogTitle>
+                                <AlertDialogDescription>
+                                  將透過 LINE 推播和 Email 提醒尚未繳交 「 {assignment.title} 」 的學生。
+                                </AlertDialogDescription>
+                              </AlertDialogHeader>
+                              <AlertDialogFooter>
+                                <AlertDialogCancel>取消</AlertDialogCancel>
+                                <AlertDialogAction onClick={() => handleRemindUnsubmitted(assignment.id)}>
+                                  確認提醒
+                                </AlertDialogAction>
+                              </AlertDialogFooter>
+                            </AlertDialogContent>
+                          </AlertDialog>
                         </div>
                       </div>
-                      <div className="flex gap-2 flex-shrink-0">
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <EmptyStateSimple
+                  title="沒有符合條件的作業"
+                  description="請調整篩選條件或搜尋關鍵字"
+                />
+              )}
+            </Card>
+          </div>
+        )}
+
+        {activeTab === "groups" && (
+          <div className="space-y-4 mt-6">
+            {typeof window !== 'undefined' && (new URLSearchParams(window.location.search).get('debug') === '1') && (
+              <Card className="p-4">
+                <h3 className="text-sm font-semibold mb-2">Debug（僅開發用）</h3>
+                <div className="text-xs text-muted-foreground space-y-1">
+                  <div>line_user_id: <span className="font-mono text-foreground">{lineUserId}</span></div>
+                  <div>course_id: <span className="font-mono text-foreground">{courseId}</span></div>
+                  <div>綁定群組數（解析後）: <span className="font-mono text-foreground">{boundGroups.length}</span></div>
+                </div>
+              </Card>
+            )}
+            <Card className="p-4">
+              <h3 className="text-lg font-semibold mb-4">
+                綁定群組 ({boundGroups.length})
+              </h3>
+              {boundGroups.length > 0 ? (
+                <div className="space-y-3">
+                  {boundGroups.map((group) => (
+                    <div key={group.id} className="flex items-start justify-between p-3 border rounded-lg gap-3">
+                      <div className="flex-1 min-w-0">
+                        <h4 className="font-medium">{group.name}</h4>
+                        {/* 手機版和電腦版都垂直排列 */}
+                        <div className="flex flex-col gap-1 text-sm text-muted-foreground mt-1">
+                          <span className="whitespace-nowrap">成員數: {group.member_count}</span>
+                          <span className="whitespace-nowrap">綁定時間: {group.bound_at}</span>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-2 flex-shrink-0">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          disabled={sendingReport}
+                          onClick={() => handleSendWeeklyReportToGroup(group.id)}
+                        >
+                          {sendingReport ? '發送中...' : '發送週報'}
+                        </Button>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          disabled={refreshingGroupId === group.id}
+                          onClick={() => handleRefreshGroupMembers(group.id)}
+                        >
+                          {refreshingGroupId === group.id ? '同步中...' : '重新同步人數'}
+                        </Button>
                         <AlertDialog>
                           <AlertDialogTrigger asChild>
-                            <Button 
-                              variant="outline" 
+                            <Button
+                              variant="outline"
                               size="sm"
-                              disabled={remindingAssignment === assignment.id}
-                              onClick={(e) => e.stopPropagation()}
+                              disabled={unbindingGroup === group.id}
+                              className="flex-shrink-0"
                             >
-                              <BellIcon className="w-4 h-4 mr-1" />
-                              <span className="hidden sm:inline">提醒未繳</span>
-                              <span className="sm:hidden">提醒</span>
+                              解除綁定
                             </Button>
                           </AlertDialogTrigger>
                           <AlertDialogContent>
                             <AlertDialogHeader>
-                              <AlertDialogTitle>提醒未繳交學生</AlertDialogTitle>
+                              <AlertDialogTitle>解除群組綁定</AlertDialogTitle>
                               <AlertDialogDescription>
-                                將透過 LINE 推播和 Email 提醒尚未繳交 「 {assignment.title} 」 的學生。
+                                確定要解除與 「 {group.name} 」 的綁定嗎？解除後將無法透過此群組接收課程通知。
                               </AlertDialogDescription>
                             </AlertDialogHeader>
                             <AlertDialogFooter>
                               <AlertDialogCancel>取消</AlertDialogCancel>
-                              <AlertDialogAction onClick={() => handleRemindUnsubmitted(assignment.id)}>
-                                確認提醒
+                              <AlertDialogAction onClick={() => handleUnbindGroup(group.id)}>
+                                確認解除
                               </AlertDialogAction>
                             </AlertDialogFooter>
                           </AlertDialogContent>
                         </AlertDialog>
                       </div>
                     </div>
-                  </div>
-                ))}
-              </div>
-            ) : (
-              <EmptyStateSimple
-                title="沒有符合條件的作業"
-                description="請調整篩選條件或搜尋關鍵字"
-              />
-            )}
-          </Card>
-        </div>
-        )}
-
-        {activeTab === "groups" && (
-        <div className="space-y-4 mt-6">
-          {typeof window !== 'undefined' && (new URLSearchParams(window.location.search).get('debug') === '1') && (
-            <Card className="p-4">
-              <h3 className="text-sm font-semibold mb-2">Debug（僅開發用）</h3>
-              <div className="text-xs text-muted-foreground space-y-1">
-                <div>line_user_id: <span className="font-mono text-foreground">{lineUserId}</span></div>
-                <div>course_id: <span className="font-mono text-foreground">{courseId}</span></div>
-                <div>綁定群組數（解析後）: <span className="font-mono text-foreground">{boundGroups.length}</span></div>
-              </div>
+                  ))}
+                </div>
+              ) : (
+                <EmptyStateSimple
+                  title="尚未綁定任何群組"
+                  description="請透過 LINE Bot 將課程綁定到群組"
+                />
+              )}
             </Card>
-          )}
-          <Card className="p-4">
-            <h3 className="text-lg font-semibold mb-4">
-              綁定群組 ({boundGroups.length})
-            </h3>
-            {boundGroups.length > 0 ? (
-              <div className="space-y-3">
-                {boundGroups.map((group) => (
-                  <div key={group.id} className="flex items-start justify-between p-3 border rounded-lg gap-3">
-                    <div className="flex-1 min-w-0">
-                      <h4 className="font-medium">{group.name}</h4>
-                      {/* 手機版和電腦版都垂直排列 */}
-                      <div className="flex flex-col gap-1 text-sm text-muted-foreground mt-1">
-                        <span className="whitespace-nowrap">成員數: {group.member_count}</span>
-                        <span className="whitespace-nowrap">綁定時間: {group.bound_at}</span>
-                      </div>
-                    </div>
-                    <div className="flex items-center gap-2 flex-shrink-0">
-                      <Button 
-                        variant="outline" 
-                        size="sm"
-                        disabled={sendingReport}
-                        onClick={() => handleSendWeeklyReportToGroup(group.id)}
-                      >
-                        {sendingReport ? '發送中...' : '發送週報'}
-                      </Button>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        disabled={refreshingGroupId === group.id}
-                        onClick={() => handleRefreshGroupMembers(group.id)}
-                      >
-                        {refreshingGroupId === group.id ? '同步中...' : '重新同步人數'}
-                      </Button>
-                    <AlertDialog>
-                      <AlertDialogTrigger asChild>
-                        <Button 
-                          variant="outline" 
-                          size="sm"
-                          disabled={unbindingGroup === group.id}
-                          className="flex-shrink-0"
-                        >
-                          解除綁定
-                        </Button>
-                      </AlertDialogTrigger>
-                      <AlertDialogContent>
-                        <AlertDialogHeader>
-                          <AlertDialogTitle>解除群組綁定</AlertDialogTitle>
-                          <AlertDialogDescription>
-                            確定要解除與 「 {group.name} 」 的綁定嗎？解除後將無法透過此群組接收課程通知。
-                          </AlertDialogDescription>
-                        </AlertDialogHeader>
-                        <AlertDialogFooter>
-                          <AlertDialogCancel>取消</AlertDialogCancel>
-                          <AlertDialogAction onClick={() => handleUnbindGroup(group.id)}>
-                            確認解除
-                          </AlertDialogAction>
-                        </AlertDialogFooter>
-                      </AlertDialogContent>
-                    </AlertDialog>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            ) : (
-              <EmptyStateSimple
-                title="尚未綁定任何群組"
-                description="請透過 LINE Bot 將課程綁定到群組"
-              />
-            )}
-          </Card>
-        </div>
+          </div>
         )}
 
 
