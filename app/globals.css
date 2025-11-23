@@ -46,12 +46,20 @@
   --sidebar-ring: #ff9100;
   --sidebar-width: 16rem;
 
+  /* Premium Shadows */
+  --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+  --shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1);
+  --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+  --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+  --shadow-xl: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);
+  --shadow-glass: 0 8px 32px 0 rgba(31, 38, 135, 0.07);
+
   /* 動畫變數 */
-  --animation-duration-fast: 0.15s;
-  --animation-duration-normal: 0.3s;
-  --animation-duration-slow: 0.5s;
-  --animation-ease: cubic-bezier(0.4, 0, 0.2, 1);
-  --animation-ease-bounce: cubic-bezier(0.68, -0.55, 0.265, 1.55);
+  --animation-duration-fast: 0.2s;
+  --animation-duration-normal: 0.4s;
+  --animation-duration-slow: 0.6s;
+  --animation-ease: cubic-bezier(0.2, 0.8, 0.2, 1); /* More natural ease */
+  --animation-ease-bounce: cubic-bezier(0.34, 1.56, 0.64, 1); /* Snappier bounce */
 }
 
 .dark {
@@ -95,6 +103,8 @@
   --sidebar-border: #374151;
   --sidebar-ring: #ffa726;
   --sidebar-width: 16rem;
+  
+  --shadow-glass: 0 8px 32px 0 rgba(0, 0, 0, 0.3);
 }
 
 @theme inline {
@@ -141,7 +151,9 @@
 @layer base {
   * {
     @apply border-border;
-    transition: all var(--animation-duration-fast) var(--animation-ease);
+    transition-property: color, background-color, border-color, text-decoration-color, fill, stroke, opacity, box-shadow, transform, filter, backdrop-filter;
+    transition-timing-function: var(--animation-ease);
+    transition-duration: var(--animation-duration-fast);
   }
 
   body {
@@ -150,6 +162,8 @@
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
     font-feature-settings: "rlig" 1, "calt" 1;
+    background-image: radial-gradient(circle at center, var(--muted) 1px, transparent 1px);
+    background-size: 24px 24px;
   }
 
   /* 統一的焦點樣式 */
@@ -162,11 +176,24 @@
 
 /* 動畫類別 */
 @layer utilities {
+  .glass {
+    background: rgba(255, 255, 255, 0.7);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.18);
+    box-shadow: var(--shadow-glass);
+  }
+
+  .dark .glass {
+    background: rgba(26, 26, 26, 0.7);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+  }
+
   .animate-fade-in {
     animation: fadeIn var(--animation-duration-normal) var(--animation-ease);
     animation-iteration-count: 1;
     animation-fill-mode: both;
-    will-change: opacity;
+    will-change: opacity, transform;
   }
 
   .animate-slide-up {
@@ -190,11 +217,12 @@
   }
 
   .hover-lift {
-    transition: transform var(--animation-duration-fast) var(--animation-ease);
+    transition: transform var(--animation-duration-fast) var(--animation-ease), box-shadow var(--animation-duration-fast) var(--animation-ease);
   }
 
   .hover-lift:hover {
-    transform: translateY(-2px);
+    transform: translateY(-4px);
+    box-shadow: var(--shadow-lg);
   }
 
   .hover-scale {
@@ -202,18 +230,34 @@
   }
 
   .hover-scale:hover {
-    transform: scale(1.02);
+    transform: scale(1.03);
   }
+  
+  .hover-glow {
+    transition: box-shadow var(--animation-duration-fast) var(--animation-ease);
+  }
+  
+  .hover-glow:hover {
+    box-shadow: 0 0 15px var(--primary);
+  }
+
+  /* Staggered animation delays for children */
+  .stagger-1 { animation-delay: 50ms; }
+  .stagger-2 { animation-delay: 100ms; }
+  .stagger-3 { animation-delay: 150ms; }
+  .stagger-4 { animation-delay: 200ms; }
+  .stagger-5 { animation-delay: 250ms; }
 }
 
 /* 動畫關鍵幀 */
 @keyframes fadeIn {
   from {
     opacity: 0;
+    transform: translateY(10px);
   }
-
   to {
     opacity: 1;
+    transform: translateY(0);
   }
 }
 
@@ -222,7 +266,6 @@
     opacity: 0;
     transform: translateY(20px);
   }
-
   to {
     opacity: 1;
     transform: translateY(0);
@@ -234,7 +277,6 @@
     opacity: 0;
     transform: translateY(-20px);
   }
-
   to {
     opacity: 1;
     transform: translateY(0);
@@ -244,9 +286,8 @@
 @keyframes scaleIn {
   from {
     opacity: 0;
-    transform: scale(0.9);
+    transform: scale(0.95);
   }
-
   to {
     opacity: 1;
     transform: scale(1);
@@ -258,16 +299,13 @@
     opacity: 0;
     transform: scale(0.3);
   }
-
   50% {
     opacity: 1;
     transform: scale(1.05);
   }
-
   70% {
     transform: scale(0.9);
   }
-
   100% {
     opacity: 1;
     transform: scale(1);

@@ -54,15 +54,16 @@ import { GoogleClassroomSync } from "@/components/google-classroom-sync"
 import { GoogleCalendarSync } from "@/components/google-calendar-sync"
 import { ApiService } from "@/services/apiService"
 import LiveDashboardStats, { DashboardStats } from "@/components/dashboard-stats"
+import { DashboardSkeleton } from "@/components/dashboard-skeleton"
 
 
 export default function HomePage() {
   const searchParams = useSearchParams()
   const router = useRouter()
-  
+
   // 權限檢查 - 確保用戶已註冊
   const { isAuthenticated, needsRegistration, isLoading: authLoading, user: authUser } = useUserAuth()
-  
+
   // 從 URL 參數獲取初始標籤頁，如果沒有則默認為 "home"
   const initialTab = searchParams.get('tab') || "home"
   const [activeTab, setActiveTab] = useState(initialTab)
@@ -75,7 +76,7 @@ export default function HomePage() {
   const [editingAssignment, setEditingAssignment] = useState<string | null>(null)
   const [selectedAssignmentId, setSelectedAssignmentId] = useState<string | null>(null)
   const [assignmentFilter, setAssignmentFilter] = useState("all")
-  
+
   // 權限檢查 - 重定向未註冊用戶
   useEffect(() => {
     if (authLoading) {
@@ -108,7 +109,7 @@ export default function HomePage() {
   // 使用 LINE 認證獲取真實的 user ID
   const { user: lineUser, isLoggedIn: isLineLoggedIn, isLoading: lineLoading } = useLineAuth()
   const [lineUserId, setLineUserId] = useState<string>("")
-  
+
   useEffect(() => {
     if (isLineLoggedIn && lineUser?.userId) {
       // 使用真實的 LINE user ID
@@ -256,7 +257,7 @@ export default function HomePage() {
     }
 
     window.addEventListener('coursesUpdated', handleCoursesUpdated)
-    
+
     return () => {
       window.removeEventListener('coursesUpdated', handleCoursesUpdated)
     }
@@ -307,7 +308,7 @@ export default function HomePage() {
   }
 
   const deleteCustomCategoryItem = (id: string) => {
-    ;(async () => {
+    ; (async () => {
       try {
         await deleteCustomTodoApi(id)
         await refetchCustomTodos()
@@ -344,30 +345,30 @@ export default function HomePage() {
     if (!categoryName) return
     const cat = customCategoriesApi.find((c) => c.name === categoryName)
     if (!cat) return
-    
+
     // 找出該分類下的所有待辦事項
     const itemsToDelete = customCategoryItems.filter((item) => item.category === categoryName)
-    
+
     // 確認刪除
     const confirmMessage = itemsToDelete.length > 0
       ? `確定要刪除「${categoryName}」分類嗎？這將會刪除該分類下的 ${itemsToDelete.length} 個待辦事項。`
       : `確定要刪除「${categoryName}」分類嗎？`
-    
+
     if (!confirm(confirmMessage)) return
-    
+
     try {
       // 先刪除該分類下的所有待辦事項
       for (const item of itemsToDelete) {
         await deleteCustomTodoApi(item.id)
       }
-      
+
       // 再刪除分類
       await deleteCategory(cat.id)
-      
+
       // 重新載入資料
       await refetchCustomTodos()
       await refetchCategories()
-      
+
       // 如果當前選中的是被刪除的分類，切換到作業頁面
       if (taskType === categoryName) setTaskType("assignment")
     } catch (error) {
@@ -779,12 +780,12 @@ export default function HomePage() {
           {/* Mobile: Calendar - Fourth on mobile, Desktop: right column */}
           <div className="lg:col-span-3 w-full max-w-full animate-slide-up" style={{ animationDelay: '120ms' }}>
             <div className="w-full max-w-md mx-auto lg:max-w-full">
-              <CompactMonthlyCalendar 
-                    selectedDate={selectedDate} 
-                    onDateSelect={setSelectedDate}
-                    assignments={assignments}
-                    exams={exams}
-                  />
+              <CompactMonthlyCalendar
+                selectedDate={selectedDate}
+                onDateSelect={setSelectedDate}
+                assignments={assignments}
+                exams={exams}
+              />
             </div>
           </div>
         </div>
@@ -815,16 +816,16 @@ export default function HomePage() {
     const filteredCourses = useMemo(() => {
       return courses.filter((course) => {
         // 搜尋過濾
-        const matchesSearch = courseSearchQuery === "" || 
+        const matchesSearch = courseSearchQuery === "" ||
           course.name.toLowerCase().includes(courseSearchQuery.toLowerCase()) ||
           (course.instructor && course.instructor.toLowerCase().includes(courseSearchQuery.toLowerCase())) ||
-          (course.schedule && course.schedule.some(slot => 
+          (course.schedule && course.schedule.some(slot =>
             slot.location && slot.location.toLowerCase().includes(courseSearchQuery.toLowerCase())
           ))
 
         // 星期過濾 - 修正：使用 dayOfWeek 而不是 day
-        const matchesDay = courseFilterDay === "all" || 
-          (course.schedule && course.schedule.some(slot => 
+        const matchesDay = courseFilterDay === "all" ||
+          (course.schedule && course.schedule.some(slot =>
             slot.dayOfWeek === parseInt(courseFilterDay)
           ))
 
@@ -891,9 +892,9 @@ export default function HomePage() {
                           />
                         </div>
                       )}
-                      <CourseCard 
-                        key={course.id} 
-                        course={course} 
+                      <CourseCard
+                        key={course.id}
+                        course={course}
                         onClick={() => {
                           if (isSelectionMode) {
                             handleCourseSelection(course.id)
@@ -912,8 +913,8 @@ export default function HomePage() {
                 </Card>
               )
             ) : (
-              <UnifiedCalendar 
-                courses={filteredCourses} 
+              <UnifiedCalendar
+                courses={filteredCourses}
                 onCourseClick={(courseId) => setSelectedCourseId(courseId)}
                 onEventClick={(event) => {
                   console.log('Calendar event clicked:', event)
@@ -952,9 +953,9 @@ export default function HomePage() {
               <DialogDescription className="sr-only">檢視、編輯或刪除此課程</DialogDescription>
             </DialogHeader>
             {selectedCourseId && (
-              <CourseDetail 
-                courseId={selectedCourseId} 
-                lineUserId={lineUserId} 
+              <CourseDetail
+                courseId={selectedCourseId}
+                lineUserId={lineUserId}
                 showBackButton={false}
                 onOpenAssignment={(id) => {
                   handleTabChange("tasks")
@@ -1257,22 +1258,22 @@ export default function HomePage() {
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
             {sortedAssignments.map((assignment, index) => (
               <div key={assignment.id} className="animate-fade-in" style={{ animationDelay: `${index * 50}ms` }}>
-              <AssignmentCard
-                assignment={assignment}
-                course={getCourseById(assignment.courseId)}
-                onStatusChange={(id, status) => updateAssignment(id, { status })}
-                onViewDetail={() => setSelectedAssignmentId(assignment.id)}
-                onEdit={() => {
-                  setEditingAssignment(assignment.id)
-                  setSelectedAssignmentId(null)
-                  setShowAssignmentForm(true)
-                }}
-                onDelete={() => {
-                  if (confirm("確定要刪除這個作業嗎？")) {
-                    deleteAssignment(assignment.id)
-                  }
-                }}
-              />
+                <AssignmentCard
+                  assignment={assignment}
+                  course={getCourseById(assignment.courseId)}
+                  onStatusChange={(id, status) => updateAssignment(id, { status })}
+                  onViewDetail={() => setSelectedAssignmentId(assignment.id)}
+                  onEdit={() => {
+                    setEditingAssignment(assignment.id)
+                    setSelectedAssignmentId(null)
+                    setShowAssignmentForm(true)
+                  }}
+                  onDelete={() => {
+                    if (confirm("確定要刪除這個作業嗎？")) {
+                      deleteAssignment(assignment.id)
+                    }
+                  }}
+                />
               </div>
             ))}
           </div>
@@ -1359,21 +1360,21 @@ export default function HomePage() {
           <div className="space-y-4">
             {sortedNotes.map((note, index) => (
               <div key={note.id} className="animate-fade-in" style={{ animationDelay: `${index * 50}ms` }}>
-              <NoteCard
-                note={note}
-                course={getCourseById(note.courseId)}
-                onClick={() => setSelectedNoteId(note.id)}
-                onEdit={() => {
-                  setEditingNote(note.id)
-                  setSelectedNoteId(null)
-                  setShowNoteForm(true)
-                }}
-                onDelete={() => {
-                  if (confirm("確定要刪除這個筆記嗎？")) {
-                    deleteNote(note.id)
-                  }
-                }}
-              />
+                <NoteCard
+                  note={note}
+                  course={getCourseById(note.courseId)}
+                  onClick={() => setSelectedNoteId(note.id)}
+                  onEdit={() => {
+                    setEditingNote(note.id)
+                    setSelectedNoteId(null)
+                    setShowNoteForm(true)
+                  }}
+                  onDelete={() => {
+                    if (confirm("確定要刪除這個筆記嗎？")) {
+                      deleteNote(note.id)
+                    }
+                  }}
+                />
               </div>
             ))}
           </div>
@@ -1477,22 +1478,22 @@ export default function HomePage() {
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
             {sortedExams.map((exam, index) => (
               <div key={exam.id} className="animate-fade-in" style={{ animationDelay: `${index * 50}ms` }}>
-              <ExamCard
-                exam={exam}
-                course={getCourseById(exam.courseId)}
-                onViewDetail={() => setSelectedExamId(exam.id)}
-                onEdit={() => {
-                  setEditingExam(exam.id)
-                  setSelectedExamId(null)
-                  setShowExamForm(true)
-                }}
-                onDelete={() => {
-                  if (confirm("確定要刪除這個考試嗎？")) {
-                    deleteExam(exam.id)
-                  }
-                }}
-                onStatusChange={(id, status) => updateExam(id, { status })}
-              />
+                <ExamCard
+                  exam={exam}
+                  course={getCourseById(exam.courseId)}
+                  onViewDetail={() => setSelectedExamId(exam.id)}
+                  onEdit={() => {
+                    setEditingExam(exam.id)
+                    setSelectedExamId(null)
+                    setShowExamForm(true)
+                  }}
+                  onDelete={() => {
+                    if (confirm("確定要刪除這個考試嗎？")) {
+                      deleteExam(exam.id)
+                    }
+                  }}
+                  onStatusChange={(id, status) => updateExam(id, { status })}
+                />
               </div>
             ))}
           </div>
@@ -1541,17 +1542,11 @@ export default function HomePage() {
     }
   }, [])
 
+
+
   // 載入狀態顯示
   if (loading) {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-gray-900"></div>
-          <h2 className="text-2xl font-bold mt-4">載入中...</h2>
-          <p className="text-gray-600">正在載入您的資料...</p>
-        </div>
-      </div>
-    )
+    return <DashboardSkeleton />
   }
 
   // 錯誤狀態顯示
@@ -1561,7 +1556,7 @@ export default function HomePage() {
         <div className="text-center">
           <h2 className="text-2xl font-bold text-red-600 mb-4">載入失敗</h2>
           <p className="text-gray-600 mb-4">{error}</p>
-          <button 
+          <button
             onClick={() => refetch()}
             className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
           >
