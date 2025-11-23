@@ -98,10 +98,10 @@ export function CourseForm({ onSubmit, onCancel, onBulkImport, initialCourse, ex
     setOcrLoading(true)
     try {
       console.log("[OCR] 開始掃描圖片:", file.name)
-      
+
       // 調用預覽模式 OCR API
       const response = await ApiService.previewTimetableImage(file)
-      
+
       if (response.error) {
         console.error("[OCR] 掃描失敗:", response.error)
         alert(`OCR掃描失敗: ${response.error}`)
@@ -131,9 +131,9 @@ export function CourseForm({ onSubmit, onCancel, onBulkImport, initialCourse, ex
     setOcrLoading(true)
     try {
       console.log("[OCR] 確認創建課程:", selectedCourses.length, "個")
-      
+
       const response = await ApiService.confirmTimetableImport(selectedCourses)
-      
+
       if (response.error) {
         console.error("[OCR] 創建失敗:", response.error)
         alert(`課程創建失敗: ${response.error}`)
@@ -144,18 +144,18 @@ export function CourseForm({ onSubmit, onCancel, onBulkImport, initialCourse, ex
       const coursesCreated = responseData?.coursesCreated || 0
       const schedulesCreated = responseData?.schedulesCreated || 0
       const skippedCourses = responseData?.skippedCourses || []
-      
+
       if (coursesCreated > 0) {
         let message = `成功創建 ${coursesCreated} 個課程，${schedulesCreated} 個時段！`
         if (skippedCourses.length > 0) {
           message += `\n跳過 ${skippedCourses.length} 個課程（${skippedCourses.map(c => c.reason).join(', ')}）`
         }
         alert(message)
-        
+
         // 關閉模態框
         setOcrPreviewOpen(false)
         setOcrPreviewData(null)
-        
+
         // 觸發父組件刷新課程列表
         if (onBulkImport) {
           // 如果有批量導入回調，調用它來刷新數據
@@ -207,7 +207,7 @@ export function CourseForm({ onSubmit, onCancel, onBulkImport, initialCourse, ex
       const dayLabel = (d: number) => {
         const dayMap: { [key: number]: string } = {
           0: '週一',
-          1: '週二', 
+          1: '週二',
           2: '週三',
           3: '週四',
           4: '週五',
@@ -287,9 +287,9 @@ export function CourseForm({ onSubmit, onCancel, onBulkImport, initialCourse, ex
                 className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
                 disabled={ocrLoading}
               />
-              <Button 
-                type="button" 
-                variant="outline" 
+              <Button
+                type="button"
+                variant="outline"
                 className="w-full bg-white hover:bg-blue-50 border-blue-300"
                 disabled={ocrLoading}
               >
@@ -316,11 +316,7 @@ export function CourseForm({ onSubmit, onCancel, onBulkImport, initialCourse, ex
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-4">
-          {isEditMode && (
-            <div className="rounded-md border border-amber-200 bg-amber-50 p-4 text-sm text-amber-800">
-              目前僅開放調整上課時間，其餘欄位若需變更請聯繫管理員。
-            </div>
-          )}
+
           <div>
             <Label htmlFor="name" className="font-bold">
               課程名稱 *
@@ -328,13 +324,9 @@ export function CourseForm({ onSubmit, onCancel, onBulkImport, initialCourse, ex
             <Input
               id="name"
               value={formData.name}
-              onChange={(e) => {
-                if (isEditMode) return
+              onChange={(e) =>
                 setFormData((prev) => ({ ...prev, name: e.target.value }))
-              }}
-              readOnly={isEditMode}
-              disabled={isEditMode}
-              aria-readonly={isEditMode}
+              }
               placeholder="輸入課程名稱"
               required
             />
@@ -347,13 +339,9 @@ export function CourseForm({ onSubmit, onCancel, onBulkImport, initialCourse, ex
             <Input
               id="courseCode"
               value={formData.courseCode}
-              onChange={(e) => {
-                if (isEditMode) return
+              onChange={(e) =>
                 setFormData((prev) => ({ ...prev, courseCode: e.target.value }))
-              }}
-              readOnly={isEditMode}
-              disabled={isEditMode}
-              aria-readonly={isEditMode}
+              }
               placeholder="輸入課程代碼 (例如: CS101)"
             />
           </div>
@@ -365,13 +353,9 @@ export function CourseForm({ onSubmit, onCancel, onBulkImport, initialCourse, ex
             <Input
               id="instructor"
               value={formData.instructor}
-              onChange={(e) => {
-                if (isEditMode) return
+              onChange={(e) =>
                 setFormData((prev) => ({ ...prev, instructor: e.target.value }))
-              }}
-              readOnly={isEditMode}
-              disabled={isEditMode}
-              aria-readonly={isEditMode}
+              }
               placeholder="輸入教師姓名"
             />
           </div>
@@ -383,13 +367,9 @@ export function CourseForm({ onSubmit, onCancel, onBulkImport, initialCourse, ex
             <Input
               id="classroom"
               value={formData.classroom}
-              onChange={(e) => {
-                if (isEditMode) return
+              onChange={(e) =>
                 setFormData((prev) => ({ ...prev, classroom: e.target.value }))
-              }}
-              readOnly={isEditMode}
-              disabled={isEditMode}
-              aria-readonly={isEditMode}
+              }
               placeholder="輸入教室位置"
             />
           </div>
