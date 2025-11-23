@@ -150,8 +150,15 @@ export function TeacherCourseDetail({
   const courseAssignments = getAssignmentsByCourse(courseId)
 
   const parseMemberCount = (value: any): number => {
+    // -1 表示無權限，保持原值
+    if (value === -1) return -1
+    // null 或 undefined 返回 0
+    if (value === null || value === undefined) return 0
+    // 數字類型直接返回
     if (typeof value === 'number' && Number.isFinite(value)) return value
+    // 陣列返回長度
     if (Array.isArray(value)) return value.length
+    // 嘗試轉換為數字
     const parsed = Number(value)
     return Number.isFinite(parsed) ? parsed : 0
   }
