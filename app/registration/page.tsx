@@ -54,14 +54,14 @@ export default function RegistrationPage() {
   useEffect(() => {
     const checkRegistration = async () => {
       if (!uidMemo) return
-      
+
       // 只有當使用者 ID 變更時才重新檢查，避免初始假 ID 導致誤判後不再更新
       if (lastCheckedUidRef.current === uidMemo) return
-      
+
       // 防止重複檢查
       if (isCheckingRef.current) return
       isCheckingRef.current = true
-      
+
       lastCheckedUidRef.current = uidMemo
 
       setRegistrationStatus('checking')
@@ -69,7 +69,7 @@ export default function RegistrationPage() {
 
       try {
         // 確保後續 API 請求帶入正確的 LINE 使用者 ID
-        try { ApiService.setLineUserId(uidMemo) } catch {}
+        try { ApiService.setLineUserId(uidMemo) } catch { }
 
         const registered = await UserService.getOnboardStatus(uidMemo)
 
@@ -77,7 +77,7 @@ export default function RegistrationPage() {
           console.log('✅ 用戶已註冊，檢查角色...')
           // 檢查用戶角色
           const userProfile = await UserService.getUserByLineId(uidMemo)
-          
+
           if (userProfile?.role === 'student') {
             console.log('✅ 學生身分，自動跳轉到應用首頁')
             // 防止重複導航
@@ -86,7 +86,7 @@ export default function RegistrationPage() {
               return
             }
             hasNavigatedRef.current = true
-            
+
             // 在 LIFF 內直接關閉視窗；一般瀏覽器導回首頁
             try {
               if (isLiffEnvironment()) {
@@ -101,8 +101,27 @@ export default function RegistrationPage() {
               router.replace('/')
             }
           } else if (userProfile?.role === 'teacher') {
-            console.log('🚫 老師身分，顯示提示訊息')
-            setRegistrationStatus('not_registered') // 保持在註冊頁但顯示已註冊狀態
+            console.log('✅ 老師身分，自動跳轉到老師頁面')
+            // 防止重複導航
+            if (hasNavigatedRef.current) {
+              console.log('已執行過導航，跳過')
+              return
+            }
+            hasNavigatedRef.current = true
+
+            // 在 LIFF 內直接關閉視窗；一般瀏覽器導回老師頁面
+            try {
+              if (isLiffEnvironment()) {
+                console.log('LIFF 環境：關閉視窗')
+                closeLiffWindow()
+              } else {
+                console.log('一般瀏覽器：跳轉到老師頁面')
+                router.replace('/teacher')
+              }
+            } catch {
+              console.log('跳轉失敗，使用備用方案')
+              router.replace('/teacher')
+            }
           }
           return
         } else {
@@ -130,7 +149,7 @@ export default function RegistrationPage() {
     try {
       const role = data.role ?? undefined
       const name = data.name || ''
-      
+
       // LIFF 環境優先使用預註冊，否則直接取得 OAuth 連結
       let redirectUrl = ''
       if (isLiffEnvironment() && lineUser?.userId && role && name) {
@@ -143,25 +162,25 @@ export default function RegistrationPage() {
         const d: any = resp?.data || resp || {}
         redirectUrl = d.redirectUrl || d.auth_url || d.url || ''
       }
-      
+
       if (!redirectUrl) {
         const resp = await ApiService.getGoogleOAuthUrl({ role, name })
         const d: any = resp?.data || resp || {}
         redirectUrl = d.redirectUrl || d.auth_url || d.url || ''
       }
-      
+
       if (!redirectUrl) {
         alert('後端未回傳 redirectUrl')
         return
       }
-      
+
       // 在 LIFF：用外部瀏覽器開啟；非 LIFF：整頁導向
       if (typeof window !== 'undefined' && (window as any).liff?.openWindow) {
         (window as any).liff.openWindow({ url: redirectUrl, external: true })
       } else {
         window.location.href = redirectUrl
       }
-      
+
       // 進入等待授權狀態（僅提示，不做輪詢）
       console.log('已開啟 Google 授權，請完成後返回應用程式')
     } catch (error) {
@@ -245,7 +264,7 @@ export default function RegistrationPage() {
               </div>
               <h2 className="text-lg font-semibold text-red-800 mb-2">檢查狀態失敗</h2>
               <p className="text-red-600 text-sm">無法確認註冊狀態，請重新整理頁面</p>
-              <Button 
+              <Button
                 onClick={() => window.location.reload()}
                 className="mt-4"
                 variant="outline"
