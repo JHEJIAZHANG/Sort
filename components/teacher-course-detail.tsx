@@ -149,6 +149,13 @@ export function TeacherCourseDetail({
   const course = getCourseById(courseId)
   const courseAssignments = getAssignmentsByCourse(courseId)
 
+  const parseMemberCount = (value: any): number => {
+    if (typeof value === 'number' && Number.isFinite(value)) return value
+    if (Array.isArray(value)) return value.length
+    const parsed = Number(value)
+    return Number.isFinite(parsed) ? parsed : 0
+  }
+
   // 載入課程統計資料
   const loadCourseStats = async () => {
     try {
@@ -183,7 +190,8 @@ export function TeacherCourseDetail({
           courseId,
           lineUserId,
           rawCount: Array.isArray(groupsRaw) ? groupsRaw.length : 0,
-          rawSample: Array.isArray(groupsRaw) ? groupsRaw.slice(0, 2) : groupsRaw
+          rawSample: Array.isArray(groupsRaw) ? groupsRaw.slice(0, 2) : groupsRaw,
+          fullGroupsResp: groupsResp
         })
       }
 
@@ -341,12 +349,14 @@ export function TeacherCourseDetail({
 
       const resolvedGroups: BoundGroup[] = Array.isArray(groupsRaw) ? groupsRaw.map((g: any) => {
         // 解析成員數量，支援多種可能的欄位名稱
-        const memberCount = Number(
+        const memberCount = parseMemberCount(
           g.member_count ??
           g.members ??
           g.memberCount ??
           g.members_count ??
           g.membersCount ??
+          g.member_ids ??
+          g.memberIds ??
           0
         )
 
@@ -378,6 +388,18 @@ export function TeacherCourseDetail({
           completed_assignments: Number(weeklyRaw.completed_assignments ?? 0)
         }
       ] : []
+
+      if (process.env.NODE_ENV !== 'production') {
+        console.info('[TeacherCourseDetail] Resolved groups:', {
+          count: resolvedGroups.length,
+          groups: resolvedGroups.map(g => ({
+            id: g.id,
+            name: g.name,
+            member_count: g.member_count,
+            bound_at: g.bound_at
+          }))
+        })
+      }
 
       setCourseStats(resolvedStats)
       setStudents(resolvedStudents)
@@ -427,9 +449,13 @@ export function TeacherCourseDetail({
         (resp as any)?.data?.member_count ??
         (resp as any)?.data?.data?.member_count ??
         (resp as any)?.data?.members ??
-        (resp as any)?.data?.memberCount
-      const updatedCount = Number(updatedCountRaw)
-      if (!Number.isNaN(updatedCount)) {
+        (resp as any)?.data?.memberCount ??
+        (resp as any)?.data?.members_count ??
+        (resp as any)?.data?.membersCount ??
+        (resp as any)?.data?.member_ids ??
+        (resp as any)?.data?.memberIds
+      if (updatedCountRaw !== undefined && updatedCountRaw !== null) {
+        const updatedCount = parseMemberCount(updatedCountRaw)
         setBoundGroups((prev) =>
           prev.map((group) =>
             group.id === groupId ? { ...group, member_count: updatedCount } : group

@@ -1,5 +1,5 @@
 import { Course, Assignment, Note, Exam } from '@/types/course'
-import {
+import { 
   createGoogleClassroomCourseUrl,
   createGoogleClassroomAssignmentUrl,
   normalizeGoogleClassroomUrl
@@ -31,11 +31,11 @@ export function transformBackendCourse(backendCourse: any): Course {
   // 教師API返回的格式：{ id, name, section, schedules, ... }
   const id = String(backendCourse.id || backendCourse.gc_course_id || backendCourse.classroom_id || Date.now())
   const name = backendCourse.name || backendCourse.title || '未命名課程'
-
+  
   // 處理創建時間
   const created = backendCourse.creationTime ? new Date(backendCourse.creationTime) :
-    backendCourse.created_at ? new Date(backendCourse.created_at) :
-      new Date()
+                  backendCourse.created_at ? new Date(backendCourse.created_at) : 
+                  new Date()
 
   // 處理課程時間表
   const schedules = (backendCourse.schedules || []).map((schedule: any) => ({
@@ -46,8 +46,8 @@ export function transformBackendCourse(backendCourse: any): Course {
   }))
 
   // 判斷來源
-  const source = backendCourse.is_local || backendCourse.is_google_classroom || backendCourse.enrollmentCode
-    ? 'google_classroom'
+  const source = backendCourse.is_local || backendCourse.is_google_classroom || backendCourse.enrollmentCode 
+    ? 'google_classroom' 
     : 'manual'
 
   // 計算/修正 Google Classroom 連結
@@ -64,7 +64,7 @@ export function transformBackendCourse(backendCourse: any): Course {
   const result: Course = {
     id,
     name,
-    courseCode: backendCourse.course_code || backendCourse.section || '',
+    courseCode: backendCourse.section || '',
     instructor: backendCourse.ownerId || backendCourse.instructor || '',
     classroom: backendCourse.classroom || backendCourse.location || '',
     studentCount: backendCourse.student_count || 0,
@@ -86,7 +86,6 @@ export function transformFrontendCourse(frontendCourse: Course, lineUserId: stri
     description: frontendCourse.courseCode || '',
     instructor: frontendCourse.instructor || '',
     classroom: frontendCourse.classroom || '',
-    course_code: frontendCourse.courseCode || '',
     color: frontendCourse.color,
     is_google_classroom: frontendCourse.source === 'google_classroom',
     schedules: frontendCourse.schedule.map(schedule => ({
@@ -110,7 +109,7 @@ export function transformBackendAssignment(backendAssignment: any): Assignment {
   // 處理狀態：支援 Google Classroom 繳交狀態和一般狀態
   let status: "pending" | "completed" | "overdue" = "pending"
   const backendStatus = backendAssignment.state || backendAssignment.status
-
+  
   // Google Classroom 繳交狀態處理
   if (backendStatus === "TURNED_IN" || backendStatus === "RETURNED") {
     // TURNED_IN = 學生已繳交，RETURNED = 教師已批改並返還
@@ -123,8 +122,8 @@ export function transformBackendAssignment(backendAssignment: any): Assignment {
     // CREATED/NEW = 尚未繳交，需要根據截止日期判斷是否逾期
     const now = new Date()
     const due = backendAssignment.due_datetime ? new Date(backendAssignment.due_datetime) :
-      backendAssignment.due_date ? new Date(backendAssignment.due_date.replace(' ', 'T')) :
-        new Date()
+                backendAssignment.due_date ? new Date(backendAssignment.due_date.replace(' ', 'T')) :
+                new Date()
     status = now > due ? "overdue" : "pending"
   } else {
     // PUBLISHED, DRAFT, DELETED 等其他狀態視為 pending
@@ -143,26 +142,18 @@ export function transformBackendAssignment(backendAssignment: any): Assignment {
     const normalized = raw.includes('T') ? raw : raw.replace(' ', 'T')
     dueDate = new Date(normalized)
   }
-
+  
   console.log('  - dueDate 原始值:', backendAssignment.due_datetime || backendAssignment.due_date)
   console.log('  - dueDate 轉換後:', dueDate, '是否為有效日期:', dueDate instanceof Date && !isNaN(dueDate.getTime()))
 
-  // 若未標示完成且截止時間已過，強制標記為逾期，避免「已結束」仍顯示進行中
-  if (status !== "completed" && dueDate instanceof Date && !isNaN(dueDate.getTime())) {
-    const now = new Date()
-    if (dueDate < now) {
-      status = "overdue"
-    }
-  }
-
   // 處理創建和更新時間
   const createdAt = backendAssignment.creation_time ? new Date(backendAssignment.creation_time) :
-    backendAssignment.created_at ? new Date(backendAssignment.created_at) :
-      new Date()
-
+                    backendAssignment.created_at ? new Date(backendAssignment.created_at) :
+                    new Date()
+  
   const updatedAt = backendAssignment.update_time ? new Date(backendAssignment.update_time) :
-    backendAssignment.updated_at ? new Date(backendAssignment.updated_at) :
-      new Date()
+                    backendAssignment.updated_at ? new Date(backendAssignment.updated_at) :
+                    new Date()
 
   // 計算/修正 Google Classroom 作業連結
   let googleClassroomUrl: string | undefined = undefined
@@ -252,7 +243,7 @@ export function transformFrontendNote(frontendNote: Note, lineUserId: string) {
 // 後端 Exam 轉換為前端 Exam
 export function transformBackendExam(backendExam: any): Exam {
   console.log('🔄 transformBackendExam 輸入:', backendExam)
-
+  
   const course = extractCourseIdAndName(backendExam.course)
   let examDate: Date = new Date()
   if (backendExam.exam_date) {
@@ -260,14 +251,14 @@ export function transformBackendExam(backendExam: any): Exam {
     const normalized = raw.includes('T') ? raw : raw.replace(' ', 'T')
     examDate = new Date(normalized)
   }
-
+  
   // 處理提醒時間
   const notificationTime = backendExam.notification_time ? new Date(backendExam.notification_time) : undefined
-
+  
   // 處理創建和更新時間
   const createdAt = backendExam.created_at ? new Date(backendExam.created_at) : new Date()
   const updatedAt = backendExam.updated_at ? new Date(backendExam.updated_at) : new Date()
-
+  
   const result: Exam = {
     id: backendExam.id.toString(),
     title: backendExam.title,
@@ -284,10 +275,10 @@ export function transformBackendExam(backendExam: any): Exam {
     createdAt: createdAt,
     updatedAt: updatedAt
   }
-
+  
   console.log('✅ transformBackendExam 輸出:', result)
   console.log('  - examDate:', result.examDate, '是否為有效日期:', result.examDate instanceof Date && !isNaN(result.examDate.getTime()))
-
+  
   return result
 }
 
