@@ -299,8 +299,8 @@ export class ApiService {
       this.bootstrapLineUserId()
     }
 
-    // 如果有 schedules 字段，優先使用教師專用的 API（支援 Google Classroom 課程）
-    // 這個 API 可以更新時間表和教室
+    // 如果有 schedules 字段，使用 V2 API 更新時間表和教室
+    // 這個 API 支援 CourseV2 模型
     if (data.schedules && Array.isArray(data.schedules)) {
       const payload: any = {
         line_user_id: this.lineUserId,
@@ -313,10 +313,10 @@ export class ApiService {
         payload.classroom = data.classroom
       }
 
-      const resp = await this.request<any>('/teacher/courses/update-schedule/', {
+      const resp = await this.request<any>('/courses/update-schedule/', {
         method: 'PATCH',
         body: JSON.stringify(payload)
-      }, 'other')  // 使用 /api 前綴
+      })  // 使用預設的 v2 前綴
 
       if (resp?.error) return resp
       const entity = (resp as any)?.data?.data || (resp as any)?.data
