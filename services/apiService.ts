@@ -299,29 +299,8 @@ export class ApiService {
       this.bootstrapLineUserId()
     }
 
-    // 如果有 schedules 字段，使用 V2 API 更新時間表和教室
-    // 這個 API 支援 CourseV2 模型
-    if (data.schedules && Array.isArray(data.schedules)) {
-      const payload: any = {
-        line_user_id: this.lineUserId,
-        course_id: courseId,
-        schedules: data.schedules
-      }
-
-      // 如果有教室資料，也一起發送
-      if (data.classroom !== undefined) {
-        payload.classroom = data.classroom
-      }
-
-      const resp = await this.request<any>('/courses/update-schedule/', {
-        method: 'PATCH',
-        body: JSON.stringify(payload)
-      })  // 使用預設的 v2 前綴
-
-      if (resp?.error) return resp
-      const entity = (resp as any)?.data?.data || (resp as any)?.data
-      return { data: entity }
-    }
+    // 移除錯誤的教師 API 重定向，統一使用 web/courses/update/
+    // 該 API 已支援 schedules 更新，且適用於學生端 (CourseV2)
 
     // 否則使用一般的課程更新 API（僅支援本地課程）
     const payload = { line_user_id: this.lineUserId, course_id: courseId, ...data }
