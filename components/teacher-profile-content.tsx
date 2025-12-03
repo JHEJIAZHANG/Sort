@@ -93,7 +93,7 @@ export function TeacherProfileContent({ user: propUser, onUserChange, lineUserId
   useEffect(() => {
     const fetchUserProfile = async () => {
       if (!lineUserId) return
-      
+
       try {
         const response = await ApiService.getProfile(lineUserId)
         if (response.data && response.data.picture_url) {
@@ -106,8 +106,30 @@ export function TeacherProfileContent({ user: propUser, onUserChange, lineUserId
         console.error('無法獲取用戶頭像:', error)
       }
     }
-    
+
     fetchUserProfile()
+  }, [lineUserId])
+
+  // 從後端獲取學期設定
+  useEffect(() => {
+    const fetchSemesterSettings = async () => {
+      if (!lineUserId) return
+
+      try {
+        const response = await ApiService.getSemesterSettings(lineUserId)
+        if (response.data) {
+          setSemesterSettings({
+            totalWeeks: response.data.totalWeeks || 18,
+            startDate: response.data.startDate || '2025-09-01',
+            endDate: response.data.endDate || '2025-12-31',
+          })
+        }
+      } catch (error) {
+        console.error('無法獲取學期設定:', error)
+      }
+    }
+
+    fetchSemesterSettings()
   }, [lineUserId])
 
   // 從後端獲取通知設定
@@ -117,7 +139,7 @@ export function TeacherProfileContent({ user: propUser, onUserChange, lineUserId
         setNotificationSettings({ ...DEFAULT_NOTIFICATION_SETTINGS })
         return
       }
-      
+
       try {
         const response = await ApiService.getNotificationSettings(lineUserId)
         if (response.data) {
@@ -130,7 +152,7 @@ export function TeacherProfileContent({ user: propUser, onUserChange, lineUserId
         setNotificationSettings({ ...DEFAULT_NOTIFICATION_SETTINGS })
       }
     }
-    
+
     fetchNotificationSettings()
   }, [lineUserId])
 
@@ -164,7 +186,7 @@ export function TeacherProfileContent({ user: propUser, onUserChange, lineUserId
 
       alert("帳號已成功刪除，頁面即將刷新")
       setShowDeleteAccountDialog(false)
-      
+
       setTimeout(() => {
         window.location.reload()
       }, 1000)
@@ -176,38 +198,27 @@ export function TeacherProfileContent({ user: propUser, onUserChange, lineUserId
     }
   }
 
-  const handleSemesterSettingsSave = () => {
-    setShowSemesterSettings(false)
-    alert("學期設定已儲存！")
-  }
-
-  const handleTestNotification = () => {
-    if (notificationSettings.browserNotifications) {
-      if (Notification.permission === "default") {
-        Notification.requestPermission().then((permission) => {
-          if (permission === "granted") {
-            new Notification("通知測試", {
-              body: "通知功能正常運作",
-              icon: "/favicon.ico",
-            })
-          }
-        })
-      } else if (Notification.permission === "granted") {
-        new Notification("通知測試", {
-          body: "通知功能正常運作",
-          icon: "/favicon.ico",
-        })
-      }
+  const handleSemesterSettingsSave = async () => {
+    if (!lineUserId) {
+      alert("無法儲存設定：未找到用戶 ID")
+      return
     }
 
-    if (notificationSettings.lineNotifications) {
-      alert("LINE 通知測試已發送")
-    }
-
-    if (!notificationSettings.browserNotifications && !notificationSettings.lineNotifications) {
-      alert("請先啟用至少一種通知方式")
+    try {
+      await ApiService.updateSemesterSettings(lineUserId, {
+        totalWeeks: semesterSettings.totalWeeks,
+        startDate: semesterSettings.startDate,
+        endDate: semesterSettings.endDate,
+      })
+      setShowSemesterSettings(false)
+      alert("學期設定已儲存！")
+    } catch (error) {
+      console.error('儲存學期設定失敗:', error)
+      alert("儲存設定失敗，請稍後再試")
     }
   }
+
+
 
   if (showSemesterSettings) {
     return (
@@ -405,21 +416,6 @@ export function TeacherProfileContent({ user: propUser, onUserChange, lineUserId
                   />
                 </div>
 
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="font-medium">瀏覽器推播</p>
-                    <p className="text-sm text-muted-foreground">網頁推播通知</p>
-                  </div>
-                  <Switch
-                    checked={notificationSettings.browserNotifications}
-                    onCheckedChange={(checked) =>
-                      setNotificationSettings({
-                        ...notificationSettings,
-                        browserNotifications: checked,
-                      })
-                    }
-                  />
-                </div>
               </div>
             </Card>
           </div>
@@ -483,10 +479,6 @@ export function TeacherProfileContent({ user: propUser, onUserChange, lineUserId
           </div>
 
           <div className="flex flex-col gap-3">
-            <Button onClick={handleTestNotification} variant="outline" className="w-full bg-transparent">
-              測試推播通知
-            </Button>
-
             <div className="flex gap-2">
               <Button
                 onClick={async () => {
@@ -494,7 +486,7 @@ export function TeacherProfileContent({ user: propUser, onUserChange, lineUserId
                     alert("無法儲存設定：未找到用戶 ID")
                     return
                   }
-                  
+
                   try {
                     await ApiService.updateNotificationSettings(lineUserId, mapNotificationSettingsToApi(notificationSettings))
                     setShowNotificationSettings(false)

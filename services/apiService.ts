@@ -58,7 +58,7 @@ export class ApiService {
         try {
           const expires = new Date(Date.now() + 24 * 60 * 60 * 1000).toUTCString()
           document.cookie = `line_user_id=${encodeURIComponent(userId)}; expires=${expires}; path=/; samesite=Lax`
-        } catch {}
+        } catch { }
       }
     } else {
       console.warn('Invalid LINE User ID provided')
@@ -97,7 +97,7 @@ export class ApiService {
           }
         }
       }
-    } catch {}
+    } catch { }
     return ''
   }
 
@@ -191,13 +191,13 @@ export class ApiService {
   static async updateProfile(lineUserId: string, data: any) {
     // 將前端的 camelCase 轉換為後端的 snake_case
     const apiData: any = {}
-    
+
     if (data.name !== undefined) apiData.name = data.name
     if (data.role !== undefined) apiData.role = data.role
     if (data.email !== undefined) apiData.email = data.email
     if (data.googleEmail !== undefined) apiData.email = data.googleEmail
     if (data.pictureUrl !== undefined) apiData.picture_url = data.pictureUrl
-    
+
     return this.request(`/profile/${lineUserId}/`, {
       method: 'PUT',
       body: JSON.stringify(apiData)
@@ -218,6 +218,18 @@ export class ApiService {
 
   static async updateNotificationSettings(lineUserId: string, settings: any) {
     return this.request(`/notification-settings/${lineUserId}`, {
+      method: 'PUT',
+      body: JSON.stringify(settings)
+    })
+  }
+
+  // 學期設定相關 API
+  static async getSemesterSettings(lineUserId: string) {
+    return this.request(`/semester-settings/${lineUserId}`)
+  }
+
+  static async updateSemesterSettings(lineUserId: string, settings: any) {
+    return this.request(`/semester-settings/${lineUserId}`, {
       method: 'PUT',
       body: JSON.stringify(settings)
     })
@@ -286,7 +298,7 @@ export class ApiService {
     if (!this.lineUserId) {
       this.bootstrapLineUserId()
     }
-    
+
     // 如果有 schedules 字段，優先使用教師專用的 API（支援 Google Classroom 課程）
     // 這個 API 可以更新時間表和教室
     if (data.schedules && Array.isArray(data.schedules)) {
@@ -295,25 +307,25 @@ export class ApiService {
         course_id: courseId,
         schedules: data.schedules
       }
-      
+
       // 如果有教室資料，也一起發送
       if (data.classroom !== undefined) {
         payload.classroom = data.classroom
       }
-      
+
       const resp = await this.request<any>('/teacher/courses/update-schedule/', {
         method: 'PATCH',
         body: JSON.stringify(payload)
       }, 'other')  // 使用 /api 前綴
-      
+
       if (resp?.error) return resp
       const entity = (resp as any)?.data?.data || (resp as any)?.data
       return { data: entity }
     }
-    
+
     // 否則使用一般的課程更新 API（僅支援本地課程）
     const payload = { line_user_id: this.lineUserId, course_id: courseId, ...data }
-    
+
     const resp = await this.request<any>('/web/courses/update/', {
       method: 'PATCH',
       body: JSON.stringify(payload)
@@ -920,7 +932,7 @@ export class ApiService {
     if (!lineUserId || lineUserId.trim() === '') {
       throw new Error('LINE User ID 未設置，請確認已正確登入')
     }
-    
+
     return this.request('/sync/preview-sync-all/', {
       method: 'POST',
       body: JSON.stringify({ line_user_id: lineUserId })
@@ -943,10 +955,10 @@ export class ApiService {
     if (!lineUserId || lineUserId.trim() === '') {
       throw new Error('LINE User ID 未設置，請確認已正確登入')
     }
-    
+
     return this.request('/sync/confirm-import/', {
       method: 'POST',
-      body: JSON.stringify({ 
+      body: JSON.stringify({
         line_user_id: lineUserId,
         selected_items: {
           courses: params.courses,
@@ -964,10 +976,10 @@ export class ApiService {
     if (!lineUserId || lineUserId.trim() === '') {
       throw new Error('LINE User ID 未設置，請確認已正確登入')
     }
-    
+
     return this.request('/sync/sync-assignments/', {
       method: 'POST',
-      body: JSON.stringify({ 
+      body: JSON.stringify({
         line_user_id: lineUserId,
         course_ids: courseIds
       })
@@ -975,14 +987,14 @@ export class ApiService {
   }
 
   // ==================== 教師專用 Google Classroom API ====================
-  
+
   // 教師課程預覽
   static async teacherPreviewImport() {
     const lineUserId = this.ensureLineUserId()
     if (!lineUserId || lineUserId.trim() === '') {
       throw new Error('LINE User ID 未設置，請確認已正確登入')
     }
-    
+
     return this.request('/classroom/teacher/preview-import/', {
       method: 'POST',
       body: JSON.stringify({ line_user_id: lineUserId })
@@ -1003,10 +1015,10 @@ export class ApiService {
     if (!lineUserId || lineUserId.trim() === '') {
       throw new Error('LINE User ID 未設置，請確認已正確登入')
     }
-    
+
     return this.request('/classroom/teacher/confirm-import/', {
       method: 'POST',
-      body: JSON.stringify({ 
+      body: JSON.stringify({
         line_user_id: lineUserId,
         selected_courses: params.selected_courses,
         course_schedules: params.course_schedules || {}
@@ -1023,10 +1035,10 @@ export class ApiService {
     if (!lineUserId || lineUserId.trim() === '') {
       throw new Error('LINE User ID 未設置，請確認已正確登入')
     }
-    
+
     return this.request('/classroom/teacher/sync-assignments/', {
       method: 'POST',
-      body: JSON.stringify({ 
+      body: JSON.stringify({
         line_user_id: lineUserId,
         mode: params?.mode || 'all_active',
         course_ids: params?.course_ids || []
@@ -1202,51 +1214,51 @@ export class ApiService {
   }
 
   // ==================== 教師專用 API ====================
-  
+
   // 教師課程列表（使用 /api/courses/ 端點獲取教師課程）
   static async getTeacherCourses(lineUserId: string) {
     console.log('========== getTeacherCourses 開始 ==========')
     console.log('📥 輸入參數 lineUserId:', lineUserId)
-    
+
     this.setLineUserId(lineUserId)
     const effective = this.ensureLineUserId()
     console.log('✅ 有效的 lineUserId:', effective)
-    
+
     const qs = `?${new URLSearchParams({ line_user_id: effective, _ts: String(Date.now()) }).toString()}`
     console.log('🔗 完整 API URL: /api/courses/' + qs)
-    
+
     // 使用 'other' apiPrefix 來調用 /api/courses/ 端點
     console.log('⏳ 開始發送請求...')
     const resp = await this.request<any>(`/courses/${qs}`, {}, 'other')
-    
+
     console.log('📦 API 原始回應:')
     console.log('  - resp.data:', resp?.data)
     console.log('  - resp.error:', resp?.error)
     console.log('  - 完整回應:', JSON.stringify(resp, null, 2))
-    
+
     if (resp?.error) {
       console.error('❌ getTeacherCourses: API 錯誤:', resp.error)
       console.error('❌ 錯誤詳情:', resp)
       return resp
     }
-    
+
     // 後端返回格式：{ courses: [...], total_courses: N }
     console.log('🔍 解析回應數據:')
     console.log('  - resp.data 類型:', typeof resp?.data)
     console.log('  - resp.data.courses 存在?', !!resp?.data?.courses)
     console.log('  - resp.data.courses 類型:', typeof resp?.data?.courses)
     console.log('  - resp.data.courses 是陣列?', Array.isArray(resp?.data?.courses))
-    
+
     const courses = resp?.data?.courses ?? []
     console.log('✅ 最終課程數量:', courses.length)
-    
+
     if (courses.length > 0) {
       console.log('📋 第一個課程範例:', JSON.stringify(courses[0], null, 2))
     } else {
       console.warn('⚠️ 課程列表為空')
       console.warn('⚠️ 完整 resp.data:', resp?.data)
     }
-    
+
     console.log('========== getTeacherCourses 結束 ==========')
     return { data: courses }
   }
@@ -1261,37 +1273,37 @@ export class ApiService {
     console.log('📥 輸入參數:')
     console.log('  - lineUserId:', lineUserId)
     console.log('  - params:', params)
-    
+
     this.setLineUserId(lineUserId)
     const effective = this.ensureLineUserId()
     console.log('✅ 有效的 lineUserId:', effective)
-    
-    const queryParams = new URLSearchParams({ 
-      line_user_id: effective, 
-      _ts: String(Date.now()) 
+
+    const queryParams = new URLSearchParams({
+      line_user_id: effective,
+      _ts: String(Date.now())
     })
     if (params?.course_id) queryParams.set('course_id', params.course_id)
     if (params?.status) queryParams.set('status', params.status)
     if (params?.upcoming_within_days) queryParams.set('upcoming_within_days', String(params.upcoming_within_days))
-    
+
     const qs = `?${queryParams.toString()}`
     console.log('🔗 完整 API URL: /api/teacher/assignments/' + qs)
-    
+
     // 使用 'other' apiPrefix 來調用 /api/teacher/assignments/ 端點
     console.log('⏳ 開始發送請求...')
     const resp = await this.request<any>(`/teacher/assignments/${qs}`, {}, 'other')
-    
+
     console.log('📦 API 原始回應:')
     console.log('  - resp.data:', resp?.data)
     console.log('  - resp.error:', resp?.error)
     console.log('  - 完整回應:', JSON.stringify(resp, null, 2))
-    
+
     if (resp?.error) {
       console.error('❌ getTeacherAssignments: API 錯誤:', resp.error)
       console.error('❌ 錯誤詳情:', resp)
       return resp
     }
-    
+
     // 後端返回格式：{ data: { all_assignments: [...] } }
     console.log('🔍 解析回應數據:')
     console.log('  - resp.data 類型:', typeof resp?.data)
@@ -1299,21 +1311,21 @@ export class ApiService {
     console.log('  - resp.data.data.all_assignments 存在?', !!resp?.data?.data?.all_assignments)
     console.log('  - resp.data.data.all_assignments 類型:', typeof resp?.data?.data?.all_assignments)
     console.log('  - resp.data.data.all_assignments 是陣列?', Array.isArray(resp?.data?.data?.all_assignments))
-    
+
     const assignments = resp?.data?.data?.all_assignments ?? []
     console.log('✅ 最終作業數量:', assignments.length)
-    
+
     if (assignments.length > 0) {
       console.log('📋 第一個作業範例:', JSON.stringify(assignments[0], null, 2))
     } else {
       console.warn('⚠️ 作業列表為空')
       console.warn('⚠️ 完整 resp.data:', resp?.data)
     }
-    
+
     console.log('========== getTeacherAssignments 結束 ==========')
     return { data: assignments }
   }
-  
+
   // 教師課程詳情相關 API
   static async getTeacherCourseDetail(courseId: string) {
     if (!this.lineUserId) {
@@ -1424,8 +1436,8 @@ export class ApiService {
     if (!this.lineUserId) {
       this.bootstrapLineUserId()
     }
-    const params = new URLSearchParams({ 
-      line_user_id: this.lineUserId, 
+    const params = new URLSearchParams({
+      line_user_id: this.lineUserId,
       course_id: courseId,
       _ts: String(Date.now())
     })
@@ -1459,12 +1471,12 @@ export class ApiService {
       coursework_id: assignmentId,  // 後端期望 coursework_id
       course_id: courseId
     }
-    
+
     // 如果指定了學生 ID，只提醒這些學生
     if (studentIds && studentIds.length > 0) {
       payload.student_ids = studentIds
     }
-    
+
     return this.request('/teacher/assignments/reminder/', {
       method: 'POST',
       body: JSON.stringify(payload)
