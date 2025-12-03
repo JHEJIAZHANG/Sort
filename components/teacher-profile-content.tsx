@@ -63,14 +63,27 @@ export function TeacherProfileContent({ user: propUser, onUserChange, lineUserId
 
   const [showSemesterSettings, setShowSemesterSettings] = useState(false)
   const [showNotificationSettings, setShowNotificationSettings] = useState(false)
+  const [showArchiveManagement, setShowArchiveManagement] = useState(false)
   const [showDeleteAccountDialog, setShowDeleteAccountDialog] = useState(false)
   const [isDeleting, setIsDeleting] = useState(false)
+  const [archivedCourses, setArchivedCourses] = useState<any[]>([])
+  const [isLoadingArchived, setIsLoadingArchived] = useState(false)
 
   const [semesterSettings, setSemesterSettings] = useState<SemesterSettings>({
     totalWeeks: 18,
     startDate: "2025-09-01",
     endDate: "2025-12-31",
   })
+
+  // 自動計算學期總週數
+  const calculateTotalWeeks = (startDate: string, endDate: string): number => {
+    if (!startDate || !endDate) return 18
+    const start = new Date(startDate)
+    const end = new Date(endDate)
+    const diffTime = Math.abs(end.getTime() - start.getTime())
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24))
+    return Math.ceil(diffDays / 7)
+  }
 
   const [notificationSettings, setNotificationSettings] = useState<UserNotificationSettings>({ ...DEFAULT_NOTIFICATION_SETTINGS })
 
@@ -204,17 +217,70 @@ export function TeacherProfileContent({ user: propUser, onUserChange, lineUserId
       return
     }
 
+    // 自動計算總週數
+    const totalWeeks = calculateTotalWeeks(semesterSettings.startDate, semesterSettings.endDate)
+
     try {
       await ApiService.updateSemesterSettings(lineUserId, {
-        totalWeeks: semesterSettings.totalWeeks,
+        totalWeeks: totalWeeks,
         startDate: semesterSettings.startDate,
         endDate: semesterSettings.endDate,
       })
+
+      // 更新本地狀態
+      setSemesterSettings(prev => ({ ...prev, totalWeeks }))
+
       setShowSemesterSettings(false)
       alert("學期設定已儲存！")
     } catch (error) {
       console.error('儲存學期設定失敗:', error)
       alert("儲存設定失敗，請稍後再試")
+    }
+  }
+
+  const loadArchivedCourses = async () => {
+    if (!lineUserId) return
+
+    setIsLoadingArchived(true)
+    try {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || ''}/api/v2/courses/archived/`, {
+        headers: {
+          'X-Line-User-Id': lineUserId,
+          'Content-Type': 'application/json',
+        },
+      })
+      if (response.ok) {
+        const data = await response.json()
+        setArchivedCourses(Array.isArray(data) ? data : [])
+      }
+    } catch (error) {
+      console.error('無法載入封存課程:', error)
+    } finally {
+      setIsLoadingArchived(false)
+    }
+  }
+
+  const handleUnarchive = async (courseId: string) => {
+    if (!lineUserId) return
+
+    try {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || ''}/api/v2/courses/${courseId}/unarchive/`, {
+        method: 'POST',
+        headers: {
+          'X-Line-User-Id': lineUserId,
+          'Content-Type': 'application/json',
+        },
+      })
+
+      if (response.ok) {
+        alert('課程已解除封存')
+        loadArchivedCourses()
+      } else {
+        alert('解除封存失敗')
+      }
+    } catch (error) {
+      console.error('解除封存失敗:', error)
+      alert('解除封存失敗')
     }
   }
 
@@ -228,34 +294,20 @@ export function TeacherProfileContent({ user: propUser, onUserChange, lineUserId
         <Card className="p-6">
           <div className="space-y-4">
             <div>
-              <Label htmlFor="totalWeeks">學期總週數</Label>
-              <Input
-                id="totalWeeks"
-                type="number"
-                value={semesterSettings.totalWeeks}
-                onChange={(e) =>
-                  setSemesterSettings({
-                    ...semesterSettings,
-                    totalWeeks: Number.parseInt(e.target.value) || 18,
-                  })
-                }
-                min="1"
-                max="52"
-              />
-            </div>
-
-            <div>
               <Label htmlFor="startDate">學期開始日期</Label>
               <Input
                 id="startDate"
                 type="date"
                 value={semesterSettings.startDate}
-                onChange={(e) =>
+                onChange={(e) => {
+                  const newStartDate = e.target.value
+                  const totalWeeks = calculateTotalWeeks(newStartDate, semesterSettings.endDate)
                   setSemesterSettings({
                     ...semesterSettings,
-                    startDate: e.target.value,
+                    startDate: newStartDate,
+                    totalWeeks: totalWeeks,
                   })
-                }
+                }}
               />
             </div>
 
@@ -265,15 +317,22 @@ export function TeacherProfileContent({ user: propUser, onUserChange, lineUserId
                 id="endDate"
                 type="date"
                 value={semesterSettings.endDate}
-                onChange={(e) =>
+                onChange={(e) => {
+                  const newEndDate = e.target.value
+                  const totalWeeks = calculateTotalWeeks(semesterSettings.startDate, newEndDate)
                   setSemesterSettings({
                     ...semesterSettings,
-                    endDate: e.target.value,
+                    endDate: newEndDate,
+                    totalWeeks: totalWeeks,
                   })
-                }
+                }}
               />
             </div>
 
+            <div className="p-4 bg-muted rounded-lg">
+              <p className="text-sm text-muted-foreground">學期總週數：{semesterSettings.totalWeeks} 週</p>
+              <p className="text-xs text-muted-foreground mt-1">（根據開始和結束日期自動計算）</p>
+            </div>
             <div className="flex gap-2 pt-4">
               <Button onClick={handleSemesterSettingsSave} className="flex-1">
                 儲存設定
@@ -284,6 +343,51 @@ export function TeacherProfileContent({ user: propUser, onUserChange, lineUserId
             </div>
           </div>
         </Card>
+      </div>
+    )
+  }
+
+  if (showArchiveManagement) {
+    return (
+      <div>
+        <PageHeader title="封存管理" onBack={() => setShowArchiveManagement(false)} />
+
+        <div className="space-y-4">
+          {isLoadingArchived ? (
+            <Card className="p-6">
+              <p className="text-center text-muted-foreground">載入中...</p>
+            </Card>
+          ) : archivedCourses.length === 0 ? (
+            <Card className="p-6">
+              <p className="text-center text-muted-foreground">沒有封存的課程</p>
+            </Card>
+          ) : (
+            archivedCourses.map((course) => (
+              <Card key={course.id} className="p-4">
+                <div className="flex items-center justify-between">
+                  <div className="flex-1">
+                    <h3 className="font-semibold">{course.title}</h3>
+                    {course.instructor && (
+                      <p className="text-sm text-muted-foreground">{course.instructor}</p>
+                    )}
+                    {course.archived_at && (
+                      <p className="text-xs text-muted-foreground mt-1">
+                        封存於：{new Date(course.archived_at).toLocaleDateString('zh-TW')}
+                      </p>
+                    )}
+                  </div>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => handleUnarchive(course.id)}
+                  >
+                    解除封存
+                  </Button>
+                </div>
+              </Card>
+            ))
+          )}
+        </div>
       </div>
     )
   }
@@ -625,6 +729,22 @@ export function TeacherProfileContent({ user: propUser, onUserChange, lineUserId
             <div className="text-left">
               <p className="font-medium">通知設定</p>
               <p className="text-sm text-muted-foreground">管理提醒和通知偏好</p>
+            </div>
+            <ChevronRightIcon className="w-5 h-5 text-muted-foreground" />
+          </button>
+
+          <Separator />
+
+          <button
+            onClick={() => {
+              setShowArchiveManagement(true)
+              loadArchivedCourses()
+            }}
+            className="w-full flex items-center justify-between p-3 rounded-lg hover:bg-muted transition-colors"
+          >
+            <div className="text-left">
+              <p className="font-medium">封存管理</p>
+              <p className="text-sm text-muted-foreground">查看和管理已封存的課程</p>
             </div>
             <ChevronRightIcon className="w-5 h-5 text-muted-foreground" />
           </button>
