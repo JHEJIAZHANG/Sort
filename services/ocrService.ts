@@ -9,17 +9,21 @@ export class OCRService {
     success: boolean
     data?: OCRPreviewData
     error?: string
+    status?: number
+    details?: any
   }> {
     try {
       console.log("[OCR] 開始掃描圖片:", file.name)
-      
+
       const response = await ApiService.ocrSchedulePreview(file)
       const ok = !response.error
       if (!ok) {
         console.error("[OCR] 掃描失敗:", response.error)
         return {
           success: false,
-          error: response.error || 'OCR掃描失敗'
+          error: response.error || 'OCR掃描失敗',
+          status: (response as any).status,
+          details: (response as any).details
         }
       }
 
@@ -55,7 +59,7 @@ export class OCRService {
   }> {
     try {
       console.log("[OCR] 確認創建課程:", selectedCourses.length, "個")
-      
+
       const response = await ApiService.ocrScheduleConfirm(selectedCourses)
       const ok = !response.error
       if (!ok) {

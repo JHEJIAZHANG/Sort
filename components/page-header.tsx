@@ -9,25 +9,33 @@ interface PageHeaderProps {
   onBack?: () => void
 }
 
+import { AIUsageBadge } from "@/components/ai-usage-badge"
+
 export function PageHeader({ title, subtitle, action, onBack }: PageHeaderProps) {
   return (
     <header className="mb-6 lg:mb-12 animate-slide-down">
       <div className="flex items-start justify-between gap-3 sm:gap-4 mobile-spacing">
         <div className="flex items-center gap-2 sm:gap-3 min-w-0 flex-1">
           {onBack && (
-            <Button 
-              variant="ghost" 
-              size="sm" 
-              onClick={onBack} 
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={onBack}
               className="p-2 flex-shrink-0 hover-scale rounded-xl transition-all duration-300"
             >
               <ArrowLeftIcon className="w-5 h-5" />
             </Button>
           )}
           <div className="min-w-0 flex-1">
-            <h1 className="text-xl sm:text-2xl lg:text-3xl xl:text-4xl font-bold text-foreground text-balance leading-tight animate-fade-in">
-              {title}
-            </h1>
+            <div className="flex items-center gap-2 flex-wrap">
+              <h1 className="text-xl sm:text-2xl lg:text-3xl xl:text-4xl font-bold text-foreground text-balance leading-tight animate-fade-in">
+                {title}
+              </h1>
+              {/* 僅在手機版顯示，桌面版由 DesktopActionBar 處理 */}
+              <div className="lg:hidden">
+                <AIUsageBadge />
+              </div>
+            </div>
             {subtitle && (
               <p className="text-sm sm:text-base lg:text-lg text-muted-foreground mt-2 lg:mt-3 animate-slide-up">
                 {subtitle}

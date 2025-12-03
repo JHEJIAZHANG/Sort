@@ -121,8 +121,8 @@ const extractWebsiteInfo = (url: string) => {
     const domain = urlObj.hostname.replace("www.", "")
 
     // 檢查是否為文檔網站
-    if (domain.includes('docs.') || domain.includes('documentation') || 
-        url.includes('/docs/') || url.includes('/documentation/')) {
+    if (domain.includes('docs.') || domain.includes('documentation') ||
+      url.includes('/docs/') || url.includes('/documentation/')) {
       return {
         title: `文檔 - ${domain}`,
         description: "技術文檔和API參考",
@@ -201,6 +201,9 @@ const getTypeText = (type: LearningResource["type"]) => {
   }
 }
 
+import { UpgradePrompt } from "@/components/upgrade-prompt"
+import { useMembership } from "@/contexts/membership-context"
+
 export function LearningResources({ assignment, exam, course, searchQuery }: LearningResourcesProps) {
   const [customSearch, setCustomSearch] = useState("")
   const [showCustomSearch, setShowCustomSearch] = useState(false)
@@ -212,6 +215,19 @@ export function LearningResources({ assignment, exam, course, searchQuery }: Lea
   const [backendResources, setBackendResources] = useState<LearningResource[]>([])
   const [backendQuery, setBackendQuery] = useState<string>("")
   const [sortBy, setSortBy] = useState<"relevance" | "type" | "difficulty" | "source">("relevance")
+
+  // 會員功能狀態
+  const [showUpgradePrompt, setShowUpgradePrompt] = useState(false)
+  const [quotaDetails, setQuotaDetails] = useState<any>(null)
+
+  // 嘗試獲取 MembershipContext，如果沒有 Provider 則優雅降級
+  let membershipContext
+  try {
+    // eslint-disable-next-line
+    membershipContext = useMembership()
+  } catch (e) {
+    // 忽略錯誤，可能沒有 Provider
+  }
 
   // 生成搜索關鍵字
   const generateKeywords = (): string[] => {
@@ -261,7 +277,7 @@ export function LearningResources({ assignment, exam, course, searchQuery }: Lea
         } else if (keywords && keywords.length) {
           params.q = keywords.join(' ').slice(0, 300)
         }
-        
+
         let resp
         if (assignment?.id) {
           resp = await ApiService.getAssignmentRecommendations(assignment.id, params)
@@ -271,6 +287,17 @@ export function LearningResources({ assignment, exam, course, searchQuery }: Lea
           throw new Error("No assignment or exam ID provided")
         }
         if (resp.error) {
+          // 檢查是否為配額用完
+          if ((resp as any).status === 403) {
+            const errorData = (resp as any).data
+            if (errorData?.code === 'QUOTA_EXCEEDED') {
+              setQuotaDetails(errorData.details)
+              setShowUpgradePrompt(true)
+              setLoading(false)
+              return
+            }
+          }
+
           // 如果是 404 錯誤（作業不存在），顯示友善的錯誤訊息
           if (resp.error.includes('404') || resp.error.includes('does not exist') || resp.error.includes('No AssignmentV2 matches')) {
             throw new Error("此作業可能已被刪除或不存在，請重新整理頁面")
@@ -278,13 +305,13 @@ export function LearningResources({ assignment, exam, course, searchQuery }: Lea
           throw new Error(resp.error)
         }
         // 在瀏覽器 Console 顯示來源統計，確認是否有使用到 perplexity / youtube
-         const meta: any = (resp as any)?.data?.meta
+        const meta: any = (resp as any)?.data?.meta
         const data: RecResponse = resp.data as any
         if (aborted) return
         setBackendQuery(data.query)
         const mapped: LearningResource[] = (data.results || []).map((r) => {
           let type: LearningResource["type"] = "website"
-          
+
           // 根據來源和URL判斷類型
           if (r.source === "youtube" || r.url.includes('youtube.com') || r.url.includes('youtu.be')) {
             type = "youtube"
@@ -301,7 +328,7 @@ export function LearningResources({ assignment, exam, course, searchQuery }: Lea
           } else if (r.url.includes('/docs/') || r.url.includes('documentation')) {
             type = "documentation"
           }
-          
+
           return {
             title: r.title,
             url: r.url,
@@ -339,7 +366,7 @@ export function LearningResources({ assignment, exam, course, searchQuery }: Lea
     for (const r of customResources) {
       if (!merged.some((m) => m.url === r.url)) merged.push(r)
     }
-    
+
     // 排序邏輯
     return merged.sort((a, b) => {
       switch (sortBy) {
@@ -348,22 +375,22 @@ export function LearningResources({ assignment, exam, course, searchQuery }: Lea
           if (a.source === "ai" && b.source !== "ai") return -1
           if (b.source === "ai" && a.source !== "ai") return 1
           return (b.score || 0) - (a.score || 0)
-        
+
         case "type":
           return a.type.localeCompare(b.type)
-        
+
         case "difficulty":
           const difficultyOrder = { beginner: 1, intermediate: 2, advanced: 3 }
           const aDiff = difficultyOrder[a.difficulty as keyof typeof difficultyOrder] || 0
           const bDiff = difficultyOrder[b.difficulty as keyof typeof difficultyOrder] || 0
           return aDiff - bDiff
-        
+
         case "source":
           const sourceOrder = { ai: 1, manual: 2, keyword: 3 }
           const aSource = sourceOrder[a.source as keyof typeof sourceOrder] || 4
           const bSource = sourceOrder[b.source as keyof typeof sourceOrder] || 4
           return aSource - bSource
-        
+
         default:
           return 0
       }
@@ -412,25 +439,25 @@ export function LearningResources({ assignment, exam, course, searchQuery }: Lea
     }
 
     if (url && (url.startsWith("http://") || url.startsWith("https://"))) {
-       // Check if URL already exists
-       const existsInDefault = allResources.some((resource: LearningResource) => resource.url === url)
-       const existsInCustom = customResources.some((resource: LearningResource) => resource.url === url)
+      // Check if URL already exists
+      const existsInDefault = allResources.some((resource: LearningResource) => resource.url === url)
+      const existsInCustom = customResources.some((resource: LearningResource) => resource.url === url)
 
-       if (existsInDefault || existsInCustom) {
-         return // Don't add duplicate
-       }
+      if (existsInDefault || existsInCustom) {
+        return // Don't add duplicate
+      }
 
-       // Extract info based on URL type
-       const resourceInfo = extractResourceInfo(url)
-       const websiteInfo = extractWebsiteInfo(url)
+      // Extract info based on URL type
+      const resourceInfo = extractResourceInfo(url)
+      const websiteInfo = extractWebsiteInfo(url)
 
-       const newResource: LearningResource = {
-         url,
-         ...(resourceInfo || websiteInfo),
-       }
+      const newResource: LearningResource = {
+        url,
+        ...(resourceInfo || websiteInfo),
+      }
 
-       setCustomResources((prev) => [newResource, ...prev])
-     }
+      setCustomResources((prev) => [newResource, ...prev])
+    }
   }
 
   const removeCustomResource = (urlToRemove: string) => {
@@ -439,9 +466,8 @@ export function LearningResources({ assignment, exam, course, searchQuery }: Lea
 
   return (
     <Card
-      className={`p-3 sm:p-4 transition-all duration-200 ${
-        isDragOver ? "bg-primary/5 border-primary border-2 border-dashed shadow-lg" : "hover:shadow-md"
-      }`}
+      className={`p-3 sm:p-4 transition-all duration-200 ${isDragOver ? "bg-primary/5 border-primary border-2 border-dashed shadow-lg" : "hover:shadow-md"
+        }`}
       onDragOver={handleDragOver}
       onDragEnter={handleDragEnter}
       onDragLeave={handleDragLeave}
@@ -453,8 +479,8 @@ export function LearningResources({ assignment, exam, course, searchQuery }: Lea
           <span className="truncate">學習資源推薦</span>
         </h2>
         <div className="flex gap-2">
-          <select 
-            value={sortBy} 
+          <select
+            value={sortBy}
             onChange={(e) => setSortBy(e.target.value as any)}
             className="text-[10px] sm:text-xs px-1.5 sm:px-2 py-1 border rounded bg-background flex-1 sm:flex-none"
           >
@@ -463,9 +489,9 @@ export function LearningResources({ assignment, exam, course, searchQuery }: Lea
             <option value="difficulty">難度</option>
             <option value="source">來源</option>
           </select>
-          <Button 
-            variant="outline" 
-            size="sm" 
+          <Button
+            variant="outline"
+            size="sm"
             onClick={() => setShowCustomSearch(!showCustomSearch)}
             className="text-[10px] sm:text-xs h-8 px-2 sm:px-3 whitespace-nowrap"
           >
@@ -484,8 +510,8 @@ export function LearningResources({ assignment, exam, course, searchQuery }: Lea
               onKeyPress={(e) => e.key === "Enter" && handleCustomSearch()}
               className="text-xs sm:text-sm h-8 sm:h-9"
             />
-            <Button 
-              size="sm" 
+            <Button
+              size="sm"
               onClick={handleCustomSearch}
               className="text-xs h-8 px-3 whitespace-nowrap"
             >
@@ -536,15 +562,14 @@ export function LearningResources({ assignment, exam, course, searchQuery }: Lea
                     {getTypeText(resource.type)}
                   </span>
                   {resource.source && (
-                    <span className={`text-[10px] px-1.5 py-0.5 rounded-full whitespace-nowrap ${
-                      resource.source === "ai" 
-                        ? "bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-300" 
-                        : resource.source === "manual"
+                    <span className={`text-[10px] px-1.5 py-0.5 rounded-full whitespace-nowrap ${resource.source === "ai"
+                      ? "bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-300"
+                      : resource.source === "manual"
                         ? "bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-300"
                         : "bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-300"
-                    }`}>
-                      {resource.source === "ai" ? "🤖 AI" : 
-                       resource.source === "manual" ? "👤 手動" : "🔍"}
+                      }`}>
+                      {resource.source === "ai" ? "🤖 AI" :
+                        resource.source === "manual" ? "👤 手動" : "🔍"}
                     </span>
                   )}
                   <div className="ml-auto flex gap-1">
@@ -578,15 +603,14 @@ export function LearningResources({ assignment, exam, course, searchQuery }: Lea
                         {getTypeText(resource.type)}
                       </span>
                       {resource.source && (
-                        <span className={`text-xs px-2 py-1 rounded-full whitespace-nowrap ${
-                          resource.source === "ai" 
-                            ? "bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-300" 
-                            : resource.source === "manual"
+                        <span className={`text-xs px-2 py-1 rounded-full whitespace-nowrap ${resource.source === "ai"
+                          ? "bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-300"
+                          : resource.source === "manual"
                             ? "bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-300"
                             : "bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-300"
-                        }`}>
-                          {resource.source === "ai" ? "🤖 AI推薦" : 
-                           resource.source === "manual" ? "👤 手動新增" : "🔍 關鍵字"}
+                          }`}>
+                          {resource.source === "ai" ? "🤖 AI推薦" :
+                            resource.source === "manual" ? "👤 手動新增" : "🔍 關鍵字"}
                         </span>
                       )}
                     </div>
@@ -594,19 +618,18 @@ export function LearningResources({ assignment, exam, course, searchQuery }: Lea
                     <div className="flex-1 min-w-0">
                       <h3 className="font-medium text-base text-foreground break-words mb-1">{resource.title}</h3>
                       <p className="text-sm text-muted-foreground mb-2 line-clamp-2 break-words">{resource.description}</p>
-                      
+
                       {/* 額外資訊標籤 */}
                       <div className="flex flex-wrap gap-1 mb-1">
                         {resource.difficulty && (
-                          <span className={`text-xs px-2 py-1 rounded-full whitespace-nowrap ${
-                            resource.difficulty === "beginner" 
-                              ? "bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-300"
-                              : resource.difficulty === "intermediate"
+                          <span className={`text-xs px-2 py-1 rounded-full whitespace-nowrap ${resource.difficulty === "beginner"
+                            ? "bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-300"
+                            : resource.difficulty === "intermediate"
                               ? "bg-yellow-100 text-yellow-700 dark:bg-yellow-900 dark:text-yellow-300"
                               : "bg-red-100 text-red-700 dark:bg-red-900 dark:text-red-300"
-                          }`}>
-                            {resource.difficulty === "beginner" ? "🟢 初級" : 
-                             resource.difficulty === "intermediate" ? "🟡 中級" : "🔴 高級"}
+                            }`}>
+                            {resource.difficulty === "beginner" ? "🟢 初級" :
+                              resource.difficulty === "intermediate" ? "🟡 中級" : "🔴 高級"}
                           </span>
                         )}
                         {resource.duration && (
@@ -654,19 +677,18 @@ export function LearningResources({ assignment, exam, course, searchQuery }: Lea
                 <div className="flex-1 min-w-0 sm:hidden">
                   <h3 className="font-medium text-sm text-foreground break-words mb-1">{resource.title}</h3>
                   <p className="text-xs text-muted-foreground mb-2 line-clamp-2 break-words">{resource.description}</p>
-                  
+
                   {/* 額外資訊標籤（僅手機版顯示） */}
                   <div className="flex flex-wrap gap-1">
                     {resource.difficulty && (
-                      <span className={`text-[9px] px-1.5 py-0.5 rounded-full whitespace-nowrap ${
-                        resource.difficulty === "beginner" 
-                          ? "bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-300"
-                          : resource.difficulty === "intermediate"
+                      <span className={`text-[9px] px-1.5 py-0.5 rounded-full whitespace-nowrap ${resource.difficulty === "beginner"
+                        ? "bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-300"
+                        : resource.difficulty === "intermediate"
                           ? "bg-yellow-100 text-yellow-700 dark:bg-yellow-900 dark:text-yellow-300"
                           : "bg-red-100 text-red-700 dark:bg-red-900 dark:text-red-300"
-                      }`}>
-                        {resource.difficulty === "beginner" ? "🟢 初級" : 
-                         resource.difficulty === "intermediate" ? "🟡 中級" : "🔴 高級"}
+                        }`}>
+                        {resource.difficulty === "beginner" ? "🟢 初級" :
+                          resource.difficulty === "intermediate" ? "🟡 中級" : "🔴 高級"}
                       </span>
                     )}
                     {resource.duration && (
@@ -702,6 +724,12 @@ export function LearningResources({ assignment, exam, course, searchQuery }: Lea
           💡 提示：點擊「自訂搜索」可以搜索特定主題的學習資源，或直接拖曳網址到此區域新增
         </p>
       </div>
+
+      <UpgradePrompt
+        open={showUpgradePrompt}
+        onClose={() => setShowUpgradePrompt(false)}
+        quotaDetails={quotaDetails}
+      />
     </Card>
   )
 }
