@@ -294,13 +294,33 @@ export class ApiService {
     return { data: entity }
   }
 
-  static async updateCourse(courseId: string, data: any) {
+  static async updateCourse(courseId: string, data: any, isTeacher?: boolean) {
     if (!this.lineUserId) {
       this.bootstrapLineUserId()
     }
 
-    // 移除錯誤的教師 API 重定向，統一使用 web/courses/update/
-    // 該 API 已支援 schedules 更新，且適用於學生端 (CourseV2)
+    // 如果是教師端操作，且包含 schedules，使用教師專用 API
+    if (isTeacher && data.schedules) {
+      const payload: any = {
+        line_user_id: this.lineUserId,
+        course_id: courseId,
+        schedules: data.schedules
+      }
+
+      // 如果有教室資料，也一起發送
+      if (data.classroom !== undefined) {
+        payload.classroom = data.classroom
+      }
+
+      const resp = await this.request<any>('/teacher/courses/update-schedule/', {
+        method: 'PATCH',
+        body: JSON.stringify(payload)
+      }, 'other')  // 使用 /api 前綴
+
+      if (resp?.error) return resp
+      const entity = (resp as any)?.data?.data || (resp as any)?.data
+      return { data: entity }
+    }
 
     // 否則使用一般的課程更新 API（僅支援本地課程）
     const payload = { line_user_id: this.lineUserId, course_id: courseId, ...data }

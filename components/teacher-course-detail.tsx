@@ -742,7 +742,7 @@ export function TeacherCourseDetail({
     try {
       ApiService.setLineUserId(lineUserId)
       const backendData = transformFrontendCourse(updatedCourse, lineUserId)
-      const resp = await ApiService.updateCourse(courseId, backendData)
+      const resp = await ApiService.updateCourse(courseId, backendData, true)
       if ((resp as any)?.error) throw new Error((resp as any).error)
       if (onUpdated) onUpdated()
       await new Promise(resolve => setTimeout(resolve, 100))
