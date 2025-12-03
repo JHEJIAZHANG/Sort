@@ -201,9 +201,6 @@ const getTypeText = (type: LearningResource["type"]) => {
   }
 }
 
-import { UpgradePrompt } from "@/components/upgrade-prompt"
-import { useMembership } from "@/contexts/membership-context"
-
 export function LearningResources({ assignment, exam, course, searchQuery }: LearningResourcesProps) {
   const [customSearch, setCustomSearch] = useState("")
   const [showCustomSearch, setShowCustomSearch] = useState(false)
@@ -215,19 +212,6 @@ export function LearningResources({ assignment, exam, course, searchQuery }: Lea
   const [backendResources, setBackendResources] = useState<LearningResource[]>([])
   const [backendQuery, setBackendQuery] = useState<string>("")
   const [sortBy, setSortBy] = useState<"relevance" | "type" | "difficulty" | "source">("relevance")
-
-  // 會員功能狀態
-  const [showUpgradePrompt, setShowUpgradePrompt] = useState(false)
-  const [quotaDetails, setQuotaDetails] = useState<any>(null)
-
-  // 嘗試獲取 MembershipContext，如果沒有 Provider 則優雅降級
-  let membershipContext
-  try {
-    // eslint-disable-next-line
-    membershipContext = useMembership()
-  } catch (e) {
-    // 忽略錯誤，可能沒有 Provider
-  }
 
   // 生成搜索關鍵字
   const generateKeywords = (): string[] => {
@@ -287,17 +271,6 @@ export function LearningResources({ assignment, exam, course, searchQuery }: Lea
           throw new Error("No assignment or exam ID provided")
         }
         if (resp.error) {
-          // 檢查是否為配額用完
-          if ((resp as any).status === 403) {
-            const errorData = (resp as any).data
-            if (errorData?.code === 'QUOTA_EXCEEDED') {
-              setQuotaDetails(errorData.details)
-              setShowUpgradePrompt(true)
-              setLoading(false)
-              return
-            }
-          }
-
           // 如果是 404 錯誤（作業不存在），顯示友善的錯誤訊息
           if (resp.error.includes('404') || resp.error.includes('does not exist') || resp.error.includes('No AssignmentV2 matches')) {
             throw new Error("此作業可能已被刪除或不存在，請重新整理頁面")
@@ -563,10 +536,10 @@ export function LearningResources({ assignment, exam, course, searchQuery }: Lea
                   </span>
                   {resource.source && (
                     <span className={`text-[10px] px-1.5 py-0.5 rounded-full whitespace-nowrap ${resource.source === "ai"
-                      ? "bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-300"
-                      : resource.source === "manual"
-                        ? "bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-300"
-                        : "bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-300"
+                        ? "bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-300"
+                        : resource.source === "manual"
+                          ? "bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-300"
+                          : "bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-300"
                       }`}>
                       {resource.source === "ai" ? "🤖 AI" :
                         resource.source === "manual" ? "👤 手動" : "🔍"}
@@ -604,10 +577,10 @@ export function LearningResources({ assignment, exam, course, searchQuery }: Lea
                       </span>
                       {resource.source && (
                         <span className={`text-xs px-2 py-1 rounded-full whitespace-nowrap ${resource.source === "ai"
-                          ? "bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-300"
-                          : resource.source === "manual"
-                            ? "bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-300"
-                            : "bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-300"
+                            ? "bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-300"
+                            : resource.source === "manual"
+                              ? "bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-300"
+                              : "bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-300"
                           }`}>
                           {resource.source === "ai" ? "🤖 AI推薦" :
                             resource.source === "manual" ? "👤 手動新增" : "🔍 關鍵字"}
@@ -623,10 +596,10 @@ export function LearningResources({ assignment, exam, course, searchQuery }: Lea
                       <div className="flex flex-wrap gap-1 mb-1">
                         {resource.difficulty && (
                           <span className={`text-xs px-2 py-1 rounded-full whitespace-nowrap ${resource.difficulty === "beginner"
-                            ? "bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-300"
-                            : resource.difficulty === "intermediate"
-                              ? "bg-yellow-100 text-yellow-700 dark:bg-yellow-900 dark:text-yellow-300"
-                              : "bg-red-100 text-red-700 dark:bg-red-900 dark:text-red-300"
+                              ? "bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-300"
+                              : resource.difficulty === "intermediate"
+                                ? "bg-yellow-100 text-yellow-700 dark:bg-yellow-900 dark:text-yellow-300"
+                                : "bg-red-100 text-red-700 dark:bg-red-900 dark:text-red-300"
                             }`}>
                             {resource.difficulty === "beginner" ? "🟢 初級" :
                               resource.difficulty === "intermediate" ? "🟡 中級" : "🔴 高級"}
@@ -682,10 +655,10 @@ export function LearningResources({ assignment, exam, course, searchQuery }: Lea
                   <div className="flex flex-wrap gap-1">
                     {resource.difficulty && (
                       <span className={`text-[9px] px-1.5 py-0.5 rounded-full whitespace-nowrap ${resource.difficulty === "beginner"
-                        ? "bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-300"
-                        : resource.difficulty === "intermediate"
-                          ? "bg-yellow-100 text-yellow-700 dark:bg-yellow-900 dark:text-yellow-300"
-                          : "bg-red-100 text-red-700 dark:bg-red-900 dark:text-red-300"
+                          ? "bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-300"
+                          : resource.difficulty === "intermediate"
+                            ? "bg-yellow-100 text-yellow-700 dark:bg-yellow-900 dark:text-yellow-300"
+                            : "bg-red-100 text-red-700 dark:bg-red-900 dark:text-red-300"
                         }`}>
                         {resource.difficulty === "beginner" ? "🟢 初級" :
                           resource.difficulty === "intermediate" ? "🟡 中級" : "🔴 高級"}
@@ -724,12 +697,6 @@ export function LearningResources({ assignment, exam, course, searchQuery }: Lea
           💡 提示：點擊「自訂搜索」可以搜索特定主題的學習資源，或直接拖曳網址到此區域新增
         </p>
       </div>
-
-      <UpgradePrompt
-        open={showUpgradePrompt}
-        onClose={() => setShowUpgradePrompt(false)}
-        quotaDetails={quotaDetails}
-      />
     </Card>
   )
 }

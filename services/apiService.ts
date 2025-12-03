@@ -164,21 +164,7 @@ export class ApiService {
       })
 
       if (!response.ok) {
-        // 如果是 403 錯誤，嘗試解析錯誤訊息，以便前端處理配額限制
-        if (response.status === 403) {
-          try {
-            const errorData = await response.json()
-            return {
-              error: errorData.error || `HTTP ${response.status}`,
-              data: errorData, // 將詳細錯誤資訊傳回
-              details: errorData.details, // 傳回配額詳情
-              status: 403 // 顯式傳回狀態碼
-            } as any
-          } catch {
-            return { error: `HTTP ${response.status}`, status: 403 } as any
-          }
-        }
-        return { error: `HTTP ${response.status}`, status: response.status } as any
+        return { error: `HTTP ${response.status}` }
       }
 
       // 處理 204 或空 body

@@ -9,8 +9,6 @@ export class OCRService {
     success: boolean
     data?: OCRPreviewData
     error?: string
-    status?: number
-    details?: any
   }> {
     try {
       console.log("[OCR] 開始掃描圖片:", file.name)
@@ -21,9 +19,7 @@ export class OCRService {
         console.error("[OCR] 掃描失敗:", response.error)
         return {
           success: false,
-          error: response.error || 'OCR掃描失敗',
-          status: (response as any).status,
-          details: (response as any).details
+          error: response.error || 'OCR掃描失敗'
         }
       }
 

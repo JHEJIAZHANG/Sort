@@ -14,8 +14,6 @@ export const metadata: Metadata = {
   generator: 'NTUB',
 }
 
-import { MembershipProvider } from '@/contexts/membership-context'
-
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -26,11 +24,9 @@ export default function RootLayout({
       <body className={`font-sans ${GeistSans.variable} ${GeistMono.variable}`}>
         <ToastProvider>
           <OCRProvider>
-            <MembershipProvider>
-              <AuthGate>
-                {children}
-              </AuthGate>
-            </MembershipProvider>
+            <AuthGate>
+              {children}
+            </AuthGate>
             <GlobalOCRModal />
           </OCRProvider>
         </ToastProvider>

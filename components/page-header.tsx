@@ -9,8 +9,6 @@ interface PageHeaderProps {
   onBack?: () => void
 }
 
-import { AIUsageBadge } from "@/components/ai-usage-badge"
-
 export function PageHeader({ title, subtitle, action, onBack }: PageHeaderProps) {
   return (
     <header className="mb-6 lg:mb-12 animate-slide-down">
@@ -27,15 +25,9 @@ export function PageHeader({ title, subtitle, action, onBack }: PageHeaderProps)
             </Button>
           )}
           <div className="min-w-0 flex-1">
-            <div className="flex items-center gap-2 flex-wrap">
-              <h1 className="text-xl sm:text-2xl lg:text-3xl xl:text-4xl font-bold text-foreground text-balance leading-tight animate-fade-in">
-                {title}
-              </h1>
-              {/* 僅在手機版顯示，桌面版由 DesktopActionBar 處理 */}
-              <div className="lg:hidden">
-                <AIUsageBadge />
-              </div>
-            </div>
+            <h1 className="text-xl sm:text-2xl lg:text-3xl xl:text-4xl font-bold text-foreground text-balance leading-tight animate-fade-in">
+              {title}
+            </h1>
             {subtitle && (
               <p className="text-sm sm:text-base lg:text-lg text-muted-foreground mt-2 lg:mt-3 animate-slide-up">
                 {subtitle}
