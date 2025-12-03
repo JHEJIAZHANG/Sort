@@ -274,18 +274,35 @@ export function ProfileContent({ user: propUser, onUserChange, lineUserId }: Pro
 
 
 
+  // 自動計算學期總週數
+  const calculateTotalWeeks = (startDate: string, endDate: string): number => {
+    if (!startDate || !endDate) return 18
+    const start = new Date(startDate)
+    const end = new Date(endDate)
+    const diffTime = Math.abs(end.getTime() - start.getTime())
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24))
+    return Math.ceil(diffDays / 7)
+  }
+
   const handleSemesterSettingsSave = async () => {
     if (!lineUserId) {
       alert("無法儲存設定：未找到用戶 ID")
       return
     }
 
+    // 自動計算總週數
+    const totalWeeks = calculateTotalWeeks(semesterSettings.startDate, semesterSettings.endDate)
+
     try {
       await ApiService.updateSemesterSettings(lineUserId, {
-        totalWeeks: semesterSettings.totalWeeks,
+        totalWeeks: totalWeeks,
         startDate: semesterSettings.startDate,
         endDate: semesterSettings.endDate,
       })
+
+      // 更新本地狀態
+      setSemesterSettings(prev => ({ ...prev, totalWeeks }))
+
       setShowSemesterSettings(false)
       alert("學期設定已儲存！")
     } catch (error) {
@@ -293,8 +310,6 @@ export function ProfileContent({ user: propUser, onUserChange, lineUserId }: Pro
       alert("儲存設定失敗，請稍後再試")
     }
   }
-
-
 
   if (showLoginForm) {
     return (
@@ -347,34 +362,20 @@ export function ProfileContent({ user: propUser, onUserChange, lineUserId }: Pro
         <Card className="p-6">
           <div className="space-y-4">
             <div>
-              <Label htmlFor="totalWeeks">學期總週數</Label>
-              <Input
-                id="totalWeeks"
-                type="number"
-                value={semesterSettings.totalWeeks}
-                onChange={(e) =>
-                  setSemesterSettings({
-                    ...semesterSettings,
-                    totalWeeks: Number.parseInt(e.target.value) || 18,
-                  })
-                }
-                min="1"
-                max="52"
-              />
-            </div>
-
-            <div>
               <Label htmlFor="startDate">學期開始日期</Label>
               <Input
                 id="startDate"
                 type="date"
                 value={semesterSettings.startDate}
-                onChange={(e) =>
+                onChange={(e) => {
+                  const newStartDate = e.target.value
+                  const totalWeeks = calculateTotalWeeks(newStartDate, semesterSettings.endDate)
                   setSemesterSettings({
                     ...semesterSettings,
-                    startDate: e.target.value,
+                    startDate: newStartDate,
+                    totalWeeks: totalWeeks,
                   })
-                }
+                }}
               />
             </div>
 
@@ -384,13 +385,21 @@ export function ProfileContent({ user: propUser, onUserChange, lineUserId }: Pro
                 id="endDate"
                 type="date"
                 value={semesterSettings.endDate}
-                onChange={(e) =>
+                onChange={(e) => {
+                  const newEndDate = e.target.value
+                  const totalWeeks = calculateTotalWeeks(semesterSettings.startDate, newEndDate)
                   setSemesterSettings({
                     ...semesterSettings,
-                    endDate: e.target.value,
+                    endDate: newEndDate,
+                    totalWeeks: totalWeeks,
                   })
-                }
+                }}
               />
+            </div>
+
+            <div className="p-4 bg-muted rounded-lg">
+              <p className="text-sm text-muted-foreground">學期總週數：{semesterSettings.totalWeeks} 週</p>
+              <p className="text-xs text-muted-foreground mt-1">（根據開始和結束日期自動計算）</p>
             </div>
 
             <div className="flex gap-2 pt-4">
