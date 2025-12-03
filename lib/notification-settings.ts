@@ -39,14 +39,14 @@ export const mapNotificationSettingsFromApi = (data: any): UserNotificationSetti
 })
 
 export const mapNotificationSettingsToApi = (settings: UserNotificationSettings) => ({
-  assignment_reminders: settings.assignmentReminders,
-  exam_reminders: settings.examReminders,
-  assignment_reminder_timing: settings.assignmentReminderTiming,
-  exam_reminder_timing: settings.examReminderTiming,
-  line_notifications: settings.lineNotifications,
-  browser_notifications: settings.browserNotifications,
-  do_not_disturb_enabled: settings.doNotDisturbEnabled,
-  do_not_disturb_start: settings.doNotDisturbStart || null,
-  do_not_disturb_end: settings.doNotDisturbEnd || null,
+  assignmentReminders: settings.assignmentReminders,
+  examReminders: settings.examReminders,
+  assignmentReminderTiming: settings.assignmentReminderTiming,
+  examReminderTiming: settings.examReminderTiming,
+  lineNotifications: settings.lineNotifications,
+  browserNotifications: settings.browserNotifications,
+  doNotDisturbEnabled: settings.doNotDisturbEnabled,
+  doNotDisturbStart: settings.doNotDisturbStart || null,
+  doNotDisturbEnd: settings.doNotDisturbEnd || null,
 })
 
