@@ -270,13 +270,8 @@ export class ApiService {
   static async getCourses(lineUserId: string) {
     this.setLineUserId(lineUserId)
     const effective = this.ensureLineUserId()
-    const params = new URLSearchParams({
-      line_user_id: effective,
-      include_classroom: 'true',
-      _ts: String(Date.now())
-    })
-    const qs = `?${params.toString()}`
-    const resp = await this.request<any>(`/integrated/courses/${qs}`)
+    const qs = `?${new URLSearchParams({ line_user_id: effective, _ts: String(Date.now()) }).toString()}`
+    const resp = await this.request<any>(`/web/courses/list/${qs}`)
     if (resp?.error) return resp
     const courses = resp?.data?.data?.courses ?? []
     return { data: courses }
@@ -1219,7 +1214,7 @@ export class ApiService {
 
   // ==================== 教師專用 API ====================
 
-  // 教師課程列表（改用 /api/v2/courses/ 端點，預設排除封存）
+  // 教師課程列表（使用 /api/courses/ 端點獲取教師課程）
   static async getTeacherCourses(lineUserId: string) {
     console.log('========== getTeacherCourses 開始 ==========')
     console.log('📥 輸入參數 lineUserId:', lineUserId)
@@ -1228,16 +1223,17 @@ export class ApiService {
     const effective = this.ensureLineUserId()
     console.log('✅ 有效的 lineUserId:', effective)
 
-    console.log('🔗 完整 API URL: /api/v2/courses/')
+    const qs = `?${new URLSearchParams({ line_user_id: effective, _ts: String(Date.now()) }).toString()}`
+    console.log('🔗 完整 API URL: /api/courses/' + qs)
+
+    // 使用 'other' apiPrefix 來調用 /api/courses/ 端點
     console.log('⏳ 開始發送請求...')
-    const resp = await this.request<any>(`/courses/`)
+    const resp = await this.request<any>(`/courses/${qs}`, {}, 'other')
 
     console.log('📦 API 原始回應:')
-    console.log('  - resp.data 類型:', typeof resp?.data)
+    console.log('  - resp.data:', resp?.data)
     console.log('  - resp.error:', resp?.error)
-    if (Array.isArray(resp?.data) && resp.data.length > 0) {
-      console.log('📋 第一個課程範例:', JSON.stringify(resp.data[0], null, 2))
-    }
+    console.log('  - 完整回應:', JSON.stringify(resp, null, 2))
 
     if (resp?.error) {
       console.error('❌ getTeacherCourses: API 錯誤:', resp.error)
@@ -1245,8 +1241,23 @@ export class ApiService {
       return resp
     }
 
-    const courses = Array.isArray(resp?.data) ? resp.data : []
+    // 後端返回格式：{ courses: [...], total_courses: N }
+    console.log('🔍 解析回應數據:')
+    console.log('  - resp.data 類型:', typeof resp?.data)
+    console.log('  - resp.data.courses 存在?', !!resp?.data?.courses)
+    console.log('  - resp.data.courses 類型:', typeof resp?.data?.courses)
+    console.log('  - resp.data.courses 是陣列?', Array.isArray(resp?.data?.courses))
+
+    const courses = resp?.data?.courses ?? []
     console.log('✅ 最終課程數量:', courses.length)
+
+    if (courses.length > 0) {
+      console.log('📋 第一個課程範例:', JSON.stringify(courses[0], null, 2))
+    } else {
+      console.warn('⚠️ 課程列表為空')
+      console.warn('⚠️ 完整 resp.data:', resp?.data)
+    }
+
     console.log('========== getTeacherCourses 結束 ==========')
     return { data: courses }
   }

@@ -162,7 +162,7 @@ export default function TeacherPage() {
   }
 
   const classroomCourses = useMemo(() => {
-    return courses
+    return courses.filter((c) => c.source === "google_classroom")
   }, [courses])
 
   const filteredCourses = useMemo(() => {
@@ -365,7 +365,7 @@ export default function TeacherPage() {
                   </div>
                 </div>
 
-                {classroomCourses.length > 0 && (
+                {courses.length > 0 && (
                   <CourseFilters
                     searchQuery={courseSearchQuery}
                     onSearchChange={setCourseSearchQuery}
@@ -377,7 +377,7 @@ export default function TeacherPage() {
                 )}
 
                 <div className="space-y-4">
-                  {classroomCourses.length > 0 ? (
+                  {courses.length > 0 ? (
                     courseView === "list" ? (
                       filteredCourses.length > 0 ? (
                         <div className="space-y-2 sm:space-y-3">

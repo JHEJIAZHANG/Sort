@@ -333,20 +333,6 @@ export function CourseForm({ onSubmit, onCancel, onBulkImport, initialCourse, ex
           </div>
 
           <div>
-            <Label htmlFor="courseCode" className="font-bold">
-              課程代碼
-            </Label>
-            <Input
-              id="courseCode"
-              value={formData.courseCode}
-              onChange={(e) =>
-                setFormData((prev) => ({ ...prev, courseCode: e.target.value }))
-              }
-              placeholder="輸入課程代碼 (例如: CS101)"
-            />
-          </div>
-
-          <div>
             <Label htmlFor="instructor" className="font-bold">
               授課教師
             </Label>
@@ -357,20 +343,6 @@ export function CourseForm({ onSubmit, onCancel, onBulkImport, initialCourse, ex
                 setFormData((prev) => ({ ...prev, instructor: e.target.value }))
               }
               placeholder="輸入教師姓名"
-            />
-          </div>
-
-          <div>
-            <Label htmlFor="classroom" className="font-bold">
-              教室
-            </Label>
-            <Input
-              id="classroom"
-              value={formData.classroom}
-              onChange={(e) =>
-                setFormData((prev) => ({ ...prev, classroom: e.target.value }))
-              }
-              placeholder="輸入教室位置"
             />
           </div>
 

@@ -1602,17 +1602,7 @@ export function TeacherCourseDetail({
                         {/* 手機版和電腦版都垂直排列 */}
                         <div className="flex flex-col gap-1 text-sm text-muted-foreground mt-1">
                           <span className="whitespace-nowrap">
-                            成員數: {
-                              group.member_count === -1 ? (
-                                <span className="text-orange-600" title="需要 LINE 已驗證帳號或高級帳號才能查看">
-                                  無權限查看 ⚠️
-                                </span>
-                              ) : group.member_count === null || group.member_count === 0 ? (
-                                <span className="text-gray-500">未知</span>
-                              ) : (
-                                group.member_count
-                              )
-                            }
+                            成員數: {group.member_count}
                           </span>
                           <span className="whitespace-nowrap">綁定時間: {group.bound_at}</span>
                         </div>
@@ -1625,14 +1615,6 @@ export function TeacherCourseDetail({
                           onClick={() => handleSendWeeklyReportToGroup(group.id)}
                         >
                           {sendingReport ? '發送中...' : '發送週報'}
-                        </Button>
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          disabled={refreshingGroupId === group.id}
-                          onClick={() => handleRefreshGroupMembers(group.id)}
-                        >
-                          {refreshingGroupId === group.id ? '同步中...' : '重新同步人數'}
                         </Button>
                         <AlertDialog>
                           <AlertDialogTrigger asChild>
