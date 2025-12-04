@@ -301,10 +301,7 @@ export function TeacherAssignmentManagement({
 
   const resolveAssignmentState = (assignment: Assignment): "active" | "ended" => {
     const normalizedStatus = (assignment.status || "").toLowerCase()
-    if (normalizedStatus === "completed" || normalizedStatus === "returned") {
-      return "ended"
-    }
-    if (normalizedStatus === "overdue") {
+    if (normalizedStatus === "completed" || normalizedStatus === "returned" || normalizedStatus === "overdue") {
       return "ended"
     }
     if (normalizedStatus === "pending") {
@@ -388,16 +385,13 @@ export function TeacherAssignmentManagement({
     if (state === "active") {
       return ClockIcon
     }
-    return assignment.status?.toLowerCase() === "overdue" ? ExclamationIcon : CheckIcon
+    return CheckIcon
   }
 
   const getStatusColor = (assignment: Assignment) => {
     const state = resolveAssignmentState(assignment)
     if (state === "active") {
       return "text-orange-600"
-    }
-    if ((assignment.status || "").toLowerCase() === "overdue") {
-      return "text-red-600"
     }
     return "text-gray-600"
   }

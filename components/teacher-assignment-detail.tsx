@@ -485,9 +485,6 @@ export function TeacherAssignmentDetail({
         <div className="flex items-center justify-between mb-4">
           <h3 className="text-lg font-semibold">學生繳交狀態</h3>
           <div className="flex items-center gap-2">
-            <Button variant="default" size="sm" disabled={reminding || selectedIds.size === 0} onClick={handleRemindSelected}>
-              提醒選定學生
-            </Button>
             <AlertDialog>
               <AlertDialogTrigger asChild>
                 <Button variant="outline" size="sm" disabled={reminding}>
@@ -564,12 +561,12 @@ export function TeacherAssignmentDetail({
                       </span>
                     )}
                     {getStatusBadge(student.status)}
-                    <Checkbox
+                    {/* <Checkbox
                       checked={selectedIds.has(student.id)}
                       disabled={student.submitted}
                       onCheckedChange={(c) => toggleSelect(student.id, Boolean(c))}
                       aria-label="選擇提醒"
-                    />
+                    /> */}
                   </div>
                 </div>
 
@@ -596,12 +593,12 @@ export function TeacherAssignmentDetail({
                       </div>
                     )}
                     {getStatusBadge(student.status)}
-                    <Checkbox
+                    {/* <Checkbox
                       checked={selectedIds.has(student.id)}
                       disabled={student.submitted}
                       onCheckedChange={(c) => toggleSelect(student.id, Boolean(c))}
                       aria-label="選擇提醒"
-                    />
+                    /> */}
                   </div>
                 </div>
               </div>
