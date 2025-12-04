@@ -413,18 +413,6 @@ export function OCRPreviewModal({ isOpen, onClose, data, onConfirm, loading = fa
                             className="h-9 sm:h-10 text-sm"
                           />
                         </div>
-                        <div className="space-y-1.5 sm:space-y-2 sm:col-span-2">
-                          <Label htmlFor={`course-location-${courseIndex}`} className="text-xs sm:text-sm font-medium">
-                            上課地點
-                          </Label>
-                          <Input
-                            id={`course-location-${courseIndex}`}
-                            value={course.classroom}
-                            onChange={(e) => handleCourseEdit(courseIndex, 'classroom', e.target.value)}
-                            placeholder="請輸入上課地點"
-                            className="h-9 sm:h-10 text-sm"
-                          />
-                        </div>
                       </div>
                     </div>
 
@@ -456,13 +444,7 @@ export function OCRPreviewModal({ isOpen, onClose, data, onConfirm, loading = fa
                                   ))}
                                 </select>
                               </div>
-                              <div className="space-y-1">
-                                <Label className="text-[10px] sm:text-xs font-medium text-muted-foreground uppercase tracking-wide">教室</Label>
-                                <div className="font-medium text-xs sm:text-sm flex items-center gap-1 h-9 px-2 bg-background rounded border">
-                                  <MapPin className="h-3 w-3 text-muted-foreground flex-shrink-0" />
-                                  <span className="truncate">{course.classroom || '未指定'}</span>
-                                </div>
-                              </div>
+                              
                               <div className="space-y-1">
                                 <Label className="text-[10px] sm:text-xs font-medium text-muted-foreground uppercase tracking-wide">開始</Label>
                                 <Input

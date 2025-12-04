@@ -774,11 +774,6 @@ export function TeacherCourseDetail({
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold text-foreground">{course?.name || courseStats.name}</h1>
-          {course?.courseCode && (
-            <p className="text-sm text-muted-foreground font-mono mt-1">
-              課程代碼: {course.courseCode}
-            </p>
-          )}
           <div className="mt-2 flex items-center gap-2">
             <span className="text-sm px-3 py-1 rounded-full bg-gray-100 text-gray-700 border border-gray-200">課程</span>
             {course?.source === "google_classroom" && (
@@ -820,13 +815,7 @@ export function TeacherCourseDetail({
           )}
         </div>
 
-        {/* 教室 */}
-        <div className="flex items-center gap-2">
-          <span className="text-sm">📍</span>
-          <span className={`text-sm ${course.classroom ? 'text-muted-foreground' : 'text-gray-400 italic'}`}>
-            {course.classroom || "尚未設定教室"}
-          </span>
-        </div>
+        
       </div>
 
       <div className="mb-6">

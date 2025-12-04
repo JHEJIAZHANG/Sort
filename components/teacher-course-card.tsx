@@ -72,11 +72,6 @@ export function TeacherCourseCard({
               </Badge>
             )}
           </div>
-          {course.courseCode && (
-            <p className="text-sm text-muted-foreground font-mono">
-              課程代碼: {course.courseCode}
-            </p>
-          )}
         </div>
 
         {/* 統計資訊 */}
@@ -105,12 +100,7 @@ export function TeacherCourseCard({
           </div>
         )}
 
-        {/* 教室位置 */}
-        {course.classroom && (
-          <div className="flex items-center gap-2 mb-4">
-            <span className="text-sm text-muted-foreground text-balance">📍 {course.classroom}</span>
-          </div>
-        )}
+        
 
         {/* 作業統計 */}
         {(course.submissionRate !== undefined || course.pendingAssignments !== undefined) && (
