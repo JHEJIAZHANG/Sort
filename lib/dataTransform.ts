@@ -101,10 +101,9 @@ export function transformBackendAssignment(backendAssignment: any): Assignment {
   console.log('🔄 transformBackendAssignment 輸入:', backendAssignment)
 
   // 教師API返回的格式：{ id, title, course_info: { id, name }, due_date, state, ... }
-  const courseField = backendAssignment.course || backendAssignment.course_info || backendAssignment.course_id
-  const courseExtracted = extractCourseIdAndName(courseField)
-  const courseId = courseExtracted.id
-  const courseName = backendAssignment.course_name || courseExtracted.name || ''
+  const courseInfo = backendAssignment.course_info || {}
+  const courseId = String(courseInfo.id || backendAssignment.course_id || backendAssignment.course || '')
+  const courseName = courseInfo.name || backendAssignment.course_name || ''
 
   // 處理狀態：支援 Google Classroom 繳交狀態和一般狀態
   let status: "pending" | "completed" | "overdue" = "pending"
@@ -133,18 +132,11 @@ export function transformBackendAssignment(backendAssignment: any): Assignment {
   // 處理到期日期
   let dueDate = new Date()
   if (backendAssignment.due_datetime) {
-    const raw = String(backendAssignment.due_datetime)
-    const normalized = raw.includes('T') ? raw : raw.replace(' ', 'T')
-    dueDate = new Date(normalized)
+    dueDate = new Date(backendAssignment.due_datetime)
   } else if (backendAssignment.due_date) {
     // due_date 可能是 "2025-10-15 23:59" 格式
-    const raw = String(backendAssignment.due_date)
-    const normalized = raw.includes('T') ? raw : raw.replace(' ', 'T')
-    dueDate = new Date(normalized)
+    dueDate = new Date(backendAssignment.due_date.replace(' ', 'T'))
   }
-  
-  console.log('  - dueDate 原始值:', backendAssignment.due_datetime || backendAssignment.due_date)
-  console.log('  - dueDate 轉換後:', dueDate, '是否為有效日期:', dueDate instanceof Date && !isNaN(dueDate.getTime()))
 
   // 處理創建和更新時間
   const createdAt = backendAssignment.creation_time ? new Date(backendAssignment.creation_time) :
@@ -242,44 +234,21 @@ export function transformFrontendNote(frontendNote: Note, lineUserId: string) {
 
 // 後端 Exam 轉換為前端 Exam
 export function transformBackendExam(backendExam: any): Exam {
-  console.log('🔄 transformBackendExam 輸入:', backendExam)
-  
   const course = extractCourseIdAndName(backendExam.course)
-  let examDate: Date = new Date()
-  if (backendExam.exam_date) {
-    const raw = String(backendExam.exam_date)
-    const normalized = raw.includes('T') ? raw : raw.replace(' ', 'T')
-    examDate = new Date(normalized)
-  }
-  
-  // 處理提醒時間
-  const notificationTime = backendExam.notification_time ? new Date(backendExam.notification_time) : undefined
-  
-  // 處理創建和更新時間
-  const createdAt = backendExam.created_at ? new Date(backendExam.created_at) : new Date()
-  const updatedAt = backendExam.updated_at ? new Date(backendExam.updated_at) : new Date()
-  
-  const result: Exam = {
+  return {
     id: backendExam.id.toString(),
     title: backendExam.title,
     description: backendExam.description || '',
-    examDate: examDate,
+    examDate: backendExam.exam_date ? new Date(backendExam.exam_date) : new Date(),
     courseId: course.id,
     courseName: backendExam.course_name || course.name || '',
     location: backendExam.location || '',
     duration: backendExam.duration || 120,
     type: backendExam.type || 'other',
     status: backendExam.status || 'pending',
-    customReminderTiming: backendExam.custom_reminder_timing || 'default',
-    notificationTime: notificationTime,
-    createdAt: createdAt,
-    updatedAt: updatedAt
+    createdAt: new Date(backendExam.created_at),
+    updatedAt: new Date(backendExam.updated_at)
   }
-  
-  console.log('✅ transformBackendExam 輸出:', result)
-  console.log('  - examDate:', result.examDate, '是否為有效日期:', result.examDate instanceof Date && !isNaN(result.examDate.getTime()))
-  
-  return result
 }
 
 // 前端 Exam 轉換為後端格式

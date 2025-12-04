@@ -62,18 +62,20 @@ export function useCourses(lineUserId: string) {
 
         const transformedCourses = Array.isArray(coursesData) ? coursesData.map(transformBackendCourse) : []
         const transformedAssignments = Array.isArray(assignmentsData) ? assignmentsData.map(transformBackendAssignment) : []
+        const uuidRegex = /^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-5][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$/
+        const filteredAssignments = transformedAssignments.filter(a => uuidRegex.test(a.id))
         const transformedNotes = Array.isArray(notesData) ? notesData.map(transformBackendNote) : []
         const transformedExams = Array.isArray(examsData) ? examsData.map(transformBackendExam) : []
 
         console.log('✅ 資料載入成功:')
         console.log('  - 課程數量:', transformedCourses.length)
-        console.log('  - 作業數量:', transformedAssignments.length)
+        console.log('  - 作業數量:', filteredAssignments.length)
         console.log('  - 筆記數量:', transformedNotes.length)
         console.log('  - 考試數量:', transformedExams.length)
         console.log('================================================')
 
         setCourses(transformedCourses)
-        setAssignments(transformedAssignments)
+        setAssignments(filteredAssignments)
         setNotes(transformedNotes)
         setExams(transformedExams)
       } catch (err) {
@@ -172,18 +174,7 @@ export function useCourses(lineUserId: string) {
   }
 
   const getAssignmentsByCourse = (courseId: string) => {
-    console.log('🔍 getAssignmentsByCourse 被調用:')
-    console.log('  - 查詢 courseId:', courseId, 'type:', typeof courseId)
-    console.log('  - 總作業數:', assignments.length)
-    const filtered = assignments.filter((assignment) => {
-      const match = assignment.courseId === courseId
-      if (!match && assignments.length > 0) {
-        console.log('  - 作業不匹配:', assignment.courseId, 'vs', courseId)
-      }
-      return match
-    })
-    console.log('  - 過濾後作業數:', filtered.length)
-    return filtered
+    return assignments.filter((assignment) => assignment.courseId === courseId)
   }
 
   const getNotesByCourse = (courseId: string) => {
@@ -191,18 +182,7 @@ export function useCourses(lineUserId: string) {
   }
 
   const getExamsByCourse = (courseId: string) => {
-    console.log('🔍 getExamsByCourse 被調用:')
-    console.log('  - 查詢 courseId:', courseId, 'type:', typeof courseId)
-    console.log('  - 總考試數:', exams.length)
-    const filtered = exams.filter((exam) => {
-      const match = exam.courseId === courseId
-      if (!match && exams.length > 0) {
-        console.log('  - 考試不匹配:', exam.courseId, 'vs', courseId)
-      }
-      return match
-    })
-    console.log('  - 過濾後考試數:', filtered.length)
-    return filtered
+    return exams.filter((exam) => exam.courseId === courseId)
   }
 
   const getAssignmentById = (id: string) => {

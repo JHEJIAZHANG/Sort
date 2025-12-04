@@ -72,7 +72,9 @@ export function useTeacherCourses(lineUserId: string) {
 
         console.log('🔄 開始轉換數據...')
         const transformedCourses = Array.isArray(coursesData) 
-          ? coursesData.map((c, i) => {
+          ? coursesData
+              .filter((c: any) => !c.is_archived) // 過濾掉已封存的課程
+              .map((c, i) => {
               console.log(`  轉換課程 ${i + 1}:`, c)
               return transformBackendCourse(c)
             }) 
