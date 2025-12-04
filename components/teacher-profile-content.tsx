@@ -9,9 +9,8 @@ import { Switch } from "@/components/ui/switch"
 import { Separator } from "@/components/ui/separator"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { UserIcon, SettingsIcon, GoogleIcon, ChevronRightIcon, LineIcon } from "@/components/icons"
+import { UserIcon, SettingsIcon, ChevronRightIcon, LineIcon } from "@/components/icons"
 import { PageHeader } from "@/components/page-header"
-import { GoogleSyncAll } from "@/components/google-sync-all"
 import { ApiService } from "@/services/apiService"
 import {
   DEFAULT_NOTIFICATION_SETTINGS,
@@ -680,23 +679,6 @@ export function TeacherProfileContent({ user: propUser, onUserChange, lineUserId
         <Link href="/teacher/me/subscriptions" className="block">
           <Button variant="outline" className="w-full rounded-xl">查看付款紀錄</Button>
         </Link>
-      </Card>
-
-      {/* Google 同步功能 */}
-      <Card className="p-6 rounded-2xl">
-        <h3 className="font-semibold mb-4 flex items-center gap-2">
-          <GoogleIcon className="w-5 h-5" />
-          Google 同步
-        </h3>
-
-        <div className="space-y-4">
-          <p className="text-sm text-muted-foreground">
-            一鍵同步 Google Classroom 課程、作業和 Google Calendar 事件
-          </p>
-          <GoogleSyncAll onSync={() => {
-            window.location.reload()
-          }} />
-        </div>
       </Card>
 
       {/* 設定選項 */}
