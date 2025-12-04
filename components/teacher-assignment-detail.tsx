@@ -64,14 +64,14 @@ export function TeacherAssignmentDetail({
       try {
         setLoading(true)
         setError(null)
-        console.log('[TeacherAssignmentDetail] 開始載入作業繳交狀態...', { 
-          courseId: assignment.courseId, 
-          assignmentId: assignment.id 
+        console.log('[TeacherAssignmentDetail] 開始載入作業繳交狀態...', {
+          courseId: assignment.courseId,
+          assignmentId: assignment.id
         })
-        
+
         const resp = await ApiService.getAssignmentSubmissionStatus(assignment.courseId, assignment.id)
         console.log('[TeacherAssignmentDetail] API 完整回應:', JSON.stringify(resp, null, 2))
-        
+
         // 檢查是否有錯誤
         if (resp?.error) {
           console.error('[TeacherAssignmentDetail] API 錯誤:', resp.error)
@@ -81,7 +81,7 @@ export function TeacherAssignmentDetail({
           }
           return
         }
-        
+
         const data = (resp as any)?.data || {}
         console.log('[TeacherAssignmentDetail] ===== 開始診斷 =====')
         console.log('[TeacherAssignmentDetail] data 的所有鍵:', Object.keys(data))
@@ -89,52 +89,52 @@ export function TeacherAssignmentDetail({
         console.log('[TeacherAssignmentDetail] data.results 存在?', !!data.results)
         console.log('[TeacherAssignmentDetail] data.results 類型:', typeof data.results)
         console.log('[TeacherAssignmentDetail] data.results 是陣列?', Array.isArray(data.results))
-        
+
         // 檢查是否有 results 欄位
         if (!data.results) {
           console.error('[TeacherAssignmentDetail] ❌ data 中沒有 results 欄位！')
           console.error('[TeacherAssignmentDetail] data 的內容:', data)
         }
-        
+
         const results = Array.isArray(data?.results) ? data.results : []
         console.log('[TeacherAssignmentDetail] results 陣列長度:', results.length)
         console.log('[TeacherAssignmentDetail] results 完整內容:', JSON.stringify(results, null, 2))
-        
+
         const first = results[0] || null
         console.log('[TeacherAssignmentDetail] ===== 第一筆結果分析 =====')
         console.log('[TeacherAssignmentDetail] first result:', JSON.stringify(first, null, 2))
         console.log('[TeacherAssignmentDetail] first result 的所有鍵:', first ? Object.keys(first) : [])
-        
+
         if (first) {
           console.log('[TeacherAssignmentDetail] first.role:', first.role)
           console.log('[TeacherAssignmentDetail] first.statistics:', first.statistics)
           console.log('[TeacherAssignmentDetail] first.unsubmitted_students:', first.unsubmitted_students)
           console.log('[TeacherAssignmentDetail] first.submitted_students:', first.submitted_students)
         }
-        
+
         if (first) {
           console.log('[TeacherAssignmentDetail] 找到第一筆結果')
           console.log('[TeacherAssignmentDetail] 角色:', first.role)
           console.log('[TeacherAssignmentDetail] 完整的 first 物件:', first)
-          
+
           // 檢查是否有必要的欄位
           const hasStatistics = first.statistics && typeof first.statistics === 'object'
           const hasUnsubmittedStudents = Array.isArray(first.unsubmitted_students)
           const hasSubmittedStudents = Array.isArray(first.submitted_students)
-          
+
           console.log('[TeacherAssignmentDetail] 欄位檢查:', {
             hasStatistics,
             hasUnsubmittedStudents,
             hasSubmittedStudents,
             role: first.role
           })
-          
+
           // 如果沒有這些欄位，可能是學生角色的回應
           if (!hasStatistics && !hasUnsubmittedStudents && !hasSubmittedStudents) {
             console.error('[TeacherAssignmentDetail] ❌ 缺少教師角色的必要欄位！')
             console.error('[TeacherAssignmentDetail] 這可能是學生角色的回應，或後端無法驗證您的教師身份')
             console.error('[TeacherAssignmentDetail] 完整的 first 物件:', first)
-            
+
             // 檢查是否有錯誤訊息
             if (first.error) {
               console.error('[TeacherAssignmentDetail] 後端錯誤:', first.error, first.message)
@@ -144,28 +144,28 @@ export function TeacherAssignmentDetail({
               }
               return
             }
-            
+
             console.error('[TeacherAssignmentDetail] 請檢查後端日誌中的 [SubmissionStatus] 相關訊息')
             console.error('[TeacherAssignmentDetail] 特別注意「最終驗證結果」和「驗證方法」')
-            
+
             if (isMounted) {
               setError('無法載入作業繳交狀態：後端無法驗證您的教師身份。請檢查後端日誌以獲取更多資訊。')
               setLoading(false)
             }
             return
           }
-          
+
           // 不管角色是什麼，都嘗試解析資料（可能後端沒有正確設定 role）
           const s = first.statistics || {}
           const unSub = Array.isArray(first.unsubmitted_students) ? first.unsubmitted_students : []
           const sub = Array.isArray(first.submitted_students) ? first.submitted_students : []
-          
+
           console.log('[TeacherAssignmentDetail] 統計資料:', JSON.stringify(s, null, 2))
           console.log('[TeacherAssignmentDetail] 未繳交學生數:', unSub.length)
           console.log('[TeacherAssignmentDetail] 未繳交學生:', JSON.stringify(unSub, null, 2))
           console.log('[TeacherAssignmentDetail] 已繳交學生數:', sub.length)
           console.log('[TeacherAssignmentDetail] 已繳交學生:', JSON.stringify(sub, null, 2))
-          
+
           // 合併已繳交和未繳交學生
           const allStudents: StudentSubmission[] = [
             ...sub.map((u: any, idx: number) => ({
@@ -184,10 +184,10 @@ export function TeacherAssignmentDetail({
               status: "missing" as "submitted" | "late" | "missing"
             }))
           ]
-          
+
           console.log('[TeacherAssignmentDetail] 合併後的學生列表 (長度):', allStudents.length)
           console.log('[TeacherAssignmentDetail] 合併後的學生列表:', JSON.stringify(allStudents, null, 2))
-          
+
           if (isMounted) {
             const newStats = {
               total: Number(s.total_students ?? 0),
@@ -197,7 +197,7 @@ export function TeacherAssignmentDetail({
             }
             console.log('[TeacherAssignmentDetail] 設定統計資料:', newStats)
             console.log('[TeacherAssignmentDetail] 設定學生列表，數量:', allStudents.length)
-            
+
             setStats(newStats)
             setStudents(allStudents)
           }
@@ -240,13 +240,13 @@ export function TeacherAssignmentDetail({
       const matchesSearch = searchQuery === "" ||
         student.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
         student.email.toLowerCase().includes(searchQuery.toLowerCase())
-      
+
       // 狀態過濾
-      const matchesStatus = 
+      const matchesStatus =
         statusFilter === "all" ||
         (statusFilter === "submitted" && student.submitted) ||
         (statusFilter === "missing" && !student.submitted)
-      
+
       return matchesSearch && matchesStatus
     })
   }, [students, searchQuery, statusFilter])
@@ -285,18 +285,18 @@ export function TeacherAssignmentDetail({
     try {
       setReminding(true)
       console.log('[Reminder] 開始提醒所有未繳交學生...')
-      
+
       // 先取得未繳交學生名單（以避免後端沒有預設計算時無人被提醒）
       const statusResp = await ApiService.getAssignmentSubmissionStatus(assignment.courseId, assignment.id)
       console.log('[Reminder] 查詢狀態回應:', statusResp)
-      
+
       const statusData = (statusResp as any)?.data || {}
       const results = Array.isArray(statusData?.results) ? statusData.results : []
       const first = results[0] || null
       const unsubmitted = Array.isArray(first?.unsubmitted_students) ? first.unsubmitted_students : []
-      
+
       console.log('[Reminder] 未繳交學生:', unsubmitted)
-      
+
       const targetIds: string[] = unsubmitted
         .map((u: any) => String(u?.userId ?? ''))
         .filter((id: string) => id && id.trim().length > 0)
@@ -428,9 +428,9 @@ export function TeacherAssignmentDetail({
             </div>
           </div>
           <div className="w-full bg-gray-200 rounded-full h-3 overflow-hidden">
-            <div 
+            <div
               className="h-full rounded-full transition-all duration-1000 ease-out"
-              style={{ 
+              style={{
                 width: `${submissionRate}%`,
                 backgroundColor: "#ff9100"
               }}
@@ -441,44 +441,38 @@ export function TeacherAssignmentDetail({
         {/* 統計卡片 */}
         <div className="grid grid-cols-2 gap-4">
           {/* 已繳交卡片 */}
-          <Card 
-            className={`p-4 cursor-pointer transition-all ${
-              statusFilter === "submitted" 
-                ? "border-2 border-green-500 shadow-md" 
+          <Card
+            className={`p-4 cursor-pointer transition-all ${statusFilter === "submitted"
+                ? "border-2 border-green-500 shadow-md"
                 : "hover:shadow-md"
-            }`}
+              }`}
             onClick={() => setStatusFilter(statusFilter === "submitted" ? "all" : "submitted")}
           >
             <div className="flex items-center space-x-2">
-              <CheckIcon className={`w-5 h-5 transition-colors ${
-                statusFilter === "submitted" ? "text-green-600" : "text-gray-400"
-              }`} />
+              <CheckIcon className={`w-5 h-5 transition-colors ${statusFilter === "submitted" ? "text-green-600" : "text-gray-400"
+                }`} />
               <div>
-                <p className={`text-sm transition-colors ${
-                  statusFilter === "submitted" ? "text-green-600 font-medium" : "text-muted-foreground"
-                }`}>已繳交</p>
+                <p className={`text-sm transition-colors ${statusFilter === "submitted" ? "text-green-600 font-medium" : "text-muted-foreground"
+                  }`}>已繳交</p>
                 <p className="text-2xl font-bold text-gray-900">{submittedCount}</p>
               </div>
             </div>
           </Card>
 
           {/* 未繳交卡片 */}
-          <Card 
-            className={`p-4 cursor-pointer transition-all ${
-              statusFilter === "missing" 
-                ? "border-2 border-red-500 shadow-md" 
+          <Card
+            className={`p-4 cursor-pointer transition-all ${statusFilter === "missing"
+                ? "border-2 border-red-500 shadow-md"
                 : "hover:shadow-md"
-            }`}
+              }`}
             onClick={() => setStatusFilter(statusFilter === "missing" ? "all" : "missing")}
           >
             <div className="flex items-center space-x-2">
-              <ExclamationIcon className={`w-5 h-5 transition-colors ${
-                statusFilter === "missing" ? "text-red-600" : "text-gray-400"
-              }`} />
+              <ExclamationIcon className={`w-5 h-5 transition-colors ${statusFilter === "missing" ? "text-red-600" : "text-gray-400"
+                }`} />
               <div>
-                <p className={`text-sm transition-colors ${
-                  statusFilter === "missing" ? "text-red-600 font-medium" : "text-muted-foreground"
-                }`}>未繳交</p>
+                <p className={`text-sm transition-colors ${statusFilter === "missing" ? "text-red-600 font-medium" : "text-muted-foreground"
+                  }`}>未繳交</p>
                 <p className="text-2xl font-bold text-gray-900">{totalCount - submittedCount}</p>
               </div>
             </div>
@@ -562,22 +556,21 @@ export function TeacherAssignmentDetail({
                       )}
                     </div>
                   </div>
-                <div className={`flex flex-col items-end gap-2 flex-shrink-0 ${
-                    student.grade === undefined ? 'justify-center' : ''
-                  }`}>
-                  {student.grade !== undefined && (
-                    <span className="text-sm font-medium text-primary whitespace-nowrap">
-                      {student.grade}分
-                    </span>
-                  )}
-                  {getStatusBadge(student.status)}
-                  <Checkbox
-                    checked={selectedIds.has(student.id)}
-                    disabled={student.submitted}
-                    onCheckedChange={(c) => toggleSelect(student.id, Boolean(c))}
-                    aria-label="選擇提醒"
-                  />
-                </div>
+                  <div className={`flex flex-col items-end gap-2 flex-shrink-0 ${student.grade === undefined ? 'justify-center' : ''
+                    }`}>
+                    {student.grade !== undefined && (
+                      <span className="text-sm font-medium text-primary whitespace-nowrap">
+                        {student.grade}分
+                      </span>
+                    )}
+                    {getStatusBadge(student.status)}
+                    <Checkbox
+                      checked={selectedIds.has(student.id)}
+                      disabled={student.submitted}
+                      onCheckedChange={(c) => toggleSelect(student.id, Boolean(c))}
+                      aria-label="選擇提醒"
+                    />
+                  </div>
                 </div>
 
                 {/* 電腦版佈局 */}

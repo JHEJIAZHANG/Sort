@@ -102,9 +102,38 @@ const DAYS = ["週一", "週二", "週三", "週四", "週五", "週六", "週�
 // 依據後端狀態與截止時間，統一判斷作業狀態，避免過期仍顯示進行中
 const resolveAssignmentState = (assignment: AssignmentWithMetrics): 'active' | 'overdue' | 'completed' => {
   if (assignment.status === 'completed') return 'completed'
+  // 如果後端已經標記為 overdue，直接使用
   if (assignment.status === 'overdue') return 'overdue'
-  const now = Date.now()
-  const dueTs = new Date(assignment.due_date).getTime()
+
+  // 否則根據截止日期判斷
+  const now = new Date().getTime()
+  // 嘗試解析日期，處理可能的格式問題
+  let dueTs = 0
+  try {
+    const d = new Date(assignment.due_date)
+    if (!isNaN(d.getTime())) {
+      dueTs = d.getTime()
+    } else {
+      // 嘗試處理 "YYYY-MM-DD HH:mm" 格式
+      const parts = assignment.due_date.split(/[- :]/)
+      if (parts.length >= 3) {
+        const d2 = new Date(
+          parseInt(parts[0]),
+          parseInt(parts[1]) - 1,
+          parseInt(parts[2]),
+          parts.length > 3 ? parseInt(parts[3]) : 23,
+          parts.length > 4 ? parseInt(parts[4]) : 59
+        )
+        dueTs = d2.getTime()
+      }
+    }
+  } catch (e) {
+    console.warn('Date parse error:', assignment.due_date)
+  }
+
+  // 如果無法解析日期，預設為進行中
+  if (dueTs === 0) return 'active'
+
   return dueTs >= now ? 'active' : 'overdue'
 }
 
@@ -1492,36 +1521,6 @@ export function TeacherCourseDetail({
                             <span className="whitespace-nowrap">截止: {assignment.due_date}</span>
                             <span className="whitespace-nowrap">繳交率: {assignment.submission_rate}% ({assignment.submitted_count}/{assignment.total_count})</span>
                           </div>
-                        </div>
-                        <div className="flex gap-2 flex-shrink-0">
-                          <AlertDialog>
-                            <AlertDialogTrigger asChild>
-                              <Button
-                                variant="outline"
-                                size="sm"
-                                disabled={remindingAssignment === assignment.id}
-                                onClick={(e) => e.stopPropagation()}
-                              >
-                                <BellIcon className="w-4 h-4 mr-1" />
-                                <span className="hidden sm:inline">提醒未繳</span>
-                                <span className="sm:hidden">提醒</span>
-                              </Button>
-                            </AlertDialogTrigger>
-                            <AlertDialogContent>
-                              <AlertDialogHeader>
-                                <AlertDialogTitle>提醒未繳交學生</AlertDialogTitle>
-                                <AlertDialogDescription>
-                                  將透過 LINE 推播和 Email 提醒尚未繳交 「 {assignment.title} 」 的學生。
-                                </AlertDialogDescription>
-                              </AlertDialogHeader>
-                              <AlertDialogFooter>
-                                <AlertDialogCancel>取消</AlertDialogCancel>
-                                <AlertDialogAction onClick={() => handleRemindUnsubmitted(assignment.id)}>
-                                  確認提醒
-                                </AlertDialogAction>
-                              </AlertDialogFooter>
-                            </AlertDialogContent>
-                          </AlertDialog>
                         </div>
                       </div>
                     </div>
