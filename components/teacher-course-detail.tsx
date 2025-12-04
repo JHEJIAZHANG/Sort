@@ -143,7 +143,7 @@ export function TeacherCourseDetail({
   const [showDeleteDialog, setShowDeleteDialog] = useState(false)
   const [deleting, setDeleting] = useState(false)
   const [isEditing, setIsEditing] = useState(false)
-  const [refreshingGroupId, setRefreshingGroupId] = useState<string | null>(null)
+
 
   const { getCourseById, getAssignmentsByCourse } = useTeacherCourses(lineUserId)
   const course = getCourseById(courseId)
@@ -448,36 +448,7 @@ export function TeacherCourseDetail({
 
 
 
-  const handleRefreshGroupMembers = async (groupId: string) => {
-    try {
-      setRefreshingGroupId(groupId)
-      const resp = await ApiService.refreshLineGroupMembers(courseId, groupId)
-      const updatedCountRaw =
-        (resp as any)?.data?.member_count ??
-        (resp as any)?.data?.data?.member_count ??
-        (resp as any)?.data?.members ??
-        (resp as any)?.data?.memberCount ??
-        (resp as any)?.data?.members_count ??
-        (resp as any)?.data?.membersCount ??
-        (resp as any)?.data?.member_ids ??
-        (resp as any)?.data?.memberIds
-      if (updatedCountRaw !== undefined && updatedCountRaw !== null) {
-        const updatedCount = parseMemberCount(updatedCountRaw)
-        setBoundGroups((prev) =>
-          prev.map((group) =>
-            group.id === groupId ? { ...group, member_count: updatedCount } : group
-          )
-        )
-      } else {
-        await loadCourseStats()
-      }
-    } catch (error) {
-      console.error('重新同步群組成員數失敗:', error)
-      alert('重新同步群組成員數失敗，請稍後再試')
-    } finally {
-      setRefreshingGroupId(null)
-    }
-  }
+
 
   useEffect(() => {
     if (courseId && lineUserId && course) {
@@ -815,7 +786,7 @@ export function TeacherCourseDetail({
           )}
         </div>
 
-        
+
       </div>
 
       <div className="mb-6">

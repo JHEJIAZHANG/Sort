@@ -251,12 +251,7 @@ export function CourseDetail({ courseId, lineUserId, showBackButton = true, onOp
               </p>
             </div>
 
-            <div className="space-y-1">
-              <span className="text-sm font-medium">教室</span>
-              <p className={`text-sm ${course.classroom ? 'text-muted-foreground' : 'text-gray-400 italic'}`}>
-                {course.classroom || "未設定"}
-              </p>
-            </div>
+
           </div>
 
           <div className="space-y-4">
@@ -317,9 +312,9 @@ export function CourseDetail({ courseId, lineUserId, showBackButton = true, onOp
                     >
                       {dueDate
                         ? dueDate.toLocaleTimeString("zh-TW", {
-                            hour: "2-digit",
-                            minute: "2-digit",
-                          })
+                          hour: "2-digit",
+                          minute: "2-digit",
+                        })
                         : ""}
                     </p>
                   </div>
@@ -365,9 +360,9 @@ export function CourseDetail({ courseId, lineUserId, showBackButton = true, onOp
                     <p className="text-xs text-muted-foreground">
                       {examDate
                         ? examDate.toLocaleTimeString("zh-TW", {
-                            hour: "2-digit",
-                            minute: "2-digit",
-                          })
+                          hour: "2-digit",
+                          minute: "2-digit",
+                        })
                         : ""}
                     </p>
                   </div>

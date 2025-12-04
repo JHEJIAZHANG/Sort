@@ -78,9 +78,7 @@ export function CourseForm({ onSubmit, onCancel, onBulkImport, initialCourse, ex
   const isEditMode = Boolean(initialCourse)
   const [formData, setFormData] = useState({
     name: initialCourse?.name || "",
-    courseCode: initialCourse?.courseCode || "", // 添加課程代碼欄位
     instructor: initialCourse?.instructor || "",
-    classroom: initialCourse?.classroom || "",
     color: PRIMARY_COLOR,
     schedule: initialCourse?.schedule || [{ dayOfWeek: 0, startTime: "08:00", endTime: "10:00" }],
   })
@@ -227,9 +225,7 @@ export function CourseForm({ onSubmit, onCancel, onBulkImport, initialCourse, ex
       setIsSubmitting(true)
       await onSubmit({
         name: formData.name.trim(),
-        courseCode: formData.courseCode.trim() || undefined, // 包含課程代碼在提交數據中
         instructor: formData.instructor.trim() || undefined,
-        classroom: formData.classroom.trim() || undefined,
         color: formData.color,
         schedule: formData.schedule,
       })
