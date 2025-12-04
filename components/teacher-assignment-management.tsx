@@ -304,11 +304,19 @@ export function TeacherAssignmentManagement({
     if (normalizedStatus === "completed" || normalizedStatus === "returned" || normalizedStatus === "overdue") {
       return "ended"
     }
+    
+    // 檢查日期是否過期
+    const now = new Date()
+    const dueDate = new Date(assignment.dueDate)
+    if (!isNaN(dueDate.getTime()) && dueDate.getTime() < now.getTime()) {
+      return "ended"
+    }
+
     if (normalizedStatus === "pending") {
       return "active"
     }
-    const now = new Date()
-    return new Date(assignment.dueDate).getTime() >= now.getTime() ? "active" : "ended"
+    
+    return "active"
   }
 
   // 篩選和排序作業
